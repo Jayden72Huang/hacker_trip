@@ -6,21 +6,39 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "build:cf": "npx @opennextjs/cloudflare build",
+    "preview:cf": "npm run build:cf && npx wrangler dev",
+    "deploy:cf": "npm run build:cf && npx wrangler deploy"
   },
   "dependencies": {
-    "next": "16.1.4",
+    "@auth/drizzle-adapter": "^1.11.1",
+    "@aws-sdk/client-s3": "^3.981.0",
+    "@aws-sdk/s3-request-presigner": "^3.981.0",
+    "@neondatabase/serverless": "^1.0.2",
+    "cheerio": "^1.2.0",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.45.1",
+    "lucide-react": "^0.454.0",
+    "next": "^16.1.6",
+    "next-auth": "^5.0.0-beta.30",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "resend": "^6.9.1",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.16.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.8",
     "eslint": "^9",
     "eslint-config-next": "16.1.4",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.62.0"
   }
 }
