@@ -2,7 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import type { DraftHackathon } from '@/scrapers/core/types';
+import type { InfoCard } from '@/data/hackathons';
 import { PosterDesigner } from './PosterDesigner';
+import { Trophy, Users, Globe, MapPin, Clock, Ticket, Gift, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
+
+// 图标选项
+const iconOptions = [
+  { value: 'trophy', label: '奖杯', Icon: Trophy },
+  { value: 'users', label: '团队', Icon: Users },
+  { value: 'globe', label: '主题', Icon: Globe },
+  { value: 'mapPin', label: '地点', Icon: MapPin },
+  { value: 'clock', label: '时间', Icon: Clock },
+  { value: 'ticket', label: '门票', Icon: Ticket },
+  { value: 'gift', label: '礼物', Icon: Gift },
+] as const;
 
 interface HackathonEditorProps {
   draft: DraftHackathon;
@@ -202,6 +215,19 @@ export function HackathonEditor({ draft, onSave, onPublish, onDelete, publishing
                 className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-sm"
               />
             </div>
+
+            <div>
+              <label className="block font-space-mono text-xs text-gray-500 mb-2">
+                主办方（显示在地址旁边）
+              </label>
+              <input
+                type="text"
+                value={(formData as any).hostOrganizer || ''}
+                onChange={(e) => handleChange('hostOrganizer', e.target.value)}
+                placeholder="例：北京市科技创新委员会"
+                className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-sm"
+              />
+            </div>
           </div>
 
           <div>
@@ -219,6 +245,120 @@ export function HackathonEditor({ draft, onSave, onPublish, onDelete, publishing
 
         <div className="space-y-3">
           <PosterDesigner hackathon={formData} />
+        </div>
+
+        {/* Info Cards - 可自定义的信息卡片 */}
+        <div className="space-y-3">
+          <h4 className="font-space-mono text-sm font-medium text-gray-400">
+            信息卡片（4个固定坑位，可自定义标题和内容）
+          </h4>
+          <p className="font-space-mono text-xs text-gray-500">
+            这4个卡片将显示在活动详情页，点击可展开查看详细内容
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {(((formData as any).infoCards as InfoCard[]) || [
+              { icon: 'trophy', label: '奖金池', value: formData.prizePool || '', expandedContent: '' },
+              { icon: 'users', label: '团队数', value: formData.teams || '', expandedContent: '' },
+              { icon: 'globe', label: '主题', value: formData.theme || '', expandedContent: '' },
+              { icon: 'mapPin', label: '举办地点', value: formData.venue || '', expandedContent: '' },
+            ]).map((card: InfoCard, index: number) => {
+              const IconOption = iconOptions.find(opt => opt.value === card.icon);
+              const IconComponent = IconOption?.Icon || Trophy;
+
+              return (
+                <div key={index} className="p-4 rounded-lg bg-white/5 border border-white/10 space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <GripVertical size={16} className="text-gray-500" />
+                    <span className="font-space-mono text-xs text-gray-400">卡片 {index + 1}</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-space-mono text-xs text-gray-500 mb-1">图标</label>
+                      <select
+                        value={card.icon}
+                        onChange={(e) => {
+                          const newCards = [...(((formData as any).infoCards as InfoCard[]) || [
+                            { icon: 'trophy', label: '奖金池', value: formData.prizePool || '', expandedContent: '' },
+                            { icon: 'users', label: '团队数', value: formData.teams || '', expandedContent: '' },
+                            { icon: 'globe', label: '主题', value: formData.theme || '', expandedContent: '' },
+                            { icon: 'mapPin', label: '举办地点', value: formData.venue || '', expandedContent: '' },
+                          ])];
+                          newCards[index] = { ...card, icon: e.target.value as InfoCard['icon'] };
+                          handleChange('infoCards', newCards);
+                        }}
+                        className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-xs"
+                      >
+                        {iconOptions.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block font-space-mono text-xs text-gray-500 mb-1">小标题</label>
+                      <input
+                        type="text"
+                        value={card.label}
+                        onChange={(e) => {
+                          const newCards = [...(((formData as any).infoCards as InfoCard[]) || [
+                            { icon: 'trophy', label: '奖金池', value: formData.prizePool || '', expandedContent: '' },
+                            { icon: 'users', label: '团队数', value: formData.teams || '', expandedContent: '' },
+                            { icon: 'globe', label: '主题', value: formData.theme || '', expandedContent: '' },
+                            { icon: 'mapPin', label: '举办地点', value: formData.venue || '', expandedContent: '' },
+                          ])];
+                          newCards[index] = { ...card, label: e.target.value };
+                          handleChange('infoCards', newCards);
+                        }}
+                        placeholder="例：奖金池"
+                        className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-space-mono text-xs text-gray-500 mb-1">显示内容</label>
+                    <input
+                      type="text"
+                      value={card.value}
+                      onChange={(e) => {
+                        const newCards = [...(((formData as any).infoCards as InfoCard[]) || [
+                          { icon: 'trophy', label: '奖金池', value: formData.prizePool || '', expandedContent: '' },
+                          { icon: 'users', label: '团队数', value: formData.teams || '', expandedContent: '' },
+                          { icon: 'globe', label: '主题', value: formData.theme || '', expandedContent: '' },
+                          { icon: 'mapPin', label: '举办地点', value: formData.venue || '', expandedContent: '' },
+                        ])];
+                        newCards[index] = { ...card, value: e.target.value };
+                        handleChange('infoCards', newCards);
+                      }}
+                      placeholder="例：¥500,000"
+                      className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-space-mono text-xs text-gray-500 mb-1">展开详情（点击卡片后显示）</label>
+                    <textarea
+                      value={card.expandedContent || ''}
+                      onChange={(e) => {
+                        const newCards = [...(((formData as any).infoCards as InfoCard[]) || [
+                          { icon: 'trophy', label: '奖金池', value: formData.prizePool || '', expandedContent: '' },
+                          { icon: 'users', label: '团队数', value: formData.teams || '', expandedContent: '' },
+                          { icon: 'globe', label: '主题', value: formData.theme || '', expandedContent: '' },
+                          { icon: 'mapPin', label: '举办地点', value: formData.venue || '', expandedContent: '' },
+                        ])];
+                        newCards[index] = { ...card, expandedContent: e.target.value };
+                        handleChange('infoCards', newCards);
+                      }}
+                      rows={3}
+                      placeholder="点击展开后显示的详细内容...&#10;例：一等奖 ¥200,000 × 1名&#10;二等奖 ¥100,000 × 2名"
+                      className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-xs resize-none"
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Tracks */}

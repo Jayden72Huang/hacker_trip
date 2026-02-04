@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react';
 import {
   ArrowUpRight,
   Bell,
+  Building2,
   CalendarDays,
   ChevronDown,
   ChevronUp,
@@ -19,7 +20,7 @@ import {
   Trophy,
   Users,
 } from 'lucide-react';
-import type { Hackathon } from '@/data/hackathons';
+import type { Hackathon, InfoCard } from '@/data/hackathons';
 
 type Props = {
   hackathon: Hackathon;
@@ -117,13 +118,43 @@ function parseDateDisplay(dateRange: string): string {
   return `2026.${monthNum}.${startDay.padStart(2, '0')}`;
 }
 
+// 图标映射
+const iconMap = {
+  trophy: Trophy,
+  users: Users,
+  globe: Globe2,
+  mapPin: MapPin,
+  clock: Clock3,
+  ticket: Ticket,
+  gift: Gift,
+};
+
+// 默认信息卡片
+function getDefaultInfoCards(hackathon: Hackathon): InfoCard[] {
+  return [
+    { icon: 'trophy', label: '奖金池', value: hackathon.prizePool },
+    { icon: 'users', label: '团队数', value: hackathon.teams },
+    { icon: 'globe', label: '主题', value: hackathon.theme },
+    { icon: 'mapPin', label: '举办地点', value: hackathon.venue },
+  ];
+}
+
 export function EventDetail({ hackathon }: Props) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [expandedCardIndex, setExpandedCardIndex] = useState<number | null>(null);
   const statusInfo = getStatusInfo(hackathon);
   const formattedDate = parseDateDisplay(hackathon.dateRange);
 
   const organizers = hackathon.organizers || [];
   const sponsors = hackathon.sponsors || [];
+
+  // 使用自定义卡片或默认卡片
+  const infoCards = hackathon.infoCards || getDefaultInfoCards(hackathon);
+
+  // 切换卡片展开状态
+  const toggleCard = (index: number) => {
+    setExpandedCardIndex(expandedCardIndex === index ? null : index);
+  };
 
   return (
     <section className="relative pb-20">
@@ -134,26 +165,33 @@ export function EventDetail({ hackathon }: Props) {
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 mb-12">
               <div className="flex-1 space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className={`px-3 py-1 rounded-full ${statusInfo.color} border border-white/5 flex items-center gap-2`}>
-                    <div className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotColor} ${statusInfo.pulse ? 'animate-pulse' : ''}`} />
-                    <span className={`font-mono text-[10px] uppercase tracking-wider ${statusInfo.textColor}`}>{statusInfo.text}</span>
+                  <div className={`px-4 py-1.5 rounded-full ${statusInfo.color} border border-white/5 flex items-center gap-2`}>
+                    <div className={`w-2 h-2 rounded-full ${statusInfo.dotColor} ${statusInfo.pulse ? 'animate-pulse' : ''}`} />
+                    <span className={`font-mono text-sm uppercase tracking-wider ${statusInfo.textColor}`}>{statusInfo.text}</span>
                   </div>
-                  <span className="font-mono text-[10px] text-gray-500 uppercase tracking-widest">{hackathon.format}</span>
+                  <span className="font-mono text-sm text-gray-500 uppercase tracking-widest">{hackathon.format}</span>
                 </div>
 
                 <h3 className="font-sans text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight">
                   {hackathon.name}
                 </h3>
 
-                <div className="flex items-center gap-6 text-gray-400 font-mono text-xs tracking-wide">
+                <div className="flex flex-wrap items-center gap-4 md:gap-6 text-gray-400 font-mono text-base tracking-wide">
                   <div className="flex items-center gap-2">
-                    <CalendarDays size={14} className="text-indigo-400/60" />
+                    <CalendarDays size={18} className="text-indigo-400/60" />
                     {formattedDate}
                   </div>
                   <div className="flex items-center gap-2">
-                    <MapPin size={14} className="text-indigo-400/60" />
+                    <MapPin size={18} className="text-indigo-400/60" />
                     {hackathon.city}
                   </div>
+                  {hackathon.hostOrganizer && (
+                    <div className="flex items-center gap-2">
+                      <Building2 size={18} className="text-indigo-400/60" />
+                      <span className="text-gray-300">主办方：</span>
+                      <span className="text-white">{hackathon.hostOrganizer}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -164,7 +202,7 @@ export function EventDetail({ hackathon }: Props) {
                   rel="noreferrer"
                   className="w-full py-3 px-6 rounded-xl bg-white text-black font-sans text-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors"
                 >
-                  Register Now
+                  立即报名
                   <ArrowUpRight size={16} />
                 </a>
                 <a
@@ -173,35 +211,76 @@ export function EventDetail({ hackathon }: Props) {
                   rel="noreferrer"
                   className="w-full py-3 px-6 rounded-xl bg-white/5 border border-white/10 text-white font-sans text-sm font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition-colors"
                 >
-                  View Brief
+                  查看详情
                 </a>
               </div>
             </div>
 
-            {/* Grid Stats */}
+            {/* Grid Stats - 可展开卡片 */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-              {[
-                { icon: Trophy, label: 'Prize Pool', value: hackathon.prizePool, color: 'text-yellow-500' },
-                { icon: Users, label: 'Teams', value: hackathon.teams, color: 'text-blue-500' },
-                { icon: Globe2, label: 'Theme', value: hackathon.theme, color: 'text-purple-500' },
-                { icon: MapPin, label: 'Venue', value: hackathon.venue, color: 'text-green-500' },
-              ].map((stat, i) => (
-                <div key={i} className="p-5 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
-                  <stat.icon size={18} className={`${stat.color} opacity-60`} />
-                  <div className="space-y-0.5">
-                    <p className="text-[10px] uppercase tracking-widest text-gray-500 font-mono">{stat.label}</p>
-                    <p className="text-sm font-sans font-bold text-white truncate">{stat.value}</p>
+              {infoCards.map((card, i) => {
+                const IconComponent = iconMap[card.icon] || Globe2;
+                const colorMap: Record<string, string> = {
+                  trophy: 'text-yellow-500',
+                  users: 'text-blue-500',
+                  globe: 'text-purple-500',
+                  mapPin: 'text-green-500',
+                  clock: 'text-orange-500',
+                  ticket: 'text-pink-500',
+                  gift: 'text-red-500',
+                };
+                const color = colorMap[card.icon] || 'text-indigo-500';
+                const isCardExpanded = expandedCardIndex === i;
+                const hasExpandedContent = !!card.expandedContent;
+
+                return (
+                  <div key={i} className="relative">
+                    <button
+                      onClick={() => hasExpandedContent && toggleCard(i)}
+                      className={`w-full p-5 rounded-2xl bg-white/[0.03] border transition-all duration-300 text-left ${
+                        isCardExpanded
+                          ? 'border-indigo-500/30 bg-white/[0.05]'
+                          : 'border-white/5 hover:border-white/10'
+                      } ${hasExpandedContent ? 'cursor-pointer' : 'cursor-default'}`}
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <IconComponent size={18} className={`${color} opacity-80`} />
+                            <p className="text-sm text-gray-400 font-mono">{card.label}</p>
+                          </div>
+                          {hasExpandedContent && (
+                            <ChevronDown
+                              size={16}
+                              className={`text-gray-500 transition-transform duration-300 ${isCardExpanded ? 'rotate-180' : ''}`}
+                            />
+                          )}
+                        </div>
+                        <p className="text-lg font-sans font-bold text-white truncate">{card.value}</p>
+                      </div>
+                    </button>
+
+                    {/* 展开内容 */}
+                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                      isCardExpanded ? 'max-h-[300px] opacity-100 mt-2' : 'max-h-0 opacity-0'
+                    }`}>
+                      <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5">
+                        <pre className="text-sm text-gray-300 font-sans whitespace-pre-wrap leading-relaxed">
+                          {card.expandedContent}
+                        </pre>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="space-y-6">
               <div className="flex items-center gap-3">
-                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500">About the event</span>
+                <span className="font-mono text-sm uppercase tracking-[0.2em] text-gray-500">关于本次活动</span>
                 <div className="h-[1px] flex-1 bg-white/5" />
               </div>
-              <p className="font-sans text-lg text-gray-300 leading-relaxed max-w-4xl">
+              <p className="font-sans text-xl text-gray-300 leading-relaxed max-w-4xl">
                 {hackathon.summary}
               </p>
             </div>
@@ -209,9 +288,9 @@ export function EventDetail({ hackathon }: Props) {
             <div className="mt-12 flex justify-center">
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="group flex items-center gap-2 text-indigo-400 font-mono text-xs uppercase tracking-widest hover:text-indigo-300 transition-colors"
+                className="group flex items-center gap-2 text-indigo-400 font-mono text-sm uppercase tracking-widest hover:text-indigo-300 transition-colors"
               >
-                {isExpanded ? 'Collapse Details' : 'View Full Agenda & Tracks'}
+                {isExpanded ? '收起详情' : '查看完整日程和赛道'}
                 {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </button>
             </div>
@@ -223,16 +302,16 @@ export function EventDetail({ hackathon }: Props) {
               <div className="grid lg:grid-cols-2 gap-16">
                 {/* Tracks */}
                 <div className="space-y-8">
-                  <h4 className="font-sans text-xl font-bold text-white flex items-center gap-3">
-                    Tracks
+                  <h4 className="font-sans text-2xl font-bold text-white flex items-center gap-3">
+                    赛道
                     <div className="h-px flex-1 bg-white/5" />
                   </h4>
                   <div className="space-y-6">
                     {hackathon.tracks.map((track, i) => (
                       <div key={i} className="group relative pl-6 border-l border-white/10 hover:border-indigo-500/50 transition-colors">
                         <div className="absolute -left-[1px] top-0 w-[1px] h-0 bg-indigo-500 group-hover:h-full transition-all duration-500" />
-                        <h5 className="font-sans text-base font-bold text-white mb-2">{track.title}</h5>
-                        <p className="font-sans text-sm text-gray-400 leading-relaxed">{track.description}</p>
+                        <h5 className="font-sans text-lg font-bold text-white mb-2">{track.title}</h5>
+                        <p className="font-sans text-base text-gray-400 leading-relaxed">{track.description}</p>
                       </div>
                     ))}
                   </div>
@@ -240,21 +319,21 @@ export function EventDetail({ hackathon }: Props) {
 
                 {/* Agenda */}
                 <div className="space-y-8">
-                  <h4 className="font-sans text-xl font-bold text-white flex items-center gap-3">
-                    Agenda
+                  <h4 className="font-sans text-2xl font-bold text-white flex items-center gap-3">
+                    日程安排
                     <div className="h-px flex-1 bg-white/5" />
                   </h4>
                   <div className="space-y-8">
                     {hackathon.agenda.map((item, i) => (
                       <div key={i} className="flex gap-6">
                         <div className="flex flex-col items-center gap-2 pt-1">
-                          <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                          <div className="w-2 h-2 rounded-full bg-white/30" />
                           <div className="w-[1px] flex-1 bg-white/5" />
                         </div>
-                        <div className="space-y-1">
-                          <span className="font-mono text-[10px] uppercase tracking-tighter text-indigo-400">{item.time}</span>
-                          <h5 className="font-sans text-sm font-bold text-white">{item.title}</h5>
-                          <p className="font-sans text-xs text-gray-500 leading-relaxed">{item.detail}</p>
+                        <div className="space-y-1.5">
+                          <span className="font-mono text-xs uppercase tracking-tighter text-indigo-400">{item.time}</span>
+                          <h5 className="font-sans text-base font-bold text-white">{item.title}</h5>
+                          <p className="font-sans text-sm text-gray-500 leading-relaxed">{item.detail}</p>
                         </div>
                       </div>
                     ))}
@@ -266,15 +345,15 @@ export function EventDetail({ hackathon }: Props) {
               {(organizers.length > 0 || sponsors.length > 0) && (
                 <div className="mt-20 pt-16 border-t border-white/5 space-y-10">
                   <div className="text-center space-y-2">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.4em] text-gray-600">Partners & Sponsors</span>
+                    <span className="font-mono text-sm uppercase tracking-[0.3em] text-gray-400">合作伙伴与赞助商</span>
                   </div>
-                  <div className="flex flex-wrap justify-center items-center gap-12 opacity-40 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-500">
+                  <div className="flex flex-wrap justify-center items-center gap-12">
                     {[...organizers, ...sponsors].map((p, i) => (
-                      <div key={i} className="h-6 flex items-center">
+                      <div key={i} className="h-8 flex items-center">
                         {p.logo ? (
-                          <img src={p.logo} alt={p.name} className="h-full w-auto object-contain" />
+                          <img src={p.logo} alt={p.name} className="h-full w-auto object-contain brightness-100" />
                         ) : (
-                          <span className="font-sans text-sm font-bold text-white">{p.name}</span>
+                          <span className="font-sans text-base font-bold text-white">{p.name}</span>
                         )}
                       </div>
                     ))}
