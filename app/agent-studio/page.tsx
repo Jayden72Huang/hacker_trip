@@ -93,7 +93,13 @@ export default function AgentStudioPage() {
             在 Hacker Agent 创作空间，你将拥有赛题上下文和100+插件， 全程一站式助力，让你轻松参赛。
           </p>
 
-          {/* Waiting List - 移动到副标题下方 */}
+          {/* Slogan + Waiting List */}
+          <div className="mb-6">
+            <p className="text-2xl md:text-3xl font-light text-gray-300 italic">
+              "加入内测白名单，<br className="md:hidden" />
+              <span className="text-white font-normal">抢先体验专属你的 AI 黑客松助手</span>"
+            </p>
+          </div>
           <div className="max-w-md mx-auto mb-8">
             {isSubmitted ? (
               <div className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-green-500/10 border border-green-500/20">
