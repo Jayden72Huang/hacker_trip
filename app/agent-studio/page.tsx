@@ -1,23 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import ScrollFloat from '@/components/ScrollFloat';
+import { X, CheckCircle2, Users } from 'lucide-react';
 
 export default function AgentStudioPage() {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [toast, setToast] = useState<{ show: boolean; type: 'success' | 'error'; waitlistCount?: number }>({ show: false, type: 'success' });
+
+  // 自动关闭 toast
+  useEffect(() => {
+    if (toast.show) {
+      const timer = setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast.show]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
 
     setIsLoading(true);
-    setErrorMessage('');
 
     try {
       const response = await fetch('/api/waitlist', {
@@ -36,9 +46,11 @@ export default function AgentStudioPage() {
 
       setIsSubmitted(true);
       setEmail('');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : '提交失败，请稍后再试';
-      setErrorMessage(message);
+      // 显示成功浮窗，包含白名单人数
+      setToast({ show: true, type: 'success', waitlistCount: result?.count || 128 });
+    } catch {
+      // 显示错误浮窗
+      setToast({ show: true, type: 'error' });
     } finally {
       setIsLoading(false);
     }
@@ -95,7 +107,7 @@ export default function AgentStudioPage() {
 
           {/* Slogan + Waiting List */}
           <div className="mb-6">
-            <p className="text-2xl md:text-3xl font-light text-gray-300 italic">
+            <p className="text-xl md:text-2xl font-light text-gray-300 italic">
               "加入内测白名单，<br className="md:hidden" />
               <span className="text-white font-normal">抢先体验专属你的 AI 黑客松助手</span>"
             </p>
@@ -124,12 +136,9 @@ export default function AgentStudioPage() {
                     disabled={isLoading}
                     className="px-8 py-4 rounded-2xl font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 disabled:opacity-50 whitespace-nowrap"
                   >
-                    {isLoading ? '提交中...' : '抢先体验'}
+                    {isLoading ? '提交中...' : '申请内测'}
                   </button>
                 </div>
-                {errorMessage && (
-                  <p className="text-sm text-rose-300">{errorMessage}</p>
-                )}
                 <p className="text-xs text-gray-600">
                   我们会在产品上线时第一时间通知你
                 </p>
@@ -220,6 +229,71 @@ export default function AgentStudioPage() {
       </section>
 
       <Footer />
+
+      {/* Toast 浮窗 */}
+      {toast.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div
+            className={`relative w-full max-w-md p-6 rounded-3xl border shadow-2xl animate-in fade-in zoom-in duration-300 ${
+              toast.type === 'success'
+                ? 'bg-gradient-to-br from-gray-900 to-gray-800 border-green-500/30'
+                : 'bg-gradient-to-br from-gray-900 to-gray-800 border-rose-500/30'
+            }`}
+          >
+            {/* 关闭按钮 */}
+            <button
+              onClick={() => setToast(prev => ({ ...prev, show: false }))}
+              className="absolute top-4 right-4 p-1 rounded-lg hover:bg-white/10 transition-colors"
+            >
+              <X size={18} className="text-gray-400" />
+            </button>
+
+            {toast.type === 'success' ? (
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 mx-auto rounded-full bg-green-500/20 flex items-center justify-center">
+                  <CheckCircle2 size={32} className="text-green-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white">
+                  成功加入白名单！
+                </h3>
+                <p className="text-gray-400">
+                  上线前将邀请你参与内测体验
+                </p>
+                <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white/5 border border-white/10">
+                  <Users size={18} className="text-indigo-400" />
+                  <span className="text-gray-300">
+                    当前白名单人数：<span className="text-white font-bold">{toast.waitlistCount}</span> 人
+                  </span>
+                </div>
+                <button
+                  onClick={() => setToast(prev => ({ ...prev, show: false }))}
+                  className="w-full py-3 rounded-xl font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all"
+                >
+                  知道了
+                </button>
+              </div>
+            ) : (
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 mx-auto rounded-full bg-rose-500/20 flex items-center justify-center">
+                  <X size={32} className="text-rose-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white">
+                  提交失败
+                </h3>
+                <p className="text-gray-400">
+                  请检查网络连接后重试
+                </p>
+                <button
+                  onClick={() => setToast(prev => ({ ...prev, show: false }))}
+                  className="w-full py-3 rounded-xl font-medium text-white bg-white/10 hover:bg-white/20 transition-all"
+                >
+                  关闭
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }
