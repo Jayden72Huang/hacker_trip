@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { TextType } from '@/components/TextType';
+import ScrollFloat from '@/components/ScrollFloat';
 
 export default function AgentStudioPage() {
   const [email, setEmail] = useState('');
@@ -70,21 +70,21 @@ export default function AgentStudioPage() {
           {/* 主标题 */}
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
             <span className="text-white/90 block">Hacker Agent</span>
-            <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent block min-h-[1.2em]">
-              <TextType
-                texts={[
-                  "你的黑客松全能助手",
-                  "你的 Demo 演示专家",
-                  "你的创意脑暴伙伴",
-                  "你的参赛材料管家",
-                ]}
-                typingSpeed={80}
-                deletingSpeed={50}
-                pauseDuration={2000}
-                showCursor
-                cursorCharacter="_"
-                cursorBlinkDuration={0.5}
-              />
+            <span className="block">
+              <ScrollFloat
+                animationDuration={1}
+                ease="back.inOut(2)"
+                scrollStart="top 95%"
+                scrollEnd="top 70%"
+                stagger={0.03}
+                gradientColors={{
+                  from: '#818cf8',
+                  via: '#c084fc',
+                  to: '#f472b6'
+                }}
+              >
+                你的黑客松全能助手
+              </ScrollFloat>
             </span>
           </h1>
 
