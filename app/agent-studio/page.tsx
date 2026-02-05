@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { TextType } from '@/components/TextType';
 
 export default function AgentStudioPage() {
   const [email, setEmail] = useState('');
@@ -55,26 +56,41 @@ export default function AgentStudioPage() {
         </div>
 
         <div className="relative max-w-4xl mx-auto px-6 text-center">
+          {/* 增加上方行间距空间 */}
+          <div className="h-10 md:h-14" />
           {/* Coming Soon Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 mb-10 rounded-full bg-amber-500/10 border border-amber-500/20">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
             </span>
-            <span className="text-sm font-medium text-amber-200/90">Coming Soon</span>
+            <span className="text-sm font-medium text-amber-200/90">即将上线...</span>
           </div>
 
           {/* 主标题 */}
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
             <span className="text-white/90 block">Hacker Agent</span>
-            <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent block">
-              你的黑客松全能助手
+            <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent block min-h-[1.2em]">
+              <TextType
+                texts={[
+                  "你的黑客松全能助手",
+                  "你的 Demo 演示专家",
+                  "你的创意脑暴伙伴",
+                  "你的参赛材料管家",
+                ]}
+                typingSpeed={80}
+                deletingSpeed={50}
+                pauseDuration={2000}
+                showCursor
+                cursorCharacter="_"
+                cursorBlinkDuration={0.5}
+              />
             </span>
           </h1>
 
           {/* 副标题 */}
           <p className="text-xl md:text-2xl text-gray-400 mb-6 max-w-2xl mx-auto leading-relaxed flex justify-center whitespace-nowrap">
-            在 Hacker Agent 创空间，你将拥有比赛上下文和所需插件，
+            在 Hacker Agent 创作空间，你将拥有赛题上下文和100+插件， 全程一站式助力，让你轻松参赛。
           </p>
 
           <p className="text-gray-500 max-w-xl mx-auto mb-16">
@@ -141,8 +157,8 @@ export default function AgentStudioPage() {
           {/* Slogan + Waiting List */}
           <div className="mb-6">
             <p className="text-2xl md:text-3xl font-light text-gray-300 italic">
-              "加入 Waiting List，<br className="md:hidden" />
-              <span className="text-white font-normal">抢先体验你的 AI 黑客松助手</span>"
+              "加入 内测白名单，<br className="md:hidden" />
+              <span className="text-white font-normal">抢先体验专属你的 AI 黑客松助手</span>"
             </p>
           </div>
           <div className="max-w-md mx-auto">
