@@ -1,7 +1,28 @@
 import type { OpenNextConfig } from '@opennextjs/cloudflare';
 
 const config: OpenNextConfig = {
-  // 默认配置，可根据需要调整
+  default: {
+    override: {
+      wrapper: 'cloudflare-node',
+      converter: 'edge',
+      proxyExternalRequest: 'fetch',
+      incrementalCache: 'dummy',
+      tagCache: 'dummy',
+      queue: 'direct',
+    },
+  },
+  edgeExternals: ['node:crypto'],
+  middleware: {
+    external: true,
+    override: {
+      wrapper: 'cloudflare-edge',
+      converter: 'edge',
+      proxyExternalRequest: 'fetch',
+      incrementalCache: 'dummy',
+      tagCache: 'dummy',
+      queue: 'direct',
+    },
+  },
 };
 
 export default config;
