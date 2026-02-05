@@ -89,13 +89,52 @@ export default function AgentStudioPage() {
           </h1>
 
           {/* 副标题 */}
-          <p className="text-xl md:text-2xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed flex justify-center whitespace-nowrap">
+          <p className="text-xl md:text-2xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed flex justify-center whitespace-nowrap">
             在 Hacker Agent 创作空间，你将拥有赛题上下文和100+插件， 全程一站式助力，让你轻松参赛。
           </p>
 
-          {/* Hacker Agent 目标标题 */}
-          <h2 className="text-2xl md:text-3xl font-bold text-white/90 mb-6">
-            Hacker Agent 的目标
+          {/* Waiting List - 移动到副标题下方 */}
+          <div className="max-w-md mx-auto mb-8">
+            {isSubmitted ? (
+              <div className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-green-500/10 border border-green-500/20">
+                <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-green-300">已加入等待列表，欢迎邮件已发送</span>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="relative">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="你的邮箱"
+                    className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/40 focus:bg-white/[0.07] transition-all"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-4 rounded-2xl font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 disabled:opacity-50"
+                >
+                  {isLoading ? '提交中...' : '抢先体验'}
+                </button>
+                {errorMessage && (
+                  <p className="text-sm text-rose-300">{errorMessage}</p>
+                )}
+                <p className="text-xs text-gray-600">
+                  我们会在产品上线时第一时间通知你
+                </p>
+              </form>
+            )}
+          </div>
+
+          {/* Hacker Agent 目标标题（与上方加大间距） */}
+          <div className="mt-40" />
+          <h2 className="text-3xl md:text-6xl font-bold text-white/90 mb-6">
+            Hacker Agent 初心
           </h2>
 
           <p className="text-gray-500 max-w-xl mx-auto mb-16">
@@ -157,50 +196,6 @@ export default function AgentStudioPage() {
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Slogan + Waiting List */}
-          <div className="mb-6">
-            <p className="text-2xl md:text-3xl font-light text-gray-300 italic">
-              "加入 内测白名单，<br className="md:hidden" />
-              <span className="text-white font-normal">抢先体验专属你的 AI 黑客松助手</span>"
-            </p>
-          </div>
-          <div className="max-w-md mx-auto">
-            {isSubmitted ? (
-              <div className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-green-500/10 border border-green-500/20">
-                <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span className="text-green-300">已加入等待列表，欢迎邮件已发送</span>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="relative">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="你的邮箱"
-                    className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/40 focus:bg-white/[0.07] transition-all"
-                    required
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full py-4 rounded-2xl font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 disabled:opacity-50"
-                >
-                  {isLoading ? '提交中...' : '抢先体验'}
-                </button>
-                {errorMessage && (
-                  <p className="text-sm text-rose-300">{errorMessage}</p>
-                )}
-                <p className="text-xs text-gray-600">
-                  我们会在产品上线时第一时间通知你
-                </p>
-              </form>
-            )}
           </div>
 
           {/* 返回 */}
