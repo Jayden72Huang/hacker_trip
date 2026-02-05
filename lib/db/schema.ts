@@ -275,3 +275,18 @@ export const verificationTokens = pgTable(
     }),
   ]
 );
+
+// ============ 内测需求收集表 ============
+
+export const betaRequests = pgTable('beta_request', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  agentType: text('agent_type').notNull(), // 'hacker-agent', 'other-agent', etc.
+  feedback: text('feedback'), // 用户期待的功能/遇到的问题
+  emailSent: boolean('email_sent').default(false), // 是否已发送邮件（后台批量发送用）
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+});

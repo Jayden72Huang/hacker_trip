@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import {
   ArrowUpRight,
   CalendarDays,
@@ -66,9 +67,48 @@ function parseDateDisplay(dateRange: string): string {
   return `2026.${monthNum}.${startDay.padStart(2, '0')}`;
 }
 
+function withReferral(url: string, campaign: string) {
+  if (!url) return url;
+  const hasQuery = url.includes('?');
+  const delimiter = hasQuery ? '&' : '?';
+  return `${url}${delimiter}utm_source=hackertrip&utm_medium=referral&utm_campaign=${campaign}`;
+}
+
+function getRegistrationAction(hackathon: Hackathon) {
+  const campaignId = `hackathon_${hackathon.id}_signup_card`;
+  const reg = hackathon.registration;
+
+  if (!reg) {
+    return {
+      label: '报名',
+      href: withReferral(hackathon.website, campaignId),
+      external: true,
+      note: '跳转官方站点'
+    };
+  }
+
+  if (reg.mode === 'platform') {
+    return {
+      label: '站内报名',
+      href: reg.platformPath || `/hackathon/${hackathon.id}#register`,
+      external: false,
+      note: '使用 HackerTrip 报名流程'
+    };
+  }
+
+  const label = reg.mode === 'external-form' ? '报名表' : '官网报名';
+  return {
+    label,
+    href: withReferral(reg.url, campaignId),
+    external: true,
+    note: reg.siteName || '跳转主办方网站'
+  };
+}
+
 export function HackathonCard({ hackathon, showCountdown = true }: Props) {
   const formattedDate = parseDateDisplay(hackathon.dateRange);
   const countdown = showCountdown && !hackathon.isPast ? calculateCountdown(hackathon.dateRange) : null;
+  const registrationAction = getRegistrationAction(hackathon);
 
   return (
     <div className="glass rounded-2xl p-5 border border-white/5 hover:border-white/10 transition-all group">
@@ -155,21 +195,32 @@ export function HackathonCard({ hackathon, showCountdown = true }: Props) {
 
         {/* 右侧：操作按钮 */}
         <div className="flex items-center gap-3 lg:pl-4">
-          <a
+          <Link
             href={`/hackathon/${hackathon.id}`}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all text-sm font-space-mono text-gray-300 hover:text-white"
           >
             查看详情
-          </a>
-          <a
-            href={hackathon.website}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 transition-all text-sm font-space-mono text-white shadow-lg shadow-indigo-500/20"
-            target="_blank"
-            rel="noreferrer"
-          >
-            报名
-            <ArrowUpRight size={14} />
-          </a>
+          </Link>
+          {registrationAction.external ? (
+            <a
+              href={registrationAction.href}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 transition-all text-sm font-space-mono text-white shadow-lg shadow-indigo-500/20"
+              target="_blank"
+              rel="noreferrer"
+              title={registrationAction.note}
+            >
+              {registrationAction.label}
+              <ArrowUpRight size={14} />
+            </a>
+          ) : (
+            <Link
+              href={registrationAction.href}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 transition-all text-sm font-space-mono text-white shadow-lg shadow-indigo-500/20"
+              title={registrationAction.note}
+            >
+              {registrationAction.label}
+            </Link>
+          )}
         </div>
       </div>
     </div>

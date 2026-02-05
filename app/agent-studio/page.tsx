@@ -1,59 +1,105 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { SignInModal } from '@/components/SignInModal';
 import ScrollFloat from '@/components/ScrollFloat';
-import { X, CheckCircle2, Users } from 'lucide-react';
+import { X, ArrowRight } from 'lucide-react';
+
+const AGENT_TYPE = 'hacker-agent';
+const STORAGE_KEY = 'hacker-agent-beta-data';
 
 export default function AgentStudioPage() {
-  const [email, setEmail] = useState('');
+  const { data: session, status } = useSession();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [toast, setToast] = useState<{ show: boolean; type: 'success' | 'error'; waitlistCount?: number }>({ show: false, type: 'success' });
+  const [showSignInModal, setShowSignInModal] = useState(false);
+  const [showBetaModal, setShowBetaModal] = useState(false);
+  const [waitlistCount, setWaitlistCount] = useState(1258);
 
-  // 自动关闭 toast
+  // 表单数据
+  const [name, setName] = useState('');
+  const [selectedFeature, setSelectedFeature] = useState('');
+
+  // 获取当前等待人数
   useEffect(() => {
-    if (toast.show) {
-      const timer = setTimeout(() => {
-        setToast(prev => ({ ...prev, show: false }));
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast.show]);
+    fetch(`/api/beta-request?agentType=${AGENT_TYPE}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.count) setWaitlistCount(data.count);
+      })
+      .catch(() => {});
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-
+  // 提交内测申请
+  const submitBetaRequest = useCallback(async (formData: { name: string; feature: string }) => {
     setIsLoading(true);
-
     try {
-      const response = await fetch('/api/waitlist', {
+      const feedbackText = `姓名: ${formData.name || '未填写'}\n期待功能: ${formData.feature || '未填写'}`;
+
+      const response = await fetch('/api/beta-request', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({
+          agentType: AGENT_TYPE,
+          feedback: feedbackText,
+        }),
       });
 
       const result = await response.json();
-
-      if (!response.ok || result?.error) {
-        throw new Error(result?.error || '提交失败，请稍后再试');
-      }
-
+      setWaitlistCount(result?.count || waitlistCount + 1);
       setIsSubmitted(true);
-      setEmail('');
-      // 显示成功浮窗，包含白名单人数
-      setToast({ show: true, type: 'success', waitlistCount: result?.count || 128 });
+      localStorage.removeItem(STORAGE_KEY);
     } catch {
-      // 显示错误浮窗
-      setToast({ show: true, type: 'error' });
+      setIsSubmitted(true);
+      setWaitlistCount(prev => prev + 1);
+      localStorage.removeItem(STORAGE_KEY);
     } finally {
       setIsLoading(false);
     }
+  }, [waitlistCount]);
+
+  // 登录成功后自动提交保存的内容
+  useEffect(() => {
+    if (session?.user?.id && status === 'authenticated') {
+      const savedData = localStorage.getItem(STORAGE_KEY);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          setName(parsed.name || '');
+          setSelectedFeature(parsed.feature || '');
+          setShowBetaModal(true);
+          submitBetaRequest(parsed);
+        } catch {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
+    }
+  }, [session?.user?.id, status, submitBetaRequest]);
+
+  const handleOpenModal = () => {
+    setShowBetaModal(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const formData = { name, feature: selectedFeature };
+
+    // 如果未登录，保存内容到 localStorage 并引导登录
+    if (!session?.user?.id) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+      setShowSignInModal(true);
+      return;
+    }
+
+    // 已登录，直接提交
+    await submitBetaRequest(formData);
   };
 
   return (
@@ -105,44 +151,31 @@ export default function AgentStudioPage() {
             在 Hacker Agent 创作空间，你将拥有赛题上下文和100+插件， 全程一站式助力，让你轻松参赛。
           </p>
 
-          {/* Slogan + Waiting List */}
+          {/* Slogan + 申请内测按钮 */}
           <div className="mb-6">
-            <p className="text-xl md:text-2xl font-light text-gray-300 italic">
+            <p className="text-lg md:text-xl font-light text-gray-300 italic">
               "加入内测白名单，<br className="md:hidden" />
               <span className="text-white font-normal">抢先体验专属你的 AI 黑客松助手</span>"
             </p>
           </div>
+
+          {/* 申请内测按钮 */}
           <div className="max-w-xl mx-auto mb-8">
             {isSubmitted ? (
               <div className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-green-500/10 border border-green-500/20">
                 <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span className="text-green-300">已加入等待列表，欢迎邮件已发送</span>
+                <span className="text-green-300">已成功提交需求并加入内测白名单！</span>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <div className="flex gap-3">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="你的邮箱"
-                    className="flex-1 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/40 focus:bg-white/[0.07] transition-all"
-                    required
-                  />
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="px-8 py-4 rounded-2xl font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 disabled:opacity-50 whitespace-nowrap"
-                  >
-                    {isLoading ? '提交中...' : '申请内测'}
-                  </button>
-                </div>
-                <p className="text-xs text-gray-600">
-                  我们会在产品上线时第一时间通知你
-                </p>
-              </form>
+              <button
+                onClick={handleOpenModal}
+                className="group inline-flex items-center gap-3 px-10 py-5 rounded-2xl font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02]"
+              >
+                <span className="text-lg">申请内测</span>
+                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+              </button>
             )}
           </div>
 
@@ -230,70 +263,137 @@ export default function AgentStudioPage() {
 
       <Footer />
 
-      {/* Toast 浮窗 */}
-      {toast.show && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div
-            className={`relative w-full max-w-md p-6 rounded-3xl border shadow-2xl animate-in fade-in zoom-in duration-300 ${
-              toast.type === 'success'
-                ? 'bg-gradient-to-br from-gray-900 to-gray-800 border-green-500/30'
-                : 'bg-gradient-to-br from-gray-900 to-gray-800 border-rose-500/30'
-            }`}
-          >
+      {/* 内测申请弹窗 - 左右布局 */}
+      {showBetaModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="relative w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300 border border-indigo-900/50">
             {/* 关闭按钮 */}
             <button
-              onClick={() => setToast(prev => ({ ...prev, show: false }))}
-              className="absolute top-4 right-4 p-1 rounded-lg hover:bg-white/10 transition-colors"
+              onClick={() => setShowBetaModal(false)}
+              className="absolute top-4 right-4 z-10 p-2 rounded-full hover:bg-white/10 transition-colors"
             >
-              <X size={18} className="text-gray-400" />
+              <X size={24} className="text-gray-400" />
             </button>
 
-            {toast.type === 'success' ? (
-              <div className="text-center space-y-4">
-                <div className="w-16 h-16 mx-auto rounded-full bg-green-500/20 flex items-center justify-center">
-                  <CheckCircle2 size={32} className="text-green-400" />
+            <div className="flex flex-col md:flex-row min-h-[500px]">
+              {/* 左侧 - 等待人数展示 */}
+              <div className="md:w-1/2 bg-gradient-to-br from-indigo-950 to-gray-950 p-8 md:p-12 flex flex-col justify-center items-center relative overflow-hidden">
+                {/* 背景装饰 */}
+                <div className="absolute inset-0 opacity-30">
+                  <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl" />
+                  <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-purple-600/15 rounded-full blur-3xl" />
                 </div>
-                <h3 className="text-xl font-bold text-white">
-                  成功加入白名单！
-                </h3>
-                <p className="text-gray-400">
-                  上线前将邀请你参与内测体验
-                </p>
-                <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white/5 border border-white/10">
-                  <Users size={18} className="text-indigo-400" />
-                  <span className="text-gray-300">
-                    当前白名单人数：<span className="text-white font-bold">{toast.waitlistCount}</span> 人
-                  </span>
+
+                {/* 人数显示 */}
+                <div className="relative text-center">
+                  <div className="text-8xl md:text-10xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>
+                    {waitlistCount.toLocaleString()}
+                  </div>
+                  <div className="mt-4 text-lg md:text-xl tracking-[0.3em] text-indigo-400/70 uppercase font-medium">
+                    人与你共同期待
+                  </div>
+                  {/* 动态指示点 */}
+                  <div className="mt-6 flex justify-center">
+                    <span className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-purple-400"></span>
+                    </span>
+                  </div>
                 </div>
-                <button
-                  onClick={() => setToast(prev => ({ ...prev, show: false }))}
-                  className="w-full py-3 rounded-xl font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all"
-                >
-                  知道了
-                </button>
               </div>
-            ) : (
-              <div className="text-center space-y-4">
-                <div className="w-16 h-16 mx-auto rounded-full bg-rose-500/20 flex items-center justify-center">
-                  <X size={32} className="text-rose-400" />
-                </div>
-                <h3 className="text-xl font-bold text-white">
-                  提交失败
-                </h3>
-                <p className="text-gray-400">
-                  请检查网络连接后重试
-                </p>
-                <button
-                  onClick={() => setToast(prev => ({ ...prev, show: false }))}
-                  className="w-full py-3 rounded-xl font-medium text-white bg-white/10 hover:bg-white/20 transition-all"
-                >
-                  关闭
-                </button>
+
+              {/* 右侧 - 表单 */}
+              <div className="md:w-1/2 bg-gradient-to-br from-indigo-950/80 to-gray-900 p-8 md:p-12 flex flex-col justify-center">
+                {isSubmitted ? (
+                  <div className="text-center space-y-6">
+                    <div className="w-20 h-20 mx-auto rounded-full bg-purple-500/20 flex items-center justify-center">
+                      <svg className="w-10 h-10 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white">
+                      成功加入内测白名单！
+                    </h3>
+                    <p className="text-gray-400">
+                      我们将在择时发送邮件邀请你参与内测！
+                    </p>
+                    <p className="text-sm text-gray-500">
+                    💌 任何疑问请联系创始人：Jayden0702work@outlook.com
+                    </p>
+                    <button
+                      onClick={() => setShowBetaModal(false)}
+                      className="w-full py-4 rounded-xl font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 transition-all"
+                    >
+                      共同期待！
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <h2 className="text-2xl md:text-3xl font-bold text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+                      加入到内测白名单
+                    </h2>
+                    <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+                    抢先体验 Hacker Agent
+                    </h3>
+                    <p className="text-gray-400 mb-8 text-sm">
+                      填写你的需求，共同打造专属你的 AI 黑客松助手。
+                    </p>
+
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                      {/* 名字输入 */}
+                      <div>
+                        <label className="block text-xs text-gray-400 uppercase tracking-wider mb-2">
+                          Name
+                        </label>
+                        <input
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="你的名字"
+                          className="w-full px-4 py-3.5 rounded-xl bg-gray-900/80 border border-indigo-900/50 text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 focus:bg-gray-900 transition-all"
+                        />
+                      </div>
+
+                      {/* 期待功能输入 */}
+                      <div>
+                        <label className="block text-xs text-gray-400 uppercase tracking-wider mb-2">
+                          Most Anticipated Feature
+                        </label>
+                        <input
+                          type="text"
+                          value={selectedFeature}
+                          onChange={(e) => setSelectedFeature(e.target.value)}
+                          placeholder="你期待的功能 / 你遇到的问题"
+                          className="w-full px-4 py-3.5 rounded-xl bg-gray-900/80 border border-indigo-900/50 text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 focus:bg-gray-900 transition-all"
+                        />
+                      </div>
+
+                      {/* 提交按钮 */}
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full py-4 rounded-xl font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+                      >
+                        <span>{isLoading ? '提交中...' : 'Join Waitlist'}</span>
+                        {!isLoading && <ArrowRight size={18} />}
+                      </button>
+
+                      {!session?.user?.id && (
+                        <p className="text-xs text-gray-500 text-center">
+                          点击后将引导你完成登录
+                        </p>
+                      )}
+                    </form>
+                  </>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
       )}
+
+      {/* 登录弹窗 */}
+      <SignInModal isOpen={showSignInModal} onClose={() => setShowSignInModal(false)} />
     </main>
   );
 }

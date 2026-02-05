@@ -247,7 +247,7 @@ export function Testimonials() {
         <div className="text-center mb-14 px-6 space-y-5">
           <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/5 border border-white/10">
             <Users size={18} className="text-emerald-400" />
-            <span className="text-sm font-medium text-gray-300">来自全球黑客松爱好者</span>
+            <span className="text-sm font-medium text-gray-300">来自全球黑客松爱好者评价</span>
           </div>
 
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white">

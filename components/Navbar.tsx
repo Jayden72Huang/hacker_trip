@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, Rocket, LogOut } from 'lucide-react';
+import { Menu, X, LogOut } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { UserMenu } from './UserMenu';
 import { SignInModal } from './SignInModal';
@@ -20,10 +20,15 @@ export function Navbar() {
         <div className="w-full max-w-[1440px] mx-auto px-6 lg:px-10">
           <nav className="glass rounded-full px-6 py-3 lg:px-10 lg:py-4 flex items-center justify-between glow">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                <span className="font-sora text-sm font-extrabold text-white">H</span>
-              </div>
+            <Link href="/" className="flex items-center gap-2">
+              <Image
+                src="/logo.png"
+                alt="HackerTrip"
+                width={40}
+                height={40}
+                className="h-9 w-auto"
+                priority
+              />
               <span className="font-sora text-xl lg:text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
                 HackerTrip
               </span>
@@ -33,16 +38,15 @@ export function Navbar() {
             <div className="hidden md:flex items-center gap-7 lg:gap-9">
               <Link
                 href="/"
-                className="font-space-mono text-sm text-white hover:text-indigo-200 transition-colors relative group"
-              >
-                黑客松
-                <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 scale-x-100 group-hover:scale-x-110 transition-transform origin-left" />
-              </Link>
-              <Link
-                href="/explore"
                 className="font-space-mono text-sm text-gray-400 hover:text-white transition-colors"
               >
-                探索
+                黑客松
+              </Link>
+              <Link
+                href="/agent-studio"
+                className="font-space-mono text-sm text-gray-400 hover:text-white transition-colors"
+              >
+                Agent空间
               </Link>
               <Link
                 href="/products"
@@ -51,7 +55,7 @@ export function Navbar() {
                 作品榜
               </Link>
               <Link
-                href="#"
+                href="/community"
                 className="font-space-mono text-sm text-gray-400 hover:text-white transition-colors"
               >
                 社区
@@ -65,9 +69,8 @@ export function Navbar() {
                 href="/organize"
                 className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all"
               >
-                <Rocket size={16} className="text-indigo-400" />
                 <span className="font-space-mono text-sm font-medium text-gray-300">
-                  发起活动
+                  发起黑客松
                 </span>
               </Link>
 
@@ -107,40 +110,39 @@ export function Navbar() {
               <div className="flex flex-col gap-2">
                 <Link
                   href="/"
-                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-white transition-colors"
+                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   黑客松
                 </Link>
-              <Link
-                href="/explore"
-                className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                探索
-              </Link>
-              <Link
-                href="/products"
-                className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                作品榜
-              </Link>
-              <Link
-                href="#"
-                className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
+                <Link
+                  href="/agent-studio"
+                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Agent空间
+                </Link>
+                <Link
+                  href="/products"
+                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  作品榜
+                </Link>
+                <Link
+                  href="/community"
+                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
                   社区
                 </Link>
                 <div className="w-full h-px bg-white/10 my-2" />
                 <Link
                   href="/organize"
-                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-indigo-400 transition-colors flex items-center gap-2"
+                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-indigo-400 transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <Rocket size={16} />
-                  发起活动
+                  发起黑客松
                 </Link>
 
                 {/* Mobile Auth Section */}

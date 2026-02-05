@@ -17,6 +17,20 @@ export type InfoCard = {
   expandedContent?: string; // 展开后显示的详细内容
 };
 
+export type RegistrationMode = "official-site" | "external-form" | "platform";
+
+export type Registration = {
+  mode: RegistrationMode;
+  // 官网或外部表单的链接
+  url: string;
+  // 对外展示的名称，便于提示“将跳转至官方站点”
+  siteName?: string;
+  // 站内报名页面（当 mode 为 platform 时生效）
+  platformPath?: string;
+  // 额外说明
+  note?: string;
+};
+
 export type Hackathon = {
   id: string;
   name: string;
@@ -34,6 +48,7 @@ export type Hackathon = {
   theme: string;
   website: string;
   brief: string;
+  registration?: Registration;
   tracks: { title: string; description: string }[];
   agenda: { title: string; time: string; detail: string }[];
   organizers?: Organizer[];
@@ -62,6 +77,12 @@ export const hackathons: Hackathon[] = [
     format: "offline",
     theme: "AI赋能智慧城市",
     website: "https://example.com/zhongguancun-ai",
+    registration: {
+      mode: "official-site",
+      url: "https://example.com/zhongguancun-ai",
+      siteName: "中关村AI创新黑客松官网",
+      note: "将跳转官方站点，标记来自 HackerTrip 推荐"
+    },
     brief: "https://example.com/zhongguancun-ai/brief.pdf",
     hostOrganizer: "北京市科技创新委员会",
     infoCards: [
@@ -130,6 +151,12 @@ export const hackathons: Hackathon[] = [
     format: "hybrid",
     theme: "AI驱动金融创新",
     website: "https://example.com/lujiazui-fintech",
+    registration: {
+      mode: "external-form",
+      url: "https://forms.gle/lujiazui-fintech-apply",
+      siteName: "主办方报名表",
+      note: "将打开主办方提供的报名表，携带 HackerTrip 来源标识"
+    },
     brief: "https://example.com/lujiazui-fintech/brief.pdf",
     hostOrganizer: "上海市金融服务办公室",
     infoCards: [
@@ -196,6 +223,13 @@ export const hackathons: Hackathon[] = [
     format: "offline",
     theme: "智能硬件+AIoT",
     website: "https://example.com/shenzhen-hardware",
+    registration: {
+      mode: "platform",
+      url: "/hackathon/shenzhen-hardware#register",
+      siteName: "HackerTrip 站内报名",
+      platformPath: "/hackathon/shenzhen-hardware#register",
+      note: "主办方未提供官网，使用 HackerTrip 提供的报名流程"
+    },
     brief: "https://example.com/shenzhen-hardware/brief.pdf",
     hostOrganizer: "深圳市南山区科技创新局",
     infoCards: [

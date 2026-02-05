@@ -39,27 +39,34 @@ export default function Home() {
   }, []);
 
   // 切换订阅状态 - 必须登录才能订阅
-  const toggleSubscription = useCallback((hackathonId: string) => {
+  const toggleSubscription = useCallback(async (hackathonId: string): Promise<'subscribed' | 'unsubscribed' | 'login-required'> => {
     // 检查是否已登录
     if (!session) {
       setSignInModalOpen(true);
-      return;
+      return 'login-required';
     }
 
+    let result: 'subscribed' | 'unsubscribed' = 'subscribed';
     setSubscriptions(prev => {
       let next: string[];
       if (prev.includes(hackathonId)) {
         next = prev.filter(id => id !== hackathonId);
+        result = 'unsubscribed';
       } else {
         next = [...prev, hackathonId];
+        result = 'subscribed';
       }
       try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        }
       } catch {
         // ignore storage errors
       }
       return next;
     });
+
+    return result;
   }, [session]);
 
   return (

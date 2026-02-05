@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   ArrowUpRight,
   Bell,
@@ -9,13 +10,10 @@ import {
   ChevronDown,
   ChevronUp,
   Clock3,
-  ExternalLink,
-  FileText,
   Gift,
   Globe2,
   Info,
   MapPin,
-  Radio,
   Ticket,
   Trophy,
   Users,
@@ -25,7 +23,7 @@ import type { Hackathon, InfoCard } from '@/data/hackathons';
 type Props = {
   hackathon: Hackathon;
   isSubscribed: boolean;
-  onToggleSubscribe: () => void;
+  onToggleSubscribe: () => Promise<'subscribed' | 'unsubscribed' | 'login-required'>;
 };
 
 /**
@@ -131,6 +129,45 @@ const iconMap = {
   gift: Gift,
 };
 
+function withReferral(url: string, campaign: string) {
+  if (!url) return url;
+  const hasQuery = url.includes('?');
+  const delimiter = hasQuery ? '&' : '?';
+  return `${url}${delimiter}utm_source=hackertrip&utm_medium=referral&utm_campaign=${campaign}`;
+}
+
+function getRegistrationAction(hackathon: Hackathon) {
+  const campaignId = `hackathon_${hackathon.id}_signup`;
+  const reg = hackathon.registration;
+
+  if (!reg) {
+    return {
+      label: '立即报名',
+      href: withReferral(hackathon.website, campaignId),
+      external: true,
+      note: '跳转主办方官网',
+      siteName: hackathon.hostOrganizer || '主办方'
+    };
+  }
+
+  if (reg.mode === 'platform') {
+    return {
+      label: '立即报名',
+      href: reg.platformPath || `/hackathon/${hackathon.id}#register`,
+      external: false,
+      note: reg.note || '使用 HackerTrip 提供的报名流程'
+    };
+  }
+
+  return {
+    label: '立即报名',
+    href: withReferral(reg.url, campaignId),
+    external: true,
+    note: reg.siteName || '将跳转至主办方站点',
+    siteName: reg.siteName
+  };
+}
+
 // 默认信息卡片
 function getDefaultInfoCards(hackathon: Hackathon): InfoCard[] {
   return [
@@ -144,9 +181,13 @@ function getDefaultInfoCards(hackathon: Hackathon): InfoCard[] {
 export function EventDetail({ hackathon, isSubscribed, onToggleSubscribe }: Props) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [expandedCardIndex, setExpandedCardIndex] = useState<number | null>(null);
+  const [subscribeFeedback, setSubscribeFeedback] = useState<{ type: 'success' | 'warning'; text: string } | null>(null);
+  const [pendingExternal, setPendingExternal] = useState<{ href: string; siteName?: string } | null>(null);
 
   const statusInfo = getStatusInfo(hackathon);
   const formattedDate = parseDateDisplay(hackathon.dateRange);
+  const registrationAction = getRegistrationAction(hackathon);
+  const router = useRouter();
 
   const organizers = hackathon.organizers || [];
   const sponsors = hackathon.sponsors || [];
@@ -157,6 +198,38 @@ export function EventDetail({ hackathon, isSubscribed, onToggleSubscribe }: Prop
   // 切换卡片展开状态
   const toggleCard = (index: number) => {
     setExpandedCardIndex(expandedCardIndex === index ? null : index);
+  };
+
+  const handleSubscribe = async () => {
+    try {
+      const result = await onToggleSubscribe();
+      if (result === 'login-required') {
+        setSubscribeFeedback({ type: 'warning', text: '请先登录后再订阅提醒' });
+        return;
+      }
+      if (result === 'subscribed') {
+        setSubscribeFeedback({ type: 'success', text: '已订阅，报名截止和开赛前会提醒你' });
+      } else {
+        setSubscribeFeedback({ type: 'success', text: '已取消订阅提醒' });
+      }
+    } catch {
+      setSubscribeFeedback({ type: 'warning', text: '订阅失败，请稍后重试' });
+    }
+  };
+
+  const handleRegister = () => {
+    if (registrationAction.external) {
+      setPendingExternal({ href: registrationAction.href, siteName: registrationAction.siteName });
+      return;
+    }
+    router.push(registrationAction.href);
+  };
+
+  const confirmExternal = () => {
+    if (pendingExternal?.href) {
+      window.open(pendingExternal.href, '_blank', 'noopener,noreferrer');
+    }
+    setPendingExternal(null);
   };
 
   return (
@@ -170,7 +243,7 @@ export function EventDetail({ hackathon, isSubscribed, onToggleSubscribe }: Prop
                 <div className="flex items-center gap-3 flex-wrap">
                   {/* 订阅按钮 - 移到倒计时左边 */}
                   <button
-                    onClick={onToggleSubscribe}
+                    onClick={handleSubscribe}
                     className={`px-4 py-1.5 rounded-full border flex items-center gap-2 transition-all text-sm font-medium ${
                       isSubscribed
                         ? `${statusInfo.color} ${statusInfo.textColor} border-current`
@@ -210,22 +283,36 @@ export function EventDetail({ hackathon, isSubscribed, onToggleSubscribe }: Prop
                     </div>
                   )}
                 </div>
+
+                {subscribeFeedback && (
+                  <div
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm ${
+                      subscribeFeedback.type === 'success'
+                        ? 'bg-green-500/10 text-green-200 border border-green-500/20'
+                        : 'bg-amber-500/10 text-amber-200 border border-amber-500/30'
+                    }`}
+                  >
+                    <Info size={14} />
+                    <span>{subscribeFeedback.text}</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col gap-3 min-w-[180px]">
-                <a
-                  href={hackathon.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full py-3 px-6 rounded-xl bg-white text-black font-sans text-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors"
+                <button
+                  type="button"
+                  onClick={handleRegister}
+                  className={`w-full py-3 px-6 rounded-xl font-sans text-sm font-bold flex items-center justify-center gap-2 transition-colors ${
+                    registrationAction.external
+                      ? 'bg-white text-black hover:bg-gray-200'
+                      : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700'
+                  }`}
                 >
                   立即报名
-                  <ArrowUpRight size={16} />
-                </a>
+                  {registrationAction.external && <ArrowUpRight size={16} />}
+                </button>
                 <a
-                  href={hackathon.brief}
-                  target="_blank"
-                  rel="noreferrer"
+                  href={`/hackathon/${hackathon.id}`}
                   className="w-full py-3 px-6 rounded-xl bg-white/5 border border-white/10 text-white font-sans text-sm font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition-colors"
                 >
                   查看详情
@@ -429,6 +516,40 @@ export function EventDetail({ hackathon, isSubscribed, onToggleSubscribe }: Prop
             </div>
           </div>
         </div>
+
+        {pendingExternal && (
+          <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+            <div className="max-w-sm w-full rounded-2xl bg-[#0e0e15] border border-white/10 p-6 space-y-4 shadow-2xl shadow-purple-900/40">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white">
+                  <ArrowUpRight size={18} />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-white font-semibold">即将跳转到主办方页面</p>
+                  <p className="text-sm text-gray-400 leading-relaxed">
+                    将打开 {pendingExternal.siteName || '主办方'} 的报名链接完成报名，关闭后可返回继续浏览。
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPendingExternal(null)}
+                  className="px-4 py-2 rounded-xl border border-white/10 text-gray-200 hover:bg-white/5 transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmExternal}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold hover:from-indigo-600 hover:to-purple-700 transition-colors"
+                >
+                  确认跳转
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

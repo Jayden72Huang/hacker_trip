@@ -57,8 +57,9 @@ export function Features() {
         {/* Section Header */}
         <div className="text-center mb-20 space-y-4">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
-            <Sparkles size={16} className="text-indigo-400" />
-            <span className="text-sm font-medium text-gray-300">为什么选择 HackerTrip</span>
+            {/* 人思考的 emoji */}
+            <span className="text-2xl" role="img" aria-label="thinking person">🤔</span>
+            <span className="text-md font-medium text-gray-300">为什么选择 HackerTrip</span>
           </div>
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white">
             作为你的专属{' '}

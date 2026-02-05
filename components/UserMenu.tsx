@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { User, LogOut, ChevronDown } from 'lucide-react';
+import { User, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -34,31 +34,24 @@ export function UserMenu() {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all"
+        className="p-1 rounded-full hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all"
       >
         {user?.image && !imageError ? (
           <Image
             src={user.image}
             alt={displayName}
-            width={32}
-            height={32}
+            width={40}
+            height={40}
             className="rounded-full object-cover"
             onError={() => setImageError(true)}
           />
         ) : (
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-            <span className="text-white font-sora text-sm font-bold">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+            <span className="text-white font-sora text-base font-bold">
               {displayName.charAt(0).toUpperCase()}
             </span>
           </div>
         )}
-        <span className="hidden sm:block font-space-mono text-sm text-gray-300 max-w-[100px] truncate">
-          {displayName}
-        </span>
-        <ChevronDown
-          size={14}
-          className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-        />
       </button>
 
       {isOpen && (
