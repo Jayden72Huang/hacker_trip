@@ -89,9 +89,14 @@ export default function AgentStudioPage() {
           </h1>
 
           {/* 副标题 */}
-          <p className="text-xl md:text-2xl text-gray-400 mb-6 max-w-2xl mx-auto leading-relaxed flex justify-center whitespace-nowrap">
+          <p className="text-xl md:text-2xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed flex justify-center whitespace-nowrap">
             在 Hacker Agent 创作空间，你将拥有赛题上下文和100+插件， 全程一站式助力，让你轻松参赛。
           </p>
+
+          {/* Hacker Agent 目标标题 */}
+          <h2 className="text-2xl md:text-3xl font-bold text-white/90 mb-6">
+            Hacker Agent 的目标
+          </h2>
 
           <p className="text-gray-500 max-w-xl mx-auto mb-16">
             让你不再为 Demo 演示焦虑，不再为材料准备熬夜。<br/>
