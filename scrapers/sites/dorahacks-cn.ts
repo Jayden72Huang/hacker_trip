@@ -130,8 +130,10 @@ export class DoraHacksScraper extends BaseScraper {
 
     // 查找赛道信息
     $('.track-item, .challenge-item, [class*="track"]').each((_, el) => {
-      const title = this.extractText($, $(el).find('h3, h4, .title'));
-      const description = this.extractText($, $(el).find('p, .description'));
+      const titleEl = $(el).find('h3, h4, .title').first();
+      const descEl = $(el).find('p, .description').first();
+      const title = titleEl.length ? titleEl.text().trim().replace(/\s+/g, ' ') : '';
+      const description = descEl.length ? descEl.text().trim().replace(/\s+/g, ' ') : '';
 
       if (title) {
         tracks.push({ title, description: description || '' });
