@@ -1,26 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession, signIn } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { SignInModal } from '@/components/SignInModal';
 import Link from 'next/link';
 import {
-  Rocket,
   Building2,
   Globe,
   CheckCircle2,
   ArrowRight,
-  Sparkles,
-  Users,
-  Trophy,
-  Calendar,
   Clock,
   XCircle,
   Plus,
   FileText,
   Settings,
-  LogIn,
 } from 'lucide-react';
 
 type OrganizerProfile = {
@@ -42,6 +37,7 @@ export default function OrganizePage() {
   const { data: session, status: sessionStatus } = useSession();
   const [pageState, setPageState] = useState<PageState>('loading');
   const [profile, setProfile] = useState<OrganizerProfile | null>(null);
+  const [showSignInModal, setShowSignInModal] = useState(false);
   const [formData, setFormData] = useState({
     organization: '',
     website: '',
@@ -122,7 +118,7 @@ export default function OrganizePage() {
   };
 
   const handleLogin = () => {
-    signIn('google', { callbackUrl: '/organize' });
+    setShowSignInModal(true);
   };
 
   // 加载中
@@ -131,7 +127,7 @@ export default function OrganizePage() {
       <div className="relative min-h-screen pb-12">
         <div className="fixed inset-0 -z-10 grid-bg opacity-50" aria-hidden />
         <Navbar />
-        <main className="pt-36 pb-16">
+        <main className="pt-32 pb-24">
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
           </div>
@@ -146,15 +142,11 @@ export default function OrganizePage() {
       <div className="fixed inset-0 -z-10 grid-bg opacity-50" aria-hidden />
       <Navbar />
 
-      <main className="pt-36 pb-16">
+      <main className="pt-32 pb-24 min-h-[calc(100vh-200px)] flex flex-col justify-center">
         <div className="w-full max-w-[800px] mx-auto px-6">
           {/* 未登录：展示介绍页 */}
           {pageState === 'intro' && (
             <div className="text-center">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-indigo-500/30">
-                <Rocket size={36} className="text-white" />
-              </div>
-
               <h1 className="font-sora text-4xl md:text-5xl font-bold text-white mb-4">
                 成为黑客松组织者
               </h1>
@@ -164,8 +156,8 @@ export default function OrganizePage() {
 
               <div className="grid md:grid-cols-3 gap-6 mb-12">
                 <div className="glass rounded-2xl p-6 border border-white/5 text-left">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center mb-4">
-                    <Users size={24} className="text-blue-400" />
+                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4 border border-blue-500/20">
+                    <Globe size={20} className="text-blue-400" />
                   </div>
                   <h3 className="font-sora text-lg font-semibold text-white mb-2">
                     触达全球开发者
@@ -176,8 +168,8 @@ export default function OrganizePage() {
                 </div>
 
                 <div className="glass rounded-2xl p-6 border border-white/5 text-left">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mb-4">
-                    <Sparkles size={24} className="text-purple-400" />
+                  <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4 border border-purple-500/20">
+                    <FileText size={20} className="text-purple-400" />
                   </div>
                   <h3 className="font-sora text-lg font-semibold text-white mb-2">
                     智能信息录入
@@ -188,8 +180,8 @@ export default function OrganizePage() {
                 </div>
 
                 <div className="glass rounded-2xl p-6 border border-white/5 text-left">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center mb-4">
-                    <Trophy size={24} className="text-green-400" />
+                  <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center mb-4 border border-green-500/20">
+                    <Settings size={20} className="text-green-400" />
                   </div>
                   <h3 className="font-sora text-lg font-semibold text-white mb-2">
                     灵活的自定义
@@ -204,8 +196,8 @@ export default function OrganizePage() {
                 onClick={handleLogin}
                 className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 transition-all text-lg font-space-mono font-medium text-white shadow-xl shadow-indigo-500/30 hover:scale-[1.02] active:scale-100"
               >
-                <LogIn size={20} />
-                登录开始注册
+                <ArrowRight size={20} />
+                注册成为组织者
               </button>
             </div>
           )}
@@ -517,6 +509,8 @@ export default function OrganizePage() {
       </main>
 
       <Footer />
+
+      <SignInModal isOpen={showSignInModal} onClose={() => setShowSignInModal(false)} />
     </div>
   );
 }

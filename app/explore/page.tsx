@@ -63,7 +63,7 @@ export default function ExplorePage() {
       <div className="fixed inset-0 -z-10 grid-bg opacity-50" aria-hidden />
       <Navbar />
 
-      <main className="pt-64 pb-16">
+      <main className="pt-40 pb-20">
         <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-10 relative z-10">
           {/* 页面标题区域 - Tab 切换 */}
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">

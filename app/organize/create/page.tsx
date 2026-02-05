@@ -110,7 +110,7 @@ export default function CreateHackathonPage() {
       <div className="fixed inset-0 -z-10 grid-bg opacity-50" aria-hidden />
       <Navbar />
 
-      <main className="pt-36 pb-16">
+      <main className="pt-40 pb-20">
         <div className="w-full max-w-[1000px] mx-auto px-6">
           {/* 返回按钮 */}
           <Link

@@ -124,7 +124,7 @@ export function HackathonCard({ hackathon, showCountdown = true }: Props) {
               {hackathon.prizePool}
             </span>
             <span className="font-space-mono text-[10px] text-gray-500 uppercase">
-              Prize
+              奖金
             </span>
           </div>
 
@@ -136,7 +136,7 @@ export function HackathonCard({ hackathon, showCountdown = true }: Props) {
               {hackathon.teams.split('/')[0].trim()}
             </span>
             <span className="font-space-mono text-[10px] text-gray-500 uppercase">
-              Teams
+              团队
             </span>
           </div>
 
@@ -148,7 +148,7 @@ export function HackathonCard({ hackathon, showCountdown = true }: Props) {
               {hackathon.format === 'offline' ? '线下' : hackathon.format === 'online' ? '线上' : '混合'}
             </span>
             <span className="font-space-mono text-[10px] text-gray-500 uppercase">
-              Format
+              形式
             </span>
           </div>
         </div>

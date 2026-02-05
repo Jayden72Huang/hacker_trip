@@ -60,8 +60,8 @@ export function Features() {
             <Sparkles size={16} className="text-indigo-400" />
             <span className="text-sm font-medium text-gray-300">为什么选择 HackerTrip</span>
           </div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white">
-            世界第一个{' '}
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white">
+            作为你的专属{' '}
             <ScrollFloat
               animationDuration={1}
               ease="back.inOut(2)"
@@ -78,7 +78,7 @@ export function Features() {
             </ScrollFloat>
           </h2>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            从发现赛事到项目落地，从工具配置到产品推广 —— 你的 AI 黑客松全程搭子
+            从发现赛事到项目落地，从工具配置到产品推广 —— 成为你的 AI 黑客松全能搭子
           </p>
         </div>
 

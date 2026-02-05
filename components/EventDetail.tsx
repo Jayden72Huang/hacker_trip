@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import {
   ArrowUpRight,
   Bell,
@@ -24,6 +24,8 @@ import type { Hackathon, InfoCard } from '@/data/hackathons';
 
 type Props = {
   hackathon: Hackathon;
+  isSubscribed: boolean;
+  onToggleSubscribe: () => void;
 };
 
 /**
@@ -139,9 +141,10 @@ function getDefaultInfoCards(hackathon: Hackathon): InfoCard[] {
   ];
 }
 
-export function EventDetail({ hackathon }: Props) {
+export function EventDetail({ hackathon, isSubscribed, onToggleSubscribe }: Props) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [expandedCardIndex, setExpandedCardIndex] = useState<number | null>(null);
+
   const statusInfo = getStatusInfo(hackathon);
   const formattedDate = parseDateDisplay(hackathon.dateRange);
 
@@ -164,7 +167,21 @@ export function EventDetail({ hackathon }: Props) {
           <div className="p-8 md:p-12">
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 mb-12">
               <div className="flex-1 space-y-4">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
+                  {/* 订阅按钮 - 移到倒计时左边 */}
+                  <button
+                    onClick={onToggleSubscribe}
+                    className={`px-4 py-1.5 rounded-full border flex items-center gap-2 transition-all text-sm font-medium ${
+                      isSubscribed
+                        ? `${statusInfo.color} ${statusInfo.textColor} border-current`
+                        : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-gray-200'
+                    }`}
+                  >
+                    <Bell size={14} />
+                    {isSubscribed ? '已订阅' : '订阅'}
+                  </button>
+
+                  {/* 倒计时状态 */}
                   <div className={`px-4 py-1.5 rounded-full ${statusInfo.color} border border-white/5 flex items-center gap-2`}>
                     <div className={`w-2 h-2 rounded-full ${statusInfo.dotColor} ${statusInfo.pulse ? 'animate-pulse' : ''}`} />
                     <span className={`font-mono text-sm uppercase tracking-wider ${statusInfo.textColor}`}>{statusInfo.text}</span>
@@ -217,31 +234,38 @@ export function EventDetail({ hackathon }: Props) {
             </div>
 
             {/* Grid Stats - 可展开卡片 */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-              {infoCards.map((card, i) => {
-                const IconComponent = iconMap[card.icon] || Globe2;
-                const colorMap: Record<string, string> = {
-                  trophy: 'text-yellow-500',
-                  users: 'text-blue-500',
-                  globe: 'text-purple-500',
-                  mapPin: 'text-green-500',
-                  clock: 'text-orange-500',
-                  ticket: 'text-pink-500',
-                  gift: 'text-red-500',
-                };
-                const color = colorMap[card.icon] || 'text-indigo-500';
-                const isCardExpanded = expandedCardIndex === i;
-                const hasExpandedContent = !!card.expandedContent;
+            <div className="mb-12">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {infoCards.map((card, i) => {
+                  const IconComponent = iconMap[card.icon] || Globe2;
+                  const colorMap: Record<string, string> = {
+                    trophy: 'text-yellow-500',
+                    users: 'text-blue-500',
+                    globe: 'text-purple-500',
+                    mapPin: 'text-green-500',
+                    clock: 'text-orange-500',
+                    ticket: 'text-pink-500',
+                    gift: 'text-red-500',
+                  };
+                  const color = colorMap[card.icon] || 'text-indigo-500';
+                  const isCardExpanded = expandedCardIndex === i;
+                  const hasExpandedContent = !!card.expandedContent;
+                  const isOtherExpanded = expandedCardIndex !== null && expandedCardIndex !== i;
 
-                return (
-                  <div key={i} className="relative">
+                  return (
                     <button
+                      key={i}
                       onClick={() => hasExpandedContent && toggleCard(i)}
-                      className={`w-full p-5 rounded-2xl bg-white/[0.03] border transition-all duration-300 text-left ${
+                      style={{
+                        transition: 'all 400ms cubic-bezier(0.4, 0, 0.2, 1)',
+                      }}
+                      className={`w-full p-5 rounded-2xl bg-white/[0.03] border text-left will-change-transform ${
                         isCardExpanded
-                          ? 'border-indigo-500/30 bg-white/[0.05]'
-                          : 'border-white/5 hover:border-white/10'
-                      } ${hasExpandedContent ? 'cursor-pointer' : 'cursor-default'}`}
+                          ? 'border-indigo-500/50 bg-white/[0.06] scale-[1.02] shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500/20'
+                          : 'border-white/5 hover:border-white/10 hover:bg-white/[0.04]'
+                      } ${hasExpandedContent ? 'cursor-pointer' : 'cursor-default'} ${
+                        isOtherExpanded ? 'opacity-40 grayscale-[30%] scale-[0.98]' : 'opacity-100 scale-100'
+                      }`}
                     >
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -259,20 +283,62 @@ export function EventDetail({ hackathon }: Props) {
                         <p className="text-lg font-sans font-bold text-white truncate">{card.value}</p>
                       </div>
                     </button>
+                  );
+                })}
+              </div>
 
-                    {/* 展开内容 */}
-                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                      isCardExpanded ? 'max-h-[300px] opacity-100 mt-2' : 'max-h-0 opacity-0'
-                    }`}>
-                      <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5">
-                        <pre className="text-sm text-gray-300 font-sans whitespace-pre-wrap leading-relaxed">
-                          {card.expandedContent}
+              {/* 统一展开内容区域 - 使用 Grid 实现丝滑动画 */}
+              <div
+                className="grid transition-[grid-template-rows,opacity,margin] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                style={{
+                  gridTemplateRows: expandedCardIndex !== null ? '1fr' : '0fr',
+                  marginTop: expandedCardIndex !== null ? '16px' : '0px',
+                }}
+              >
+                <div className="overflow-hidden">
+                  <div
+                    className={`p-6 rounded-2xl bg-gradient-to-b from-white/[0.04] to-white/[0.02] border border-white/10 backdrop-blur-sm transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                      expandedCardIndex !== null
+                        ? 'opacity-100 translate-y-0'
+                        : 'opacity-0 -translate-y-2'
+                    }`}
+                  >
+                    {expandedCardIndex !== null && infoCards[expandedCardIndex]?.expandedContent && (
+                      <div
+                        className={`space-y-3 transition-all duration-300 delay-100 ${
+                          expandedCardIndex !== null ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 pb-3 border-b border-white/5">
+                          {(() => {
+                            const card = infoCards[expandedCardIndex];
+                            const IconComponent = iconMap[card.icon] || Globe2;
+                            const colorMap: Record<string, string> = {
+                              trophy: 'text-yellow-500',
+                              users: 'text-blue-500',
+                              globe: 'text-purple-500',
+                              mapPin: 'text-green-500',
+                              clock: 'text-orange-500',
+                              ticket: 'text-pink-500',
+                              gift: 'text-red-500',
+                            };
+                            const color = colorMap[card.icon] || 'text-indigo-500';
+                            return (
+                              <>
+                                <IconComponent size={20} className={color} />
+                                <span className="font-sans text-lg font-bold text-white">{card.label}详情</span>
+                              </>
+                            );
+                          })()}
+                        </div>
+                        <pre className="text-base text-gray-300 font-sans whitespace-pre-wrap leading-relaxed">
+                          {infoCards[expandedCardIndex].expandedContent}
                         </pre>
                       </div>
-                    </div>
+                    )}
                   </div>
-                );
-              })}
+                </div>
+              </div>
             </div>
 
             <div className="space-y-6">
@@ -367,4 +433,3 @@ export function EventDetail({ hackathon }: Props) {
     </section>
   );
 }
-

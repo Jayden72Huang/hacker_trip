@@ -35,20 +35,26 @@ export function Navbar() {
                 href="/"
                 className="font-space-mono text-sm text-white hover:text-indigo-200 transition-colors relative group"
               >
-                Hackathon
+                黑客松
                 <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 scale-x-100 group-hover:scale-x-110 transition-transform origin-left" />
               </Link>
               <Link
                 href="/explore"
                 className="font-space-mono text-sm text-gray-400 hover:text-white transition-colors"
               >
-                Explore
+                探索
+              </Link>
+              <Link
+                href="/products"
+                className="font-space-mono text-sm text-gray-400 hover:text-white transition-colors"
+              >
+                作品榜
               </Link>
               <Link
                 href="#"
                 className="font-space-mono text-sm text-gray-400 hover:text-white transition-colors"
               >
-                Community
+                社区
               </Link>
             </div>
 
@@ -61,7 +67,7 @@ export function Navbar() {
               >
                 <Rocket size={16} className="text-indigo-400" />
                 <span className="font-space-mono text-sm font-medium text-gray-300">
-                  Organize
+                  发起活动
                 </span>
               </Link>
 
@@ -76,7 +82,7 @@ export function Navbar() {
                   className="px-5 py-2.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 transition-all hover:scale-[1.03] active:scale-100 shadow-lg shadow-indigo-500/30"
                 >
                   <span className="font-space-mono text-sm font-medium text-white">
-                    Sign in
+                    登录
                   </span>
                 </button>
               )}
@@ -104,21 +110,28 @@ export function Navbar() {
                   className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-white transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Hackathon
+                  黑客松
                 </Link>
-                <Link
-                  href="/explore"
-                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Explore
-                </Link>
-                <Link
-                  href="#"
-                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Community
+              <Link
+                href="/explore"
+                className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                探索
+              </Link>
+              <Link
+                href="/products"
+                className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                作品榜
+              </Link>
+              <Link
+                href="#"
+                className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                  社区
                 </Link>
                 <div className="w-full h-px bg-white/10 my-2" />
                 <Link
@@ -127,7 +140,7 @@ export function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Rocket size={16} />
-                  Organize
+                  发起活动
                 </Link>
 
                 {/* Mobile Auth Section */}
@@ -174,7 +187,7 @@ export function Navbar() {
                     }}
                     className="px-4 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 font-space-mono text-sm text-white transition-colors text-center"
                   >
-                    Sign in
+                    登录
                   </button>
                 )}
               </div>

@@ -80,10 +80,10 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
             <span className="font-sora text-xl font-extrabold text-white">H</span>
           </div>
           <h2 className="font-sora text-2xl font-bold text-white mb-2">
-            Welcome to HackerTrip
+            欢迎来到 HackerTrip
           </h2>
           <p className="font-space-mono text-sm text-gray-400">
-            Sign in to explore hackathons worldwide
+            登录后探索全球黑客松活动
           </p>
         </div>
 
@@ -95,10 +95,10 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                 <Mail size={32} className="text-green-400" />
               </div>
               <h3 className="font-sora text-lg font-semibold text-white mb-2">
-                Check your email
+                查看你的邮箱
               </h3>
               <p className="font-space-mono text-sm text-gray-400 mb-4">
-                We sent a magic link to <span className="text-white">{email}</span>
+                我们已发送登录链接至 <span className="text-white">{email}</span>
               </p>
               <button
                 onClick={() => {
@@ -107,7 +107,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                 }}
                 className="font-space-mono text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
               >
-                Use a different email
+                使用其他邮箱
               </button>
             </div>
           ) : (
@@ -115,7 +115,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
               {/* Email Form */}
               <form onSubmit={handleEmailSignIn} className="mb-6">
                 <label className="block font-space-mono text-sm text-gray-400 mb-2">
-                  Email address
+                  邮箱地址
                 </label>
                 <input
                   type="email"
@@ -136,7 +136,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                     <Mail size={18} className="text-white" />
                   )}
                   <span className="font-space-mono text-sm font-medium text-white">
-                    {isLoading ? 'Sending...' : 'Continue with Email'}
+                    {isLoading ? '发送中...' : '使用邮箱继续'}
                   </span>
                 </button>
               </form>
@@ -144,7 +144,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
               {/* Divider */}
               <div className="relative flex items-center gap-4 mb-6">
                 <div className="flex-1 h-px bg-white/10" />
-                <span className="font-space-mono text-xs text-gray-500 uppercase">or</span>
+                <span className="font-space-mono text-xs text-gray-500 uppercase">或</span>
                 <div className="flex-1 h-px bg-white/10" />
               </div>
 
@@ -156,7 +156,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                 >
                   <GoogleIcon className="w-5 h-5" />
                   <span className="font-space-mono text-sm font-medium text-gray-800">
-                    Continue with Google
+                    使用 Google 登录
                   </span>
                 </button>
                 <button
@@ -165,7 +165,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                 >
                   <GitHubIcon className="w-5 h-5 text-white" />
                   <span className="font-space-mono text-sm font-medium text-white">
-                    Continue with GitHub
+                    使用 GitHub 登录
                   </span>
                 </button>
               </div>
@@ -176,7 +176,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
         {/* Footer */}
         <div className="px-8 py-4 bg-white/5 border-t border-white/10">
           <p className="font-space-mono text-xs text-gray-500 text-center">
-            By continuing, you agree to our Terms of Service and Privacy Policy
+            继续即表示你同意我们的服务条款和隐私政策
           </p>
         </div>
       </div>
