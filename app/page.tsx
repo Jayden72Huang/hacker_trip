@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
 import { Hero } from '@/components/Hero';
 import { Navbar } from '@/components/Navbar';
 import { Timeline } from '@/components/Timeline';
@@ -8,11 +9,15 @@ import { EventDetail } from '@/components/EventDetail';
 import { Features } from '@/components/Features';
 import { Testimonials } from '@/components/Testimonials';
 import { Footer } from '@/components/Footer';
+import { SignInModal } from '@/components/SignInModal';
 import { hackathons } from '@/data/hackathons';
 
 const STORAGE_KEY = 'hackertrip_subscriptions';
 
 export default function Home() {
+  const { data: session } = useSession();
+  const [signInModalOpen, setSignInModalOpen] = useState(false);
+
   const defaultId = useMemo(() => {
     const upcoming = hackathons.find((h) => !h.isPast);
     return upcoming ? upcoming.id : hackathons[0].id;
@@ -33,8 +38,14 @@ export default function Home() {
     }
   }, []);
 
-  // 切换订阅状态
+  // 切换订阅状态 - 必须登录才能订阅
   const toggleSubscription = useCallback((hackathonId: string) => {
+    // 检查是否已登录
+    if (!session) {
+      setSignInModalOpen(true);
+      return;
+    }
+
     setSubscriptions(prev => {
       let next: string[];
       if (prev.includes(hackathonId)) {
@@ -49,7 +60,7 @@ export default function Home() {
       }
       return next;
     });
-  }, []);
+  }, [session]);
 
   return (
     <div className="relative min-h-screen pb-12">
@@ -77,6 +88,9 @@ export default function Home() {
         <Testimonials />
       </main>
       <Footer />
+
+      {/* 登录弹窗 - 订阅时未登录会触发 */}
+      <SignInModal isOpen={signInModalOpen} onClose={() => setSignInModalOpen(false)} />
     </div>
   );
 }
