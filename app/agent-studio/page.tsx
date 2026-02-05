@@ -100,7 +100,7 @@ export default function AgentStudioPage() {
               <span className="text-white font-normal">抢先体验专属你的 AI 黑客松助手</span>"
             </p>
           </div>
-          <div className="max-w-md mx-auto mb-8">
+          <div className="max-w-xl mx-auto mb-8">
             {isSubmitted ? (
               <div className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-green-500/10 border border-green-500/20">
                 <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -109,24 +109,24 @@ export default function AgentStudioPage() {
                 <span className="text-green-300">已加入等待列表，欢迎邮件已发送</span>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="relative">
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="flex gap-3">
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="你的邮箱"
-                    className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/40 focus:bg-white/[0.07] transition-all"
+                    className="flex-1 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/40 focus:bg-white/[0.07] transition-all"
                     required
                   />
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="px-8 py-4 rounded-2xl font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {isLoading ? '提交中...' : '抢先体验'}
+                  </button>
                 </div>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full py-4 rounded-2xl font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 disabled:opacity-50"
-                >
-                  {isLoading ? '提交中...' : '抢先体验'}
-                </button>
                 {errorMessage && (
                   <p className="text-sm text-rose-300">{errorMessage}</p>
                 )}
