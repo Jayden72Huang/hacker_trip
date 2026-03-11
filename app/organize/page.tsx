@@ -496,7 +496,7 @@ export default function OrganizePage() {
                   返回首页
                 </Link>
                 <a
-                  href="mailto:support@hackertrip.com"
+                  href="mailto:support@hackertrip.space"
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 transition-all font-space-mono text-sm text-white shadow-lg shadow-indigo-500/30"
                 >
                   联系我们

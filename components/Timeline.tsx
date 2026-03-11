@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { hackathons } from '@/data/hackathons';
 
 type TimeRange = 'past-month' | 'past-half' | 'all' | 'future-month' | 'future-half';
@@ -140,32 +141,52 @@ export function Timeline({ selectedId, onSelect, subscriptions }: TimelineProps)
     <section id="timeline" className="relative mt-20 md:mt-30 pb-12 md:pb-12 lg:pb-16">
       <div className="w-full max-w-[1440px] mx-auto px-6 lg:px-10">
         <div className="w-full max-w-[1200px] mx-auto flex flex-col items-center gap-12">
-          {/* 标题 */}
-          <div className="glass rounded-2xl px-6 py-3 flex items-center gap-4">
+          {/* 标题 - 整个区域可点击回到总视图 */}
+          <button
+            onClick={() => setTimeRange('all')}
+            className={`glass rounded-2xl px-6 py-3 flex items-center gap-4 transition-all cursor-pointer ${
+              timeRange !== 'all'
+                ? 'hover:bg-white/[0.08] hover:border-white/15'
+                : ''
+            }`}
+          >
             <h2 className="font-sora text-xl md:text-2xl font-bold">
-              <span className="bg-gradient-to-r from-white via-indigo-100 to-purple-100 bg-clip-text text-transparent">
+              <span className={`bg-clip-text text-transparent transition-all ${
+                timeRange === 'all'
+                  ? 'bg-gradient-to-r from-white via-indigo-100 to-purple-100'
+                  : 'bg-gradient-to-r from-gray-500 to-gray-400'
+              }`}>
                 Hackathon{' '}
               </span>
-              <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <span className={`bg-clip-text text-transparent transition-all ${
+                timeRange === 'all'
+                  ? 'bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400'
+                  : 'bg-gradient-to-r from-gray-500 to-gray-400'
+              }`}>
                 Timeline
               </span>
             </h2>
             <div className="w-px h-6 bg-white/20" />
-            <button
-              onClick={() => setTimeRange('all')}
-              className={`font-sora text-xl md:text-2xl font-bold transition-all ${
-                timeRange === 'all'
-                  ? 'bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent'
-                  : 'text-gray-500 hover:text-gray-300'
-              }`}
-            >
+            <span className={`font-sora text-xl md:text-2xl font-bold transition-all ${
+              timeRange === 'all'
+                ? 'bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent'
+                : 'text-gray-500'
+            }`}>
               2026
-            </button>
-          </div>
+            </span>
+          </button>
 
           {/* 时间线内容 */}
-          {filteredHackathons.length > 0 ? (
-            <div className="w-full flex items-center gap-6">
+          <AnimatePresence mode="wait">
+            {filteredHackathons.length > 0 ? (
+              <motion.div
+                key="timeline-content"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.4 }}
+                className="w-full flex items-center gap-6"
+              >
               {/* 左侧：过去时间按钮 */}
               <div className="flex items-center gap-2 shrink-0">
                 {timeRangeButtons
@@ -186,7 +207,12 @@ export function Timeline({ selectedId, onSelect, subscriptions }: TimelineProps)
               </div>
 
               {/* 中间：时间线 */}
-              <div className="flex-1">
+              <motion.div
+                className="flex-1"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
                 {/* 名字行 */}
                 <div className="flex justify-between items-center mb-6">
                   {filteredHackathons.map((h) => (
@@ -213,16 +239,26 @@ export function Timeline({ selectedId, onSelect, subscriptions }: TimelineProps)
                     {filteredHackathons.map((h) => {
                       const dotStyle = getDotStyle(h, selectedId === h.id);
                       return (
-                        <div key={h.id} className="flex-1 flex justify-center">
+                        <motion.div
+                          key={h.id}
+                          className="flex-1 flex justify-center"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
                           <button onClick={() => onSelect(h.id)} className="relative cursor-pointer group">
                             {dotStyle.glow && (
-                              <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full transition-opacity ${dotStyle.glow}`} />
+                              <motion.div
+                                className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full transition-opacity ${dotStyle.glow}`}
+                                animate={{ scale: [1, 1.2, 1] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                              />
                             )}
-                            <div
+                            <motion.div
                               className={`relative w-4 h-4 rounded-full transition-all duration-300 ${dotStyle.dot}`}
+                              layoutId={selectedId === h.id ? "selected-dot" : undefined}
                             />
                           </button>
-                        </div>
+                        </motion.div>
                       );
                     })}
                   </div>
@@ -265,7 +301,7 @@ export function Timeline({ selectedId, onSelect, subscriptions }: TimelineProps)
                     </div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
 
               {/* 右侧：未来时间按钮 */}
               <div className="flex items-center gap-2 shrink-0">
@@ -285,9 +321,15 @@ export function Timeline({ selectedId, onSelect, subscriptions }: TimelineProps)
                     </button>
                   ))}
               </div>
-            </div>
+            </motion.div>
           ) : (
-            <div className="w-full py-16 flex flex-col items-center gap-4">
+            <motion.div
+              key="empty-state"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="w-full py-16 flex flex-col items-center gap-4"
+            >
               <p className="font-space-mono text-gray-500 text-sm">该时间段内暂无黑客松活动</p>
               <button
                 onClick={() => setTimeRange('all')}
@@ -295,8 +337,9 @@ export function Timeline({ selectedId, onSelect, subscriptions }: TimelineProps)
               >
                 查看全部
               </button>
-            </div>
+            </motion.div>
           )}
+          </AnimatePresence>
         </div>
       </div>
     </section>

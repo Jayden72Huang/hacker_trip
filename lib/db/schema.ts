@@ -50,6 +50,7 @@ export const users = pgTable('user', {
   preferredTracks: jsonb('preferred_tracks').default(sql`'[]'::jsonb`),
   experienceLevel: text('experience_level').default('beginner'),
   lookingForTeam: boolean('looking_for_team').default(false),
+  notificationPrefs: jsonb('notification_prefs').default(sql`'{"hackathonAlerts":true,"registrationReminders":true,"teamInvites":true,"systemAnnouncements":true,"emailNotifications":false}'::jsonb`),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
 });
@@ -276,6 +277,199 @@ export const verificationTokens = pgTable(
   ]
 );
 
+// ============ Hacker Bot 枚举 ============
+
+export const agentSessionStatus = pgEnum('agent_session_status', [
+  'active', 'paused', 'completed', 'archived',
+]);
+
+export const agentMessageRole = pgEnum('agent_message_role', [
+  'user', 'assistant', 'system', 'tool',
+]);
+
+export const agentArtifactType = pgEnum('agent_artifact_type', [
+  'analysis_report', 'idea_card', 'feasibility_matrix',
+  'task_board', 'timeline', 'resource_report',
+  'pitch_outline', 'demo_script', 'project_description',
+  'checklist', 'custom',
+]);
+
+export const taskStatus = pgEnum('task_status', [
+  'todo', 'in_progress', 'review', 'done', 'blocked',
+]);
+
+export const taskPriority = pgEnum('task_priority', ['p0', 'p1', 'p2']);
+
+// ============ Hacker Bot 团队 ============
+
+export const agentTeams = pgTable('agent_team', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text('name').notNull(),
+  hackathonId: text('hackathon_id')
+    .references(() => hackathons.id, { onDelete: 'set null' }),
+  hackathonName: text('hackathon_name'),
+  createdBy: text('created_by')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  openclawSessionId: text('openclaw_session_id'),
+  selectedTrack: text('selected_track'),
+  selectedIdea: text('selected_idea'),
+  anthropicApiKey: text('anthropic_api_key'),
+  openclawApiKey: text('openclaw_api_key'),
+  llmProvider: text('llm_provider'),
+  llmApiKey: text('llm_api_key'),
+  llmBaseUrl: text('llm_base_url'),
+  status: text('status').default('active'),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
+});
+
+// ============ Hacker Bot 团队成员 ============
+
+export const agentTeamMembers = pgTable(
+  'agent_team_member',
+  {
+    teamId: text('team_id')
+      .notNull()
+      .references(() => agentTeams.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    role: text('role').default('member'),
+    joinedAt: timestamp('joined_at', { mode: 'date' }).defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.teamId, t.userId] }),
+  ]
+);
+
+// ============ Hacker Bot 会话 ============
+
+export const agentSessions = pgTable('agent_session', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  teamId: text('team_id')
+    .notNull()
+    .references(() => agentTeams.id, { onDelete: 'cascade' }),
+  channelType: text('channel_type').default('webchat'),
+  channelId: text('channel_id'),
+  status: agentSessionStatus('status').default('active'),
+  activeSkill: text('active_skill'),
+  contextSummary: text('context_summary'),
+  metadata: jsonb('metadata').default(sql`'{}'::jsonb`),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
+});
+
+// ============ Hacker Bot 消息 ============
+
+export const agentMessages = pgTable('agent_message', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  sessionId: text('session_id')
+    .notNull()
+    .references(() => agentSessions.id, { onDelete: 'cascade' }),
+  role: agentMessageRole('role').notNull(),
+  content: text('content').notNull(),
+  userId: text('user_id')
+    .references(() => users.id, { onDelete: 'set null' }),
+  skillName: text('skill_name'),
+  toolCalls: jsonb('tool_calls'),
+  tokenCount: integer('token_count'),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+});
+
+// ============ Hacker Bot 生成物 ============
+
+export const agentArtifacts = pgTable('agent_artifact', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  sessionId: text('session_id')
+    .notNull()
+    .references(() => agentSessions.id, { onDelete: 'cascade' }),
+  teamId: text('team_id')
+    .notNull()
+    .references(() => agentTeams.id, { onDelete: 'cascade' }),
+  type: agentArtifactType('type').notNull(),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  structuredData: jsonb('structured_data'),
+  version: integer('version').default(1),
+  isPinned: boolean('is_pinned').default(false),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
+});
+
+// ============ Hacker Bot 赛题分析报告 ============
+
+export const agentAnalysisReports = pgTable('agent_analysis_report', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  teamId: text('team_id')
+    .notNull()
+    .references(() => agentTeams.id, { onDelete: 'cascade' }),
+  hackathonId: text('hackathon_id')
+    .references(() => hackathons.id, { onDelete: 'set null' }),
+  tracks: jsonb('tracks').default(sql`'[]'::jsonb`),
+  judgingCriteria: jsonb('judging_criteria').default(sql`'[]'::jsonb`),
+  rules: jsonb('rules').default(sql`'{}'::jsonb`),
+  timeAllocation: jsonb('time_allocation').default(sql`'{}'::jsonb`),
+  recommendedTracks: jsonb('recommended_tracks').default(sql`'[]'::jsonb`),
+  strategyNotes: text('strategy_notes'),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+});
+
+// ============ Hacker Bot 任务看板 ============
+
+export const agentTaskBoards = pgTable('agent_task_board', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  teamId: text('team_id')
+    .notNull()
+    .references(() => agentTeams.id, { onDelete: 'cascade' }),
+  taskId: text('task_id').notNull(),
+  title: text('title').notNull(),
+  description: text('description'),
+  status: taskStatus('status').default('todo'),
+  priority: taskPriority('priority').default('p1'),
+  assigneeId: text('assignee_id')
+    .references(() => users.id, { onDelete: 'set null' }),
+  estimatedHours: integer('estimated_hours'),
+  dependencies: jsonb('dependencies').default(sql`'[]'::jsonb`),
+  module: text('module'),
+  dueAt: timestamp('due_at', { mode: 'date' }),
+  completedAt: timestamp('completed_at', { mode: 'date' }),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
+});
+
+// ============ Hacker Bot 提醒 ============
+
+export const agentReminders = pgTable('agent_reminder', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  teamId: text('team_id')
+    .notNull()
+    .references(() => agentTeams.id, { onDelete: 'cascade' }),
+  sessionId: text('session_id')
+    .references(() => agentSessions.id, { onDelete: 'set null' }),
+  title: text('title').notNull(),
+  message: text('message'),
+  type: text('type').default('custom'), // deadline | milestone | checkin | custom
+  remindAt: timestamp('remind_at', { mode: 'date' }).notNull(),
+  status: text('status').default('pending'), // pending | triggered | dismissed
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+  triggeredAt: timestamp('triggered_at', { mode: 'date' }),
+});
+
 // ============ 内测需求收集表 ============
 
 export const betaRequests = pgTable('beta_request', {
@@ -289,4 +483,86 @@ export const betaRequests = pgTable('beta_request', {
   feedback: text('feedback'), // 用户期待的功能/遇到的问题
   emailSent: boolean('email_sent').default(false), // 是否已发送邮件（后台批量发送用）
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+});
+
+// ============ 爬虫系统表 ============
+
+// 爬取目标配置表
+export const scrapeTargets = pgTable('scrape_target', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text('name').notNull(), // 目标名称（如 "DoraHacks 中国"）
+  url: text('url').notNull(), // 目标 URL
+  platform: text('platform').notNull(), // 平台类型（DoraHacks/牛客网等）
+  enabled: boolean('enabled').default(true), // 是否启用
+  schedule: text('schedule').notNull(), // cron 表达式（"daily", "weekly", "*/6h"）
+  lastScrapedAt: timestamp('last_scraped_at', { mode: 'date' }), // 上次爬取时间
+  lastStatus: text('last_status'), // 上次爬取状态（success/error）
+  successCount: integer('success_count').default(0), // 成功次数
+  errorCount: integer('error_count').default(0), // 失败次数
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
+});
+
+// 爬取日志表
+export const scrapeLogs = pgTable('scrape_log', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  targetId: text('target_id')
+    .references(() => scrapeTargets.id, { onDelete: 'set null' }),
+  url: text('url').notNull(), // 实际爬取的 URL
+  platform: text('platform'), // 识别的平台
+  status: text('status').notNull(), // success/error
+  confidence: integer('confidence'), // 置信度（0-100）
+  itemsFound: integer('items_found').default(0), // 发现的黑客松数量
+  itemsSaved: integer('items_saved').default(0), // 保存到草稿箱的数量
+  errorMessage: text('error_message'), // 错误信息
+  duration: integer('duration'), // 执行时长（ms）
+  metadata: jsonb('metadata').default(sql`'{}'::jsonb`), // 额外元数据
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+});
+
+// 黑客松草稿箱表
+export const draftHackathons = pgTable('draft_hackathon', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  sourceUrl: text('source_url').notNull(), // 来源 URL
+  platform: text('platform'), // 来源平台
+  scrapeLogId: text('scrape_log_id')
+    .references(() => scrapeLogs.id, { onDelete: 'set null' }),
+
+  // 提取的黑客松信息
+  name: text('name'),
+  shortName: text('short_name'),
+  city: text('city'),
+  country: text('country').default('中国'),
+  venue: text('venue'),
+  dateRange: text('date_range'),
+  startDate: date('start_date', { mode: 'date' }),
+  endDate: date('end_date', { mode: 'date' }),
+  format: text('format'), // online/offline/hybrid
+  theme: text('theme'),
+  summary: text('summary'),
+  prizePool: text('prize_pool'),
+  teams: text('teams'),
+  tracks: jsonb('tracks').default(sql`'[]'::jsonb`),
+  agenda: jsonb('agenda').default(sql`'[]'::jsonb`),
+  organizers: jsonb('organizers').default(sql`'[]'::jsonb`),
+  sponsors: jsonb('sponsors').default(sql`'[]'::jsonb`),
+
+  // 元数据
+  confidence: integer('confidence'), // 数据置信度（0-100）
+  rawData: jsonb('raw_data'), // 原始爬取数据
+  status: text('status').default('pending'), // pending/approved/rejected/published
+  reviewedBy: text('reviewed_by').references(() => users.id, { onDelete: 'set null' }),
+  reviewNotes: text('review_notes'),
+  publishedHackathonId: text('published_hackathon_id')
+    .references(() => hackathons.id, { onDelete: 'set null' }),
+
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+  reviewedAt: timestamp('reviewed_at', { mode: 'date' }),
+  publishedAt: timestamp('published_at', { mode: 'date' }),
 });

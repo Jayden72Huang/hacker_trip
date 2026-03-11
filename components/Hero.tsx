@@ -18,7 +18,7 @@ export function Hero() {
           <div className="glass rounded-full px-5 py-2.5 flex items-center gap-3 glow">
             <div className="w-2 h-2 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400 animate-pulse" />
             <span className="font-space-mono text-sm md:text-md font-medium bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent">
-            HackerTrip - 黑客松 AI Agent
+            HackerTrip - 你的一站式AI黑客松平台
             </span>
           </div>
 

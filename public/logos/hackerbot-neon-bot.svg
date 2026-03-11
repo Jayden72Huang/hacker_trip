@@ -1,0 +1,38 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(146 132) rotate(43) scale(460)">
+      <stop stop-color="#1A1F3A"/>
+      <stop offset="0.52" stop-color="#101429"/>
+      <stop offset="1" stop-color="#07090F"/>
+    </radialGradient>
+    <linearGradient id="botBody" x1="158" y1="136" x2="360" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A894FF"/>
+      <stop offset="0.48" stop-color="#8A6CFF"/>
+      <stop offset="1" stop-color="#5BE4FF"/>
+    </linearGradient>
+    <linearGradient id="visor" x1="196" y1="196" x2="318" y2="286" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#222745"/>
+      <stop offset="1" stop-color="#13172E"/>
+    </linearGradient>
+    <filter id="softGlow" x="40" y="40" width="432" height="432" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.52 0 0 0 0 0.44 0 0 0 0 1 0 0 0 0.45 0"/>
+      <feBlend in="SourceGraphic" mode="normal"/>
+    </filter>
+  </defs>
+
+  <rect x="32" y="32" width="448" height="448" rx="118" fill="url(#bg)"/>
+
+  <g filter="url(#softGlow)">
+    <path d="M256 102C274 102 288 116 288 134V146C318 155 344 178 358 208C371 236 372 271 359 300C345 331 318 354 285 362H227C194 354 167 331 153 300C140 271 141 236 154 208C168 178 194 155 224 146V134C224 116 238 102 256 102Z" fill="url(#botBody)"/>
+    <rect x="186" y="188" width="140" height="102" rx="46" fill="url(#visor)"/>
+    <ellipse cx="226" cy="239" rx="16" ry="18" fill="#D9F4FF"/>
+    <ellipse cx="286" cy="239" rx="16" ry="18" fill="#D9F4FF"/>
+    <circle cx="232" cy="234" r="5" fill="#12172F"/>
+    <circle cx="292" cy="234" r="5" fill="#12172F"/>
+    <path d="M226 274C235 283 247 288 260 288C273 288 285 283 294 274" stroke="#A6ECFF" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="256" cy="134" r="14" fill="#C8BCFF"/>
+  </g>
+
+  <path d="M140 372C167 348 203 334 241 334H271C309 334 345 348 372 372" stroke="#7A5FFF" stroke-opacity="0.35" stroke-width="10" stroke-linecap="round"/>
+</svg>

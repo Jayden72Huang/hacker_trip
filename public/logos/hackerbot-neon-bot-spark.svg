@@ -1,0 +1,39 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(148 124) rotate(40) scale(470)">
+      <stop stop-color="#1E2445"/>
+      <stop offset="0.54" stop-color="#111633"/>
+      <stop offset="1" stop-color="#080B13"/>
+    </radialGradient>
+    <linearGradient id="bot" x1="162" y1="130" x2="366" y2="364" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B7A3FF"/>
+      <stop offset="0.5" stop-color="#8E72FF"/>
+      <stop offset="1" stop-color="#61E8FF"/>
+    </linearGradient>
+    <linearGradient id="visor" x1="192" y1="196" x2="320" y2="292" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#27305B"/>
+      <stop offset="1" stop-color="#151A35"/>
+    </linearGradient>
+    <filter id="glow" x="36" y="36" width="440" height="440" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="13" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.48 0 0 0 0 0.45 0 0 0 0 1 0 0 0 0.46 0"/>
+      <feBlend in="SourceGraphic"/>
+    </filter>
+  </defs>
+
+  <rect x="32" y="32" width="448" height="448" rx="118" fill="url(#bg)"/>
+
+  <g filter="url(#glow)">
+    <path d="M256 100C276 100 292 116 292 136V147C321 157 347 180 360 209C373 238 373 271 359 301C345 331 319 354 286 364H226C193 354 167 331 153 301C139 271 139 238 152 209C165 180 191 157 220 147V136C220 116 236 100 256 100Z" fill="url(#bot)"/>
+    <rect x="184" y="188" width="144" height="104" rx="48" fill="url(#visor)"/>
+    <ellipse cx="226" cy="238" rx="16" ry="18" fill="#E1F8FF"/>
+    <ellipse cx="286" cy="238" rx="16" ry="18" fill="#E1F8FF"/>
+    <circle cx="232" cy="234" r="5" fill="#12172F"/>
+    <circle cx="292" cy="234" r="5" fill="#12172F"/>
+    <path d="M225 273C234 282 247 287 260 287C273 287 286 282 295 273" stroke="#B2EEFF" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="256" cy="134" r="14" fill="#D3C7FF"/>
+  </g>
+
+  <path d="M384 126L390 138L404 140L393 149L395 163L384 156L373 163L375 149L364 140L378 138L384 126Z" fill="#84EBFF"/>
+  <path d="M128 352L132 360L141 362L134 367L135 376L128 371L121 376L122 367L115 362L124 360L128 352Z" fill="#A893FF"/>
+</svg>

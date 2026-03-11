@@ -55,6 +55,7 @@ export interface ScrapeResult {
   success: boolean;
   data?: Partial<Hackathon>;
   rawHtml?: string;
+  rawMarkdown?: string;
   error?: string;
   confidence: number;
   platform?: string; // 识别的平台类型

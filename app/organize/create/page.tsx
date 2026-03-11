@@ -438,7 +438,7 @@ export default function CreateHackathonPage() {
                   <div>
                     <label className="block font-space-mono text-sm text-gray-400 mb-2">
                       <Globe size={14} className="inline mr-1" />
-                      官方网站
+                      官方网站/报名链接/推文链接
                     </label>
                     <input
                       type="url"

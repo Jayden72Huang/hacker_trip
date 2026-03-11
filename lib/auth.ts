@@ -17,7 +17,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientSecret: process.env.AUTH_GITHUB_SECRET,
     }),
     Resend({
-      from: process.env.EMAIL_FROM || 'HackerTrip <noreply@hackertrip.com>',
+      from: process.env.EMAIL_FROM || 'HackerTrip <noreply@hackertrip.space>',
     }),
   ],
   pages: {

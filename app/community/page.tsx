@@ -1,272 +1,202 @@
 'use client';
 
-import Image from 'next/image';
+import { motion } from 'framer-motion';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { ExternalLink, Sparkles, Users, Zap } from 'lucide-react';
-
-// 合作方数据
-const partners = [
-  {
-    name: 'ETHGlobal',
-    logo: 'https://ethglobal.com/favicon.ico',
-    description: '全球最大的以太坊黑客松组织',
-    url: 'https://ethglobal.com',
-  },
-  {
-    name: 'Devpost',
-    logo: 'https://devpost.com/assets/favicon-e12e35b96deec364e7dc7fb3589b0f22db6b154852c7ff7167e42f2f5f3da2e8.ico',
-    description: '全球黑客松平台',
-    url: 'https://devpost.com',
-  },
-  {
-    name: 'MLH',
-    logo: 'https://mlh.io/favicon.ico',
-    description: 'Major League Hacking',
-    url: 'https://mlh.io',
-  },
-  {
-    name: 'DoraHacks',
-    logo: 'https://dorahacks.io/favicon.ico',
-    description: '去中心化黑客松平台',
-    url: 'https://dorahacks.io',
-  },
-];
-
-// 支持的 AI 工具
-const aiTools = [
-  {
-    name: 'Claude',
-    logo: '/ai-tools/claude.svg',
-    description: 'Anthropic 旗舰 AI 助手',
-    url: 'https://claude.ai',
-    color: 'from-orange-500/20 to-amber-500/20',
-  },
-  {
-    name: 'ChatGPT',
-    logo: '/ai-tools/openai.svg',
-    description: 'OpenAI 对话式 AI',
-    url: 'https://chat.openai.com',
-    color: 'from-emerald-500/20 to-teal-500/20',
-  },
-  {
-    name: 'Cursor',
-    logo: '/ai-tools/cursor.svg',
-    description: 'AI 驱动的代码编辑器',
-    url: 'https://cursor.sh',
-    color: 'from-blue-500/20 to-cyan-500/20',
-  },
-  {
-    name: 'v0',
-    logo: '/ai-tools/v0.svg',
-    description: 'Vercel AI UI 生成器',
-    url: 'https://v0.dev',
-    color: 'from-gray-500/20 to-slate-500/20',
-  },
-  {
-    name: 'Bolt',
-    logo: '/ai-tools/bolt.svg',
-    description: 'StackBlitz AI 全栈开发',
-    url: 'https://bolt.new',
-    color: 'from-yellow-500/20 to-orange-500/20',
-  },
-  {
-    name: 'Lovable',
-    logo: '/ai-tools/lovable.svg',
-    description: 'AI 应用生成平台',
-    url: 'https://lovable.dev',
-    color: 'from-pink-500/20 to-rose-500/20',
-  },
-  {
-    name: 'Windsurf',
-    logo: '/ai-tools/windsurf.svg',
-    description: 'Codeium AI IDE',
-    url: 'https://codeium.com/windsurf',
-    color: 'from-cyan-500/20 to-blue-500/20',
-  },
-  {
-    name: 'Replit',
-    logo: '/ai-tools/replit.svg',
-    description: 'AI 协作编程平台',
-    url: 'https://replit.com',
-    color: 'from-orange-500/20 to-red-500/20',
-  },
-  {
-    name: 'GitHub Copilot',
-    logo: '/ai-tools/copilot.svg',
-    description: 'AI 配对编程助手',
-    url: 'https://github.com/features/copilot',
-    color: 'from-purple-500/20 to-violet-500/20',
-  },
-  {
-    name: 'Perplexity',
-    logo: '/ai-tools/perplexity.svg',
-    description: 'AI 搜索引擎',
-    url: 'https://perplexity.ai',
-    color: 'from-teal-500/20 to-emerald-500/20',
-  },
-  {
-    name: 'Midjourney',
-    logo: '/ai-tools/midjourney.svg',
-    description: 'AI 图像生成',
-    url: 'https://midjourney.com',
-    color: 'from-indigo-500/20 to-purple-500/20',
-  },
-  {
-    name: 'Stability AI',
-    logo: '/ai-tools/stability.svg',
-    description: 'Stable Diffusion 开发者',
-    url: 'https://stability.ai',
-    color: 'from-violet-500/20 to-fuchsia-500/20',
-  },
-];
+import { CommunityCarousel } from '@/components/CommunityCarousel';
+import { FloatingBlob } from '@/components/ui/FloatingBlob';
+import { fadeInUp } from '@/lib/animations';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import PeopleIcon from '@mui/icons-material/People';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
 export default function CommunityPage() {
+  const stats = [
+    {
+      icon: <PeopleIcon sx={{ fontSize: 40 }} />,
+      value: '10,000+',
+      label: '活跃黑客',
+      color: 'text-purple-400',
+    },
+    {
+      icon: <AccessTimeIcon sx={{ fontSize: 40 }} />,
+      value: '24/7',
+      label: 'AI 助手在线',
+      color: 'text-cyan-400',
+    },
+    {
+      icon: <TrendingUpIcon sx={{ fontSize: 40 }} />,
+      value: '85%',
+      label: '成功组队率',
+      color: 'text-emerald-400',
+    },
+  ];
+
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <main className="min-h-screen bg-[#05060a] text-white relative overflow-hidden">
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-16 overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl" />
+      {/* 背景装饰 */}
+      <div className="fixed inset-0 -z-10 opacity-15">
+        <div className="absolute top-20 left-[10%]">
+          <FloatingBlob colors={['#7c5dff', '#c759ff']} size={600} duration={35} blur={120} />
         </div>
+        <div className="absolute bottom-20 right-[15%]">
+          <FloatingBlob colors={['#4de1ff', '#7c5dff']} size={500} duration={30} blur={100} />
+        </div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+          <FloatingBlob colors={['#c759ff', '#4de1ff']} size={400} duration={40} blur={110} />
+        </div>
+      </div>
 
-        <div className="relative w-full max-w-[1440px] mx-auto px-6 lg:px-10">
-          <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 mb-6">
-              <Users size={16} className="text-indigo-400" />
-              <span className="font-space-mono text-sm text-indigo-300">Community</span>
-            </div>
+      {/* Grid Background */}
+      <div className="fixed inset-0 -z-5 opacity-[0.08]">
+        <div className="absolute inset-0 grid-bg" />
+      </div>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
-                构建未来的
+      <section className="relative pt-32 pb-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          {/* Header */}
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            animate="visible"
+            className="text-center mb-20"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 backdrop-blur-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-400"></span>
               </span>
-              <br />
-              <span className="text-white">黑客松生态</span>
+              <span className="text-sm font-medium text-purple-200/90">Community Plaza · 即将上线</span>
+            </div>
+
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+              <span className="bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
+                不再孤军奋战
+              </span>
             </h1>
-
-            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-              与全球顶尖黑客松平台合作，集成最先进的 AI 开发工具，
-              为开发者提供最佳的创新体验。
+            <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+              AI 驱动的黑客松社区，从组队到夺冠
+              <br />
+              <span className="text-purple-400">全程陪伴你的每一步</span>
             </p>
-          </div>
-        </div>
-      </section>
+          </motion.div>
 
-      {/* AI Tools Section */}
-      <section className="py-16">
-        <div className="w-full max-w-[1440px] mx-auto px-6 lg:px-10">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30">
-              <Sparkles size={24} className="text-indigo-400" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white">AI 工具生态</h2>
-              <p className="text-sm text-gray-500">支持的 AI 开发工具与平台</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {aiTools.map((tool) => (
-              <a
-                key={tool.name}
-                href={tool.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`group relative p-6 rounded-2xl bg-gradient-to-br ${tool.color} border border-white/5 hover:border-white/20 transition-all hover:scale-[1.02]`}
+          {/* Stats Row */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="grid grid-cols-3 gap-4 md:gap-8 max-w-4xl mx-auto mb-20"
+          >
+            {stats.map((stat, idx) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 + idx * 0.1, type: 'spring' }}
+                className="text-center p-6 rounded-2xl bg-white/[0.02] border border-white/10 hover:bg-white/[0.05] hover:border-purple-500/30 transition-all duration-300 hover:scale-105"
               >
-                <div className="flex flex-col items-center text-center gap-3">
-                  <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center overflow-hidden">
-                    <div className="w-10 h-10 bg-gradient-to-br from-gray-600 to-gray-800 rounded-xl flex items-center justify-center">
-                      <span className="text-white font-bold text-lg">{tool.name[0]}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white group-hover:text-indigo-300 transition-colors flex items-center justify-center gap-1">
-                      {tool.name}
-                      <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-1">{tool.description}</p>
-                  </div>
+                <div className={`${stat.color} mb-3 flex justify-center`}>
+                  {stat.icon}
                 </div>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Partners Section */}
-      <section className="py-16">
-        <div className="w-full max-w-[1440px] mx-auto px-6 lg:px-10">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30">
-              <Zap size={24} className="text-purple-400" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white">合作伙伴</h2>
-              <p className="text-sm text-gray-500">全球黑客松平台与社区</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {partners.map((partner) => (
-              <a
-                key={partner.name}
-                href={partner.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group p-6 rounded-2xl glass border border-white/5 hover:border-indigo-500/30 transition-all hover:scale-[1.02]"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center overflow-hidden">
-                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-                      <span className="text-white font-bold">{partner.name[0]}</span>
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-white group-hover:text-indigo-300 transition-colors flex items-center gap-1">
-                      {partner.name}
-                      <ExternalLink size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </h3>
-                    <p className="text-xs text-gray-500">{partner.description}</p>
-                  </div>
+                <div className="text-3xl md:text-4xl font-bold text-white mb-2">
+                  {stat.value}
                 </div>
-              </a>
+                <div className="text-sm text-gray-500">
+                  {stat.label}
+                </div>
+              </motion.div>
             ))}
-          </div>
-        </div>
-      </section>
+          </motion.div>
 
-      {/* CTA Section */}
-      <section className="py-16">
-        <div className="w-full max-w-[1440px] mx-auto px-6 lg:px-10">
-          <div className="relative rounded-3xl overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20" />
-            <div className="absolute inset-0">
-              <div className="absolute top-0 left-1/4 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl" />
-              <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl" />
+          {/* Main Carousel */}
+          <motion.div
+            initial={{ opacity: 0, y: 60 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="mb-20"
+          >
+            <CommunityCarousel />
+          </motion.div>
+
+          {/* Why Join Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              为什么选择我们？
+            </h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              传统黑客松平台只提供赛事信息，我们提供<span className="text-purple-400">全流程 AI 支持</span>
+            </p>
+          </motion.div>
+
+          {/* Comparison Grid */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-20"
+          >
+            {/* Traditional Platform */}
+            <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/10">
+              <div className="text-3xl mb-4">😐</div>
+              <h3 className="text-2xl font-bold text-gray-400 mb-4">传统平台</h3>
+              <ul className="space-y-3 text-gray-500">
+                <li className="flex items-start gap-2">
+                  <span className="text-red-400">✗</span>
+                  <span>只能自己找队友</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-red-400">✗</span>
+                  <span>赛题理解全靠 Google</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-red-400">✗</span>
+                  <span>技术问题无人解答</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-red-400">✗</span>
+                  <span>作品提交后石沉大海</span>
+                </li>
+              </ul>
             </div>
 
-            <div className="relative p-8 md:p-12 text-center">
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-                想要成为合作伙伴？
-              </h2>
-              <p className="text-gray-400 mb-8 max-w-xl mx-auto">
-                如果你是黑客松组织者、AI 工具开发者或社区运营者，
-                欢迎与我们合作，共同推动开发者生态发展。
-              </p>
-              <a
-                href="mailto:Jayden0702work@outlook.com"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 transition-all hover:scale-[1.03] font-medium"
-              >
-                联系我们
-                <ExternalLink size={16} />
-              </a>
+            {/* HackerTrip */}
+            <div className="p-8 rounded-3xl bg-gradient-to-br from-purple-500/10 to-cyan-500/10 border border-purple-500/30 relative overflow-hidden">
+              <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-xs text-purple-300">
+                AI 加持
+              </div>
+              <div className="text-3xl mb-4">🚀</div>
+              <h3 className="text-2xl font-bold text-white mb-4">HackerTrip</h3>
+              <ul className="space-y-3 text-gray-300">
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400">✓</span>
+                  <span>AI 智能匹配最佳队友</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400">✓</span>
+                  <span>AI 导师 24/7 赛题解析</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400">✓</span>
+                  <span>实时技术方案建议</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400">✓</span>
+                  <span>自动生成 Demo + 推荐给 VC</span>
+                </li>
+              </ul>
             </div>
-          </div>
+          </motion.div>
+
         </div>
       </section>
 

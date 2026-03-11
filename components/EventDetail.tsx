@@ -500,15 +500,11 @@ export function EventDetail({ hackathon, isSubscribed, onToggleSubscribe }: Prop
                   <div className="text-center space-y-2">
                     <span className="font-mono text-sm uppercase tracking-[0.3em] text-gray-400">合作伙伴与赞助商</span>
                   </div>
-                  <div className="flex flex-wrap justify-center items-center gap-12">
+                  <div className="flex flex-wrap justify-center items-center gap-8">
                     {[...organizers, ...sponsors].map((p, i) => (
-                      <div key={i} className="h-8 flex items-center">
-                        {p.logo ? (
-                          <img src={p.logo} alt={p.name} className="h-full w-auto object-contain brightness-100" />
-                        ) : (
-                          <span className="font-sans text-base font-bold text-white">{p.name}</span>
-                        )}
-                      </div>
+                      <span key={i} className="px-4 py-2 rounded-full bg-white/[0.04] border border-white/10 text-sm font-medium text-gray-300">
+                        {p.name}
+                      </span>
                     ))}
                   </div>
                 </div>

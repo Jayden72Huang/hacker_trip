@@ -44,18 +44,25 @@ const menuItems: MenuItem[] = [
     label: '内容管理',
     icon: FileText,
     children: [
+      { id: 'drafts', label: '草稿箱' },
+      { id: 'product-awards', label: '作品 & 奖项' },
+    ],
+  },
+  {
+    id: 'scraping',
+    label: '信息爬取',
+    icon: Globe,
+    children: [
       { id: 'url-scraper', label: 'URL 爬取' },
       { id: 'text-parser', label: '文本解析' },
       { id: 'google-search', label: 'Google 检索' },
-      { id: 'drafts', label: '草稿箱' },
-      { id: 'product-awards', label: '作品 & 奖项' },
     ],
   },
 ];
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('organizer-review');
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['users', 'content']);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['users', 'content', 'scraping']);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
 

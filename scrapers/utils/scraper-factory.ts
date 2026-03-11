@@ -1,30 +1,61 @@
 /**
- * 爬虫工厂 - 根据 URL 自动选择合适的爬虫
+ * 爬虫工厂 - 根据 URL 和配置选择合适的爬虫
+ *
+ * 策略:
+ * - 默认使用 JinaLLMScraper（Jina Reader + LLM，通吃所有网站）
+ * - 如果没有 ANTHROPIC_API_KEY，降级到传统 Cheerio 爬虫
  */
 
+import type { ScrapeResult } from '../core/types';
 import { BaseScraper } from '../core/base-scraper';
 import { GenericScraper } from '../sites/generic';
 import { DoraHacksScraper } from '../sites/dorahacks-cn';
+import { JinaLLMScraper } from '../core/jina-llm-scraper';
 
 export class ScraperFactory {
   /**
-   * 根据 URL 创建爬虫实例
+   * 创建爬虫并执行爬取
+   * 优先使用 Jina+LLM，失败时降级到传统爬虫
    */
-  static createScraper(url: string): BaseScraper {
+  static async smartScrape(url: string): Promise<ScrapeResult> {
+    const hasAnthropicKey = !!process.env.ANTHROPIC_API_KEY;
+
+    // 1. 优先：Jina + LLM（需要 API Key）
+    if (hasAnthropicKey) {
+      try {
+        const jinaResult = await new JinaLLMScraper().scrape(url);
+        if (jinaResult.success && jinaResult.confidence > 0.3) {
+          return jinaResult;
+        }
+        console.warn(`Jina+LLM 置信度过低 (${jinaResult.confidence})，降级到传统爬虫`);
+      } catch (err) {
+        console.warn('Jina+LLM 爬虫失败，降级到传统爬虫:', err);
+      }
+    }
+
+    // 2. 降级：传统 Cheerio 爬虫
+    const legacyScraper = this.createLegacyScraper(url);
+    return legacyScraper.scrape(url);
+  }
+
+  /**
+   * 创建传统爬虫实例（基于 CSS 选择器）
+   */
+  static createLegacyScraper(url: string): BaseScraper {
     const domain = this.extractDomain(url);
 
-    // DoraHacks
     if (domain.includes('dorahacks')) {
       return new DoraHacksScraper();
     }
 
-    // TODO: 添加更多中国平台
-    // if (domain.includes('juejin')) return new JuejinScraper();
-    // if (domain.includes('nowcoder')) return new NowcoderScraper();
-    // if (domain.includes('huodongxing')) return new HuodongxingScraper();
-
-    // 默认使用通用爬虫
     return new GenericScraper();
+  }
+
+  /**
+   * 创建爬虫实例（保持向后兼容）
+   */
+  static createScraper(url: string): BaseScraper {
+    return this.createLegacyScraper(url);
   }
 
   /**

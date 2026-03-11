@@ -118,3 +118,139 @@ a {
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+/* Onboarding Wizard Animations */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.4; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes orb-drift-1 {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(20px, -15px); }
+  66% { transform: translate(-10px, 10px); }
+}
+
+@keyframes orb-drift-2 {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(-15px, 20px); }
+  66% { transform: translate(10px, -10px); }
+}
+
+.animate-float-slow { animation: float-slow 4s ease-in-out infinite; }
+.animate-pulse-ring { animation: pulse-ring 2s ease-out infinite; }
+.animate-fade-up { animation: fade-up 0.4s ease-out both; }
+.animate-orb-1 { animation: orb-drift-1 12s ease-in-out infinite; }
+.animate-orb-2 { animation: orb-drift-2 10s ease-in-out infinite; }
+
+/* Blob Animation */
+@keyframes spin-slow {
+  100% { transform: rotate(360deg); }
+}
+
+/* Button Border Flow */
+@keyframes border-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Glow Pulse */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(124, 93, 255, 0.3),
+                0 0 40px rgba(77, 225, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(124, 93, 255, 0.5),
+                0 0 60px rgba(77, 225, 255, 0.3);
+  }
+}
+
+/* Grid Pulse */
+@keyframes grid-pulse {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 0.3; }
+}
+
+/* Utility Classes */
+.card-glow {
+  transition: all 0.3s ease;
+}
+
+.card-glow:hover {
+  box-shadow:
+    0 0 20px rgba(124, 93, 255, 0.4),
+    0 0 40px rgba(77, 225, 255, 0.2),
+    inset 0 0 60px rgba(199, 89, 255, 0.1);
+}
+
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+  background-size: 200% 100%;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  animation: border-flow 3s ease infinite;
+  box-shadow: 0 0 30px rgba(124, 93, 255, 0.4);
+}
+
+.btn-secondary {
+  border: 1px solid rgba(124, 93, 255, 0.3);
+  background: rgba(124, 93, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(124, 93, 255, 0.2);
+  border-color: rgba(124, 93, 255, 0.5);
+}
+
+.input-primary:focus {
+  border-color: rgba(124, 93, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(124, 93, 255, 0.1);
+  outline: none;
+}
+
+/* Scraping progress bar */
+@keyframes shimmer-bar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+
+.haki-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(151, 165, 190, 0.42) rgba(255, 255, 255, 0.05);
+}
+
+.haki-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.haki-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+}
+
+.haki-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(148, 163, 184, 0.75), rgba(103, 232, 249, 0.5));
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.haki-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(186, 230, 253, 0.85), rgba(129, 140, 248, 0.65));
+}

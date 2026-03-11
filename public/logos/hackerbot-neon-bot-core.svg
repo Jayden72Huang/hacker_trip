@@ -1,0 +1,36 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(152 120) rotate(38) scale(474)">
+      <stop stop-color="#1A2040"/>
+      <stop offset="0.52" stop-color="#0F142C"/>
+      <stop offset="1" stop-color="#060910"/>
+    </radialGradient>
+    <linearGradient id="bot" x1="162" y1="132" x2="362" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B39FFF"/>
+      <stop offset="0.5" stop-color="#8A6FFF"/>
+      <stop offset="1" stop-color="#62E8FF"/>
+    </linearGradient>
+    <linearGradient id="visor" x1="194" y1="194" x2="318" y2="288" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#20274A"/>
+      <stop offset="1" stop-color="#121831"/>
+    </linearGradient>
+    <radialGradient id="core" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(256 246) rotate(90) scale(40)">
+      <stop stop-color="#CFFFFF"/>
+      <stop offset="0.45" stop-color="#83EEFF"/>
+      <stop offset="1" stop-color="#4CA8FF" stop-opacity="0.2"/>
+    </radialGradient>
+  </defs>
+
+  <rect x="32" y="32" width="448" height="448" rx="118" fill="url(#bg)"/>
+
+  <path d="M256 102C276 102 292 118 292 138V148C321 158 346 181 359 210C372 239 372 271 358 301C344 332 318 355 286 364H226C194 355 168 332 154 301C140 271 140 239 153 210C166 181 191 158 220 148V138C220 118 236 102 256 102Z" fill="url(#bot)"/>
+  <rect x="184" y="186" width="144" height="106" rx="50" fill="url(#visor)"/>
+
+  <ellipse cx="224" cy="238" rx="15" ry="17" fill="#DDF7FF"/>
+  <ellipse cx="288" cy="238" rx="15" ry="17" fill="#DDF7FF"/>
+  <circle cx="230" cy="234" r="5" fill="#12172F"/>
+  <circle cx="294" cy="234" r="5" fill="#12172F"/>
+  <circle cx="256" cy="246" r="34" fill="url(#core)"/>
+  <path d="M227 276C236 284 248 289 260 289C272 289 284 284 293 276" stroke="#AEEFFF" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="256" cy="134" r="14" fill="#CFC2FF"/>
+</svg>

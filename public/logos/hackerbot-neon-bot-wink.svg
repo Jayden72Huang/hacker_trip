@@ -1,0 +1,31 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(150 128) rotate(42) scale(468)">
+      <stop stop-color="#1B2140"/>
+      <stop offset="0.54" stop-color="#10152E"/>
+      <stop offset="1" stop-color="#070A12"/>
+    </radialGradient>
+    <linearGradient id="bot" x1="160" y1="132" x2="364" y2="362" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B19EFF"/>
+      <stop offset="0.48" stop-color="#8A6EFF"/>
+      <stop offset="1" stop-color="#5CE6FF"/>
+    </linearGradient>
+    <linearGradient id="visor" x1="194" y1="196" x2="319" y2="290" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#232B52"/>
+      <stop offset="1" stop-color="#141A33"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="32" y="32" width="448" height="448" rx="118" fill="url(#bg)"/>
+
+  <path d="M256 102C274 102 289 117 289 135V146C319 155 346 178 360 208C373 237 373 270 360 300C346 331 319 355 286 364H226C193 355 166 331 152 300C139 270 139 237 152 208C166 178 193 155 223 146V135C223 117 238 102 256 102Z" fill="url(#bot)"/>
+  <rect x="186" y="188" width="140" height="102" rx="46" fill="url(#visor)"/>
+
+  <ellipse cx="226" cy="238" rx="16" ry="18" fill="#DDF6FF"/>
+  <circle cx="232" cy="233" r="5" fill="#12172F"/>
+  <path d="M275 240H299" stroke="#DDF6FF" stroke-width="10" stroke-linecap="round"/>
+  <path d="M226 274C236 283 248 288 261 288C274 288 286 283 295 274" stroke="#AAECFF" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="256" cy="134" r="14" fill="#CCBEFF"/>
+
+  <path d="M142 372C169 349 204 336 240 336H270C307 336 343 349 370 372" stroke="#7B62FF" stroke-opacity="0.4" stroke-width="10" stroke-linecap="round"/>
+</svg>

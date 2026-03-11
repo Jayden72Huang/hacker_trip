@@ -1,24 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, LogOut } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Menu, X, LogOut, Bot, Sparkles, Trophy, Users, BookOpen, Swords, Rocket } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { UserMenu } from './UserMenu';
 import { SignInModal } from './SignInModal';
+import { NavDropdown } from './NavDropdown';
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [signInModalOpen, setSignInModalOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { data: session, status } = useSession();
   const isLoading = status === 'loading';
+
+  // 滚动监听
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 py-6">
         <div className="w-full max-w-[1440px] mx-auto px-6 lg:px-10">
-          <nav className="glass rounded-full px-6 py-3 lg:px-10 lg:py-4 flex items-center justify-between glow">
+          <motion.nav
+            className="glass rounded-full px-6 py-3 lg:px-10 lg:py-4 flex items-center justify-between glow"
+            animate={{
+              backdropFilter: scrolled ? 'blur(20px)' : 'blur(14px)',
+              backgroundColor: scrolled ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.06)',
+            }}
+            transition={{ duration: 0.3 }}
+          >
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
               <Image
@@ -42,23 +61,66 @@ export function Navbar() {
               >
                 黑客松
               </Link>
+
+              <NavDropdown
+                label="Agent"
+                items={[
+                  {
+                    title: 'Agent 空间',
+                    href: '/agent-studio',
+                    description: 'AI 黑客松全能助手',
+                    icon: <Sparkles size={16} />
+                  },
+                  {
+                    title: 'Hacker Bot',
+                    href: '/hacker-bot',
+                    description: '智能参赛伙伴',
+                    icon: <Bot size={16} />
+                  },
+                ]}
+              />
+
+              <NavDropdown
+                label="工具"
+                items={[
+                  {
+                    title: '技术栈选择',
+                    href: '/arsenal',
+                    description: 'AI 推荐技术方案 · 选型 · 模板',
+                    icon: <Swords size={16} />
+                  },
+                  {
+                    title: 'AI 赛后推广',
+                    href: '/launch',
+                    description: '一键生成推广素材 · 曝光加速',
+                    icon: <Rocket size={16} />
+                  },
+                ]}
+              />
+
+              <NavDropdown
+                label="社区"
+                items={[
+                  {
+                    title: '作品榜',
+                    href: '/products',
+                    description: '优秀作品展示',
+                    icon: <Trophy size={16} />
+                  },
+                  {
+                    title: '社区广场',
+                    href: '/community',
+                    description: '组队 · 复盘 · 资源',
+                    icon: <Users size={16} />
+                  },
+                ]}
+              />
+
               <Link
-                href="/agent-studio"
+                href="/docs"
                 className="font-space-mono text-sm text-gray-400 hover:text-white transition-colors"
               >
-                Agent空间
-              </Link>
-              <Link
-                href="/products"
-                className="font-space-mono text-sm text-gray-400 hover:text-white transition-colors"
-              >
-                作品榜
-              </Link>
-              <Link
-                href="/community"
-                className="font-space-mono text-sm text-gray-400 hover:text-white transition-colors"
-              >
-                社区
+                帮助中心
               </Link>
             </div>
 
@@ -102,7 +164,7 @@ export function Navbar() {
                 )}
               </button>
             </div>
-          </nav>
+          </motion.nav>
 
           {/* Mobile Menu */}
           {mobileMenuOpen && (
@@ -117,10 +179,35 @@ export function Navbar() {
                 </Link>
                 <Link
                   href="/agent-studio"
-                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors"
+                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors flex items-center gap-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Agent空间
+                  <Sparkles size={14} />
+                  Agent 空间
+                </Link>
+                <Link
+                  href="/hacker-bot"
+                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors flex items-center gap-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Bot size={14} />
+                  Hacker Bot
+                </Link>
+                <Link
+                  href="/arsenal"
+                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors flex items-center gap-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Swords size={14} />
+                  技术栈选择
+                </Link>
+                <Link
+                  href="/launch"
+                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors flex items-center gap-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Rocket size={14} />
+                  AI 赛后推广
                 </Link>
                 <Link
                   href="/products"
@@ -135,6 +222,14 @@ export function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   社区
+                </Link>
+                <Link
+                  href="/docs"
+                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors flex items-center gap-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <BookOpen size={14} />
+                  帮助中心
                 </Link>
                 <div className="w-full h-px bg-white/10 my-2" />
                 <Link

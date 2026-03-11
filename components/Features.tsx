@@ -1,8 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import { Map, Rocket, Sparkles, Trophy, Users } from 'lucide-react';
+import Link from 'next/link';
+import { Map, Rocket, Sparkles, Trophy, Users, ArrowRight } from 'lucide-react';
 import ScrollFloat from './ScrollFloat';
+import { CountUp } from './CountUp';
+import { scrollFloatConfig } from '@/lib/animations';
 
 // 功能模块数据 - 围绕 AI 黑客松全生命周期
 const features = [
@@ -19,13 +22,15 @@ const features = [
     badgeColor: 'bg-violet-500/20 text-violet-300 border-violet-400/30',
     image: '/images/features/discover.png',
     layout: 'left',
+    ctaText: '浏览赛事日历',
+    ctaHref: '/#timeline',
+    ctaColor: 'from-violet-500 to-indigo-500 hover:from-violet-400 hover:to-indigo-400',
   },
   {
     id: 'arsenal',
     badge: 'AI 武器库',
     title: '48 小时内，你需要最强装备',
     description: '根据你的项目方向，一键获取最佳 MCP Servers、Claude Skills 和开发工具链。RAG 要用哪个向量库？Agent 框架选哪个？支付集成怎么做？别在工具选型上浪费 8 小时，我们帮你配好。',
-    // 粉色渐变
     gradientFrom: 'from-rose-600/40',
     gradientVia: 'via-pink-600/30',
     gradientTo: 'to-fuchsia-600/20',
@@ -33,13 +38,15 @@ const features = [
     badgeColor: 'bg-rose-500/20 text-rose-300 border-rose-400/30',
     image: '/images/features/personalized.png',
     layout: 'right',
+    ctaText: '探索 AI 工具库',
+    ctaHref: '/arsenal',
+    ctaColor: 'from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400',
   },
   {
     id: 'launch',
     badge: '产品起飞',
     title: '比赛结束才是真正的开始',
     description: '80% 的黑客松项目在颁奖后就消失了。HackerTrip 帮你持续曝光：Product Hunt 首发策略、Twitter/X 病毒式传播模板、投资人 Demo Day 对接。让你的 Weekend Project 变成下一个独角兽的起点。',
-    // 琥珀色渐变
     gradientFrom: 'from-amber-600/40',
     gradientVia: 'via-orange-600/30',
     gradientTo: 'to-yellow-600/20',
@@ -47,6 +54,9 @@ const features = [
     badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-400/30',
     image: '/images/features/practical.png',
     layout: 'left',
+    ctaText: '启动赛后加速器',
+    ctaHref: '/launch',
+    ctaColor: 'from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400',
   },
 ];
 
@@ -63,18 +73,7 @@ export function Features() {
           </div>
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white">
             作为你的专属{' '}
-            <ScrollFloat
-              animationDuration={1}
-              ease="back.inOut(2)"
-              scrollStart="top 85%"
-              scrollEnd="top 50%"
-              stagger={0.03}
-              gradientColors={{
-                from: '#818cf8',
-                via: '#c084fc',
-                to: '#f472b6'
-              }}
-            >
+            <ScrollFloat {...scrollFloatConfig}>
               黑客松 AI Agent
             </ScrollFloat>
           </h2>
@@ -103,6 +102,13 @@ export function Features() {
                   <p className="text-base md:text-lg text-gray-300 leading-relaxed max-w-lg">
                     {feature.description}
                   </p>
+                  <Link
+                    href={feature.ctaHref}
+                    className={`inline-flex items-center gap-2 mt-8 px-6 py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r ${feature.ctaColor} transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.03] active:scale-[0.98] w-fit`}
+                  >
+                    {feature.ctaText}
+                    <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+                  </Link>
                 </div>
 
                 {/* 图片区域 */}
@@ -125,15 +131,15 @@ export function Features() {
         {/* Bottom Stats */}
         <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { icon: Trophy, value: '50+', label: '合作黑客松', color: 'text-amber-400' },
-            { icon: Map, value: '30+', label: '覆盖国家', color: 'text-emerald-400' },
-            { icon: Users, value: '12K+', label: '活跃用户', color: 'text-blue-400' },
-            { icon: Rocket, value: '$2M+', label: '帮助获得奖金', color: 'text-purple-400' },
+            { icon: Trophy, value: 50, suffix: '+', label: '合作黑客松', color: 'text-amber-400' },
+            { icon: Map, value: 30, suffix: '+', label: '覆盖国家', color: 'text-emerald-400' },
+            { icon: Users, value: 12000, suffix: '+', label: '活跃用户', color: 'text-blue-400' },
+            { icon: Rocket, value: 2000000, suffix: '+', label: '帮助获得奖金 ($)', color: 'text-purple-400' },
           ].map((stat, i) => (
             <div key={i} className="group text-center p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-white/10 transition-all duration-300">
               <stat.icon className={`w-6 h-6 mx-auto mb-3 ${stat.color} group-hover:scale-110 transition-transform duration-300`} />
               <p className="text-2xl md:text-3xl font-bold text-white mb-1">
-                {stat.value}
+                <CountUp end={stat.value} duration={2.5} suffix={stat.suffix} />
               </p>
               <p className="text-sm text-gray-400">{stat.label}</p>
             </div>

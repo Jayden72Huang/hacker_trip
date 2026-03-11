@@ -6,6 +6,7 @@ import { Hero } from '@/components/Hero';
 import { Navbar } from '@/components/Navbar';
 import { Timeline } from '@/components/Timeline';
 import { EventDetail } from '@/components/EventDetail';
+import { LogoMarquee } from '@/components/LogoMarquee';
 import { Features } from '@/components/Features';
 import { Testimonials } from '@/components/Testimonials';
 import { Footer } from '@/components/Footer';
@@ -29,13 +30,20 @@ export default function Home() {
 
   // 从localStorage加载订阅状态
   useEffect(() => {
+    let saved: string[] = [];
+
     try {
       const raw = typeof window !== 'undefined' ? window.localStorage.getItem(STORAGE_KEY) : null;
-      const saved: string[] = raw ? JSON.parse(raw) : [];
-      setSubscriptions(saved);
+      saved = raw ? JSON.parse(raw) : [];
     } catch {
-      setSubscriptions([]);
+      saved = [];
     }
+
+    const timer = window.setTimeout(() => {
+      setSubscriptions(saved);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   // 切换订阅状态 - 必须登录才能订阅
@@ -91,6 +99,7 @@ export default function Home() {
           isSubscribed={subscriptions.includes(selected.id)}
           onToggleSubscribe={() => toggleSubscription(selected.id)}
         />
+        <LogoMarquee />
         <Features />
         <Testimonials />
       </main>

@@ -15,6 +15,13 @@
       "when": 1770113157580,
       "tag": "0001_abnormal_night_nurse",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772078631831,
+      "tag": "0002_exotic_silk_fever",
+      "breakpoints": true
     }
   ]
 }

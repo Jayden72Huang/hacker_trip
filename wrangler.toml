@@ -16,12 +16,14 @@ bucket_name = "hackertrip"
 # 环境变量 (敏感信息通过 wrangler secret 设置)
 [vars]
 # 非敏感配置
-AUTH_URL = "https://hackertrip.com"
+AUTH_URL = "https://hackertrip.space"
 
-# 定时任务 (Cron Triggers) - 替代 node-cron
-# 示例：每天凌晨 2 点运行爬虫
-# [triggers]
-# crons = ["0 2 * * *"]
+# 定时任务 (Cron Triggers) - 自动爬取黑客松信息
+[triggers]
+crons = [
+  "0 2 * * *",    # 每天凌晨 2 点执行 daily 爬取
+  "0 9 * * 1",    # 每周一上午 9 点执行 weekly 爬取
+]
 
 # 资源限制
 [limits]

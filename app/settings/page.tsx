@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -15,8 +15,6 @@ import {
   Twitter,
   Linkedin,
   Save,
-  Camera,
-  Trash2,
   Shield,
   Bell,
   Palette,
@@ -28,9 +26,27 @@ import {
   ExternalLink,
   Medal,
   Sparkles,
+  Check,
+  AlertCircle,
 } from 'lucide-react';
 
 type Tab = 'home' | 'profile' | 'account' | 'notifications' | 'appearance';
+
+type NotificationPrefs = {
+  hackathonAlerts: boolean;
+  registrationReminders: boolean;
+  teamInvites: boolean;
+  systemAnnouncements: boolean;
+  emailNotifications: boolean;
+};
+
+const defaultNotificationPrefs: NotificationPrefs = {
+  hackathonAlerts: true,
+  registrationReminders: true,
+  teamInvites: true,
+  systemAnnouncements: true,
+  emailNotifications: false,
+};
 
 // 模拟数据 - 实际应从数据库获取
 const mockParticipations = [
@@ -101,14 +117,35 @@ const mockProjects = [
   },
 ];
 
+// Toggle 组件
+function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${
+        checked ? 'bg-indigo-500' : 'bg-white/10'
+      }`}
+    >
+      <span
+        className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${
+          checked ? 'left-7' : 'left-1'
+        }`}
+      />
+    </button>
+  );
+}
+
 export default function SettingsPage() {
   const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Form states
   const [profile, setProfile] = useState({
-    name: session?.user?.name || '',
+    name: '',
     username: '',
     bio: '',
     location: '',
@@ -119,7 +156,56 @@ export default function SettingsPage() {
     skills: '',
   });
 
-  if (status === 'loading') {
+  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPrefs>(defaultNotificationPrefs);
+  const [providers, setProviders] = useState<string[]>([]);
+
+  // Toast 自动消失
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+  // 加载用户数据
+  const loadProfile = useCallback(async () => {
+    try {
+      const res = await fetch('/api/user/profile');
+      if (!res.ok) return;
+      const data = await res.json();
+      setProfile({
+        name: data.name || '',
+        username: data.username || '',
+        bio: data.bio || '',
+        location: data.location || '',
+        website: data.website || '',
+        github: data.github || '',
+        twitter: data.twitter || '',
+        linkedin: data.linkedin || '',
+        skills: data.skills || '',
+      });
+      if (data.notificationPrefs) {
+        setNotificationPrefs({ ...defaultNotificationPrefs, ...data.notificationPrefs });
+      }
+      if (data.providers) {
+        setProviders(data.providers);
+      }
+    } catch {
+      // 静默失败
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      loadProfile();
+    } else {
+      setIsLoading(false);
+    }
+  }, [session?.user?.id, loadProfile]);
+
+  if (status === 'loading' || (session && isLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
@@ -147,11 +233,56 @@ export default function SettingsPage() {
 
   const user = session.user;
 
-  const handleSave = async () => {
+  // 获取 OAuth 提供商显示名
+  const getProviderLabel = (provider: string) => {
+    const labels: Record<string, string> = {
+      google: 'Google',
+      github: 'GitHub',
+    };
+    return labels[provider] || provider;
+  };
+
+  const primaryProvider = providers[0] || 'google';
+
+  const handleSaveProfile = async () => {
     setIsSaving(true);
-    // TODO: 实现保存逻辑
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSaving(false);
+    try {
+      const res = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...profile, notificationPrefs }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setToast({ type: 'error', message: data.error || '保存失败' });
+        return;
+      }
+      setToast({ type: 'success', message: '保存成功' });
+    } catch {
+      setToast({ type: 'error', message: '网络错误，请重试' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveNotifications = async () => {
+    setIsSaving(true);
+    try {
+      const res = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificationPrefs }),
+      });
+      if (!res.ok) {
+        setToast({ type: 'error', message: '保存失败' });
+        return;
+      }
+      setToast({ type: 'success', message: '通知设置已保存' });
+    } catch {
+      setToast({ type: 'error', message: '网络错误，请重试' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const stats = {
@@ -168,10 +299,54 @@ export default function SettingsPage() {
     { id: 'appearance' as Tab, label: '外观主题', icon: Palette },
   ];
 
+  const notificationItems: { key: keyof NotificationPrefs; title: string; desc: string }[] = [
+    {
+      key: 'hackathonAlerts',
+      title: '新黑客松通知',
+      desc: '当有符合你兴趣的新黑客松时通知你',
+    },
+    {
+      key: 'registrationReminders',
+      title: '报名提醒',
+      desc: '在你关注的黑客松报名截止前提醒你',
+    },
+    {
+      key: 'teamInvites',
+      title: '队友邀请',
+      desc: '当有人邀请你加入队伍时通知你',
+    },
+    {
+      key: 'systemAnnouncements',
+      title: '系统公告',
+      desc: '接收平台重要更新和公告',
+    },
+    {
+      key: 'emailNotifications',
+      title: '邮件通知',
+      desc: '通过邮箱接收重要通知和提醒',
+    },
+  ];
+
   return (
     <div className="relative min-h-screen pb-12">
       <div className="fixed inset-0 -z-10 grid-bg opacity-50" aria-hidden />
       <Navbar />
+
+      {/* Toast 提示 */}
+      {toast && (
+        <div className="fixed top-24 right-6 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div
+            className={`flex items-center gap-2 px-4 py-3 rounded-xl border backdrop-blur-sm shadow-lg ${
+              toast.type === 'success'
+                ? 'bg-green-500/10 border-green-500/20 text-green-300'
+                : 'bg-red-500/10 border-red-500/20 text-red-300'
+            }`}
+          >
+            {toast.type === 'success' ? <Check size={16} /> : <AlertCircle size={16} />}
+            <span className="font-space-mono text-sm">{toast.message}</span>
+          </div>
+        </div>
+      )}
 
       <main className="pt-40 pb-20">
         <div className="w-full max-w-[1200px] mx-auto px-6 lg:px-10">
@@ -477,15 +652,9 @@ export default function SettingsPage() {
                             {user?.name?.charAt(0) || 'U'}
                           </div>
                         )}
-                        <div className="flex gap-2">
-                          <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all text-sm font-space-mono text-gray-300">
-                            <Camera size={16} />
-                            更换头像
-                          </button>
-                        </div>
                       </div>
                       <p className="font-space-mono text-xs text-gray-500 mt-2">
-                        头像由 Google 账号同步，暂不支持自定义
+                        头像由 {getProviderLabel(primaryProvider)} 账号同步，如需更换请更新 {getProviderLabel(primaryProvider)} 头像
                       </p>
                     </div>
 
@@ -667,7 +836,7 @@ export default function SettingsPage() {
                     {/* Save Button */}
                     <div className="flex justify-end pt-4 border-t border-white/5">
                       <button
-                        onClick={handleSave}
+                        onClick={handleSaveProfile}
                         disabled={isSaving}
                         className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 transition-all text-sm font-space-mono text-white disabled:opacity-50"
                       >
@@ -711,41 +880,62 @@ export default function SettingsPage() {
                           </span>
                         </div>
 
-                        <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
-                          <div className="flex items-center gap-3">
-                            <div className="w-5 h-5">
-                              <svg viewBox="0 0 24 24" className="text-gray-400">
-                                <path
-                                  fill="currentColor"
-                                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                                />
-                                <path
-                                  fill="currentColor"
-                                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                                />
-                                <path
-                                  fill="currentColor"
-                                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                                />
-                                <path
-                                  fill="currentColor"
-                                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                                />
-                              </svg>
+                        {/* 动态显示关联的 OAuth 提供商 */}
+                        {providers.length > 0 ? (
+                          providers.map((provider) => (
+                            <div key={provider} className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
+                              <div className="flex items-center gap-3">
+                                {provider === 'github' ? (
+                                  <Github size={18} className="text-gray-400" />
+                                ) : (
+                                  <div className="w-5 h-5">
+                                    <svg viewBox="0 0 24 24" className="text-gray-400">
+                                      <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                      <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                      <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                                      <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                                    </svg>
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="font-space-mono text-sm text-white">
+                                    {getProviderLabel(provider)} 账号
+                                  </p>
+                                  <p className="font-space-mono text-xs text-gray-500">
+                                    已关联登录
+                                  </p>
+                                </div>
+                              </div>
+                              <span className="px-2 py-1 rounded-lg bg-indigo-500/20 text-indigo-400 font-space-mono text-xs">
+                                已连接
+                              </span>
                             </div>
-                            <div>
-                              <p className="font-space-mono text-sm text-white">
-                                Google 账号
-                              </p>
-                              <p className="font-space-mono text-xs text-gray-500">
-                                已关联登录
-                              </p>
+                          ))
+                        ) : (
+                          <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
+                            <div className="flex items-center gap-3">
+                              <div className="w-5 h-5">
+                                <svg viewBox="0 0 24 24" className="text-gray-400">
+                                  <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                  <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                  <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                                  <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                                </svg>
+                              </div>
+                              <div>
+                                <p className="font-space-mono text-sm text-white">
+                                  OAuth 账号
+                                </p>
+                                <p className="font-space-mono text-xs text-gray-500">
+                                  已关联登录
+                                </p>
+                              </div>
                             </div>
+                            <span className="px-2 py-1 rounded-lg bg-indigo-500/20 text-indigo-400 font-space-mono text-xs">
+                              已连接
+                            </span>
                           </div>
-                          <span className="px-2 py-1 rounded-lg bg-indigo-500/20 text-indigo-400 font-space-mono text-xs">
-                            已连接
-                          </span>
-                        </div>
+                        )}
                       </div>
                     </div>
 
@@ -764,7 +954,9 @@ export default function SettingsPage() {
                             </p>
                           </div>
                           <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 font-space-mono text-sm transition-all">
-                            <Trash2 size={16} />
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
                             删除账号
                           </button>
                         </div>
@@ -779,26 +971,9 @@ export default function SettingsPage() {
                       通知偏好
                     </h3>
                     <div className="space-y-4">
-                      {[
-                        {
-                          title: '新黑客松通知',
-                          desc: '当有符合你兴趣的新黑客松时通知你',
-                        },
-                        {
-                          title: '报名提醒',
-                          desc: '在你关注的黑客松报名截止前提醒你',
-                        },
-                        {
-                          title: '队友邀请',
-                          desc: '当有人邀请你加入队伍时通知你',
-                        },
-                        {
-                          title: '系统公告',
-                          desc: '接收平台重要更新和公告',
-                        },
-                      ].map((item, idx) => (
+                      {notificationItems.map((item) => (
                         <div
-                          key={idx}
+                          key={item.key}
                           className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10"
                         >
                           <div>
@@ -809,11 +984,35 @@ export default function SettingsPage() {
                               {item.desc}
                             </p>
                           </div>
-                          <button className="relative w-12 h-6 rounded-full bg-white/10 transition-colors">
-                            <span className="absolute left-1 top-1 w-4 h-4 rounded-full bg-gray-400 transition-transform" />
-                          </button>
+                          <Toggle
+                            checked={notificationPrefs[item.key]}
+                            onChange={(v) =>
+                              setNotificationPrefs({ ...notificationPrefs, [item.key]: v })
+                            }
+                          />
                         </div>
                       ))}
+                    </div>
+
+                    {/* Save Button */}
+                    <div className="flex justify-end pt-4 border-t border-white/5">
+                      <button
+                        onClick={handleSaveNotifications}
+                        disabled={isSaving}
+                        className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 transition-all text-sm font-space-mono text-white disabled:opacity-50"
+                      >
+                        {isSaving ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            保存中...
+                          </>
+                        ) : (
+                          <>
+                            <Save size={16} />
+                            保存设置
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 )}

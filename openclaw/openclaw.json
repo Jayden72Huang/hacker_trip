@@ -1,0 +1,47 @@
+{
+  "agent": {
+    "model": "anthropic/claude-opus-4-6",
+    "temperature": 0.5,
+    "maxTokens": 8192
+  },
+  "gateway": {
+    "port": 18789,
+    "bind": "127.0.0.1"
+  },
+  "channels": {
+    "webchat": {
+      "enabled": true,
+      "origin": "https://hacker-trip.com",
+      "authMode": "bearer"
+    },
+    "discord": {
+      "enabled": false,
+      "token": "$DISCORD_BOT_TOKEN",
+      "commandPrefix": "/hb"
+    },
+    "slack": {
+      "enabled": false,
+      "botToken": "$SLACK_BOT_TOKEN",
+      "signingSecret": "$SLACK_SIGNING_SECRET"
+    }
+  },
+  "workspace": {
+    "root": "./",
+    "skills": "./skills"
+  },
+  "session": {
+    "timeout": 259200,
+    "contextWindow": 50,
+    "autoSummarize": true,
+    "summarizeInterval": 20
+  },
+  "security": {
+    "rateLimit": {
+      "messagesPerHour": 60,
+      "toolCallsPerMinute": 10
+    },
+    "sandbox": {
+      "mode": "non-main"
+    }
+  }
+}

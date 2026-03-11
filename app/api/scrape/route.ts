@@ -28,9 +28,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 创建爬虫并执行
-    const scraper = ScraperFactory.createScraper(url);
-    const result = await scraper.scrape(url);
+    // 智能爬取：优先 Jina+LLM，降级传统爬虫
+    const result = await ScraperFactory.smartScrape(url);
 
     if (!result.success) {
       return NextResponse.json(
