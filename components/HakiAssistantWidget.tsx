@@ -22,7 +22,7 @@ type ErrorState = {
   retryable: boolean;
 };
 
-const HIDDEN_PREFIXES = ['/admin', '/agent-studio', '/hacker-bot'];
+const HIDDEN_PREFIXES = ['/admin', '/agent-studio', '/haki'];
 
 const quickTags = [
   { label: '找比赛', prompt: starterQuestions[0] },

@@ -72,8 +72,8 @@ export function Navbar() {
                     icon: <Sparkles size={16} />
                   },
                   {
-                    title: 'Hacker Bot',
-                    href: '/hacker-bot',
+                    title: 'Haki',
+                    href: '/haki',
                     description: '智能参赛伙伴',
                     icon: <Bot size={16} />
                   },
@@ -102,9 +102,9 @@ export function Navbar() {
                 label="社区"
                 items={[
                   {
-                    title: '作品榜',
-                    href: '/products',
-                    description: '优秀作品展示',
+                    title: '作品展示',
+                    href: '/works',
+                    description: '黑客松作品曝光与推广',
                     icon: <Trophy size={16} />
                   },
                   {
@@ -186,12 +186,12 @@ export function Navbar() {
                   Agent 空间
                 </Link>
                 <Link
-                  href="/hacker-bot"
+                  href="/haki"
                   className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors flex items-center gap-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <Bot size={14} />
-                  Hacker Bot
+                  Haki
                 </Link>
                 <Link
                   href="/arsenal"
@@ -210,11 +210,11 @@ export function Navbar() {
                   AI 赛后推广
                 </Link>
                 <Link
-                  href="/products"
+                  href="/works"
                   className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  作品榜
+                  作品展示
                 </Link>
                 <Link
                   href="/community"

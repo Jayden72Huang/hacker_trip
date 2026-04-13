@@ -345,7 +345,7 @@ export function ArtifactViewer({
                 </span>
               </div>
               <p className="font-space-mono text-[11px] text-gray-600 leading-relaxed">
-                与 Hacker Bot 对话后，分析报告、任务计划、Pitch 大纲等生成物将按类别归档到这里。
+                与 Haki 对话后，分析报告、任务计划、Pitch 大纲等生成物将按类别归档到这里。
               </p>
             </div>
 

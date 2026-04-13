@@ -11,9 +11,9 @@ import {
 } from '@/lib/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 
-const WELCOME_MESSAGE_CONTENT = `Hey! 我是 **Hacker_Bot**，你的黑客松 AI 数字队友 🤖\n\n我可以帮你：\n- **/analyze** — 分析赛题、规则和评分标准\n- **/brainstorm** — 一起脑暴项目想法\n- **/plan** — 规划任务、分工和排期\n- **/resources** — 找开源项目、框架和工具\n- **/pitch** — 准备路演材料和 Demo 脚本\n\n先告诉我，你在参加哪个黑客松？可以发我比赛链接或者描述一下比赛。`;
+const WELCOME_MESSAGE_CONTENT = `Hey! 我是 **Haki**，你的黑客松 AI 数字队友 🤖\n\n我可以帮你：\n- **/analyze** — 分析赛题、规则和评分标准\n- **/brainstorm** — 一起脑暴项目想法\n- **/plan** — 规划任务、分工和排期\n- **/resources** — 找开源项目、框架和工具\n- **/pitch** — 准备路演材料和 Demo 脚本\n\n先告诉我，你在参加哪个黑客松？可以发我比赛链接或者描述一下比赛。`;
 
-// GET /api/agent/init - Single endpoint to initialize HackerBot
+// GET /api/agent/init - Single endpoint to initialize Haki
 // Returns: team, session, messages, artifacts, members in one request
 export async function GET() {
   try {
@@ -145,7 +145,7 @@ export async function GET() {
       hackathon,
     });
   } catch (error) {
-    console.error('HackerBot init error:', error);
+    console.error('Haki init error:', error);
     const message = error instanceof Error ? error.message : '初始化失败';
     return NextResponse.json({ error: message }, { status: 500 });
   }

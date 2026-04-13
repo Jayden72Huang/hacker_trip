@@ -222,7 +222,7 @@ export function ChatInput({ onSend, isLoading, activeSkill, onClearSkill, onActi
       </div>
 
       <p className="mt-2 font-space-mono text-[10px] text-gray-600 text-center">
-        Hacker Bot powered by OpenClaw + Claude Opus 4.6
+        Haki powered by OpenClaw + Claude Opus 4.6
       </p>
     </div>
   );

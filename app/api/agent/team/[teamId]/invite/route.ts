@@ -44,7 +44,7 @@ export async function POST(
       .setExpirationTime('24h')
       .sign(INVITE_SECRET);
 
-    const inviteUrl = `${process.env.NEXTAUTH_URL || 'https://hacker-trip.com'}/hacker-bot?invite=${token}`;
+    const inviteUrl = `${process.env.NEXTAUTH_URL || 'https://hacker-trip.com'}/haki?invite=${token}`;
 
     return NextResponse.json({ inviteUrl, token });
   } catch (error) {

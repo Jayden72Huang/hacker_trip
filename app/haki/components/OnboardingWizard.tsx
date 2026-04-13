@@ -111,7 +111,7 @@ export function OnboardingWizard({
           {/* Title with gradient text */}
           <div className="text-center space-y-2">
             <h1 className="font-sora text-2xl font-bold bg-gradient-to-r from-white via-white to-[#4de1ff] bg-clip-text text-transparent">
-              Welcome to Hacker Bot
+              Welcome to Haki
             </h1>
             <div className="flex items-center justify-center gap-2">
               <span className="text-gray-500 text-sm">Powered by</span>
@@ -193,7 +193,7 @@ export function OnboardingWizard({
                   <Zap size={14} /> Step 2 · 了解技能
                 </div>
                 <p className="text-gray-400 text-sm">
-                  Hacker Bot 拥有 5 个专业技能
+                  Haki 拥有 5 个专业技能
                 </p>
               </div>
 

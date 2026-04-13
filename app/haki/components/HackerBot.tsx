@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useHackerBotSession } from '../hooks/useHackerBotSession';
+import { useHakiSession } from '../hooks/useHakiSession';
 import { useStreamingChat, type ToolCallInfo } from '../hooks/useStreamingChat';
 import { getDefaultAvatar } from '../utils/avatars';
 
@@ -66,7 +66,7 @@ export interface TeamMember {
   role: 'leader' | 'member';
 }
 
-interface HackerBotProps {
+interface HakiProps {
   user: {
     id?: string;
     name?: string | null;
@@ -79,11 +79,11 @@ const INITIAL_NOTIFICATIONS: Notification[] = [
   {
     id: 'n1',
     type: 'announce',
-    content: 'Hacker Bot 已上线，输入 /analyze 开始分析赛题',
+    content: 'Haki 已上线，输入 /analyze 开始分析赛题',
   },
 ];
 
-export function HackerBot({ user }: HackerBotProps) {
+export function Haki({ user }: HakiProps) {
   // --- Session state (from DB) ---
   const {
     teamId,
@@ -100,7 +100,7 @@ export function HackerBot({ user }: HackerBotProps) {
     needsOnboarding,
     createTeam,
     reinitialize,
-  } = useHackerBotSession(user);
+  } = useHakiSession(user);
 
   const [activeSkill, setActiveSkill] = useState<Skill>(null);
   const [selectedArtifact, setSelectedArtifact] = useState<Artifact | null>(
@@ -341,7 +341,7 @@ export function HackerBot({ user }: HackerBotProps) {
         },
         onError: (errMsg, code) => {
           const errorContent = code === 'NO_API_KEY'
-            ? `> 错误: ${errMsg}\n\n请点击下方按钮配置 API Key，即可开始使用 Hacker Bot。`
+            ? `> 错误: ${errMsg}\n\n请点击下方按钮配置 API Key，即可开始使用 Haki。`
             : `> 错误: ${errMsg}`;
           setMessages((prev) =>
             prev.map((m) =>
@@ -372,7 +372,7 @@ export function HackerBot({ user }: HackerBotProps) {
             onSwitchSession={(id) => {
               // For now, reload with the new session
               // In the future, this could update state directly
-              window.location.href = `/hacker-bot?session=${id}`;
+              window.location.href = `/haki?session=${id}`;
             }}
             onNewSession={async () => {
               if (!teamId) return;
@@ -454,7 +454,7 @@ export function HackerBot({ user }: HackerBotProps) {
           </Link>
           <div className="w-px h-5 bg-white/10 flex-shrink-0" />
           <h1 className="font-sora text-3xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent flex-shrink-0">
-            Hacker Bot
+            Haki
           </h1>
 
           {!isInitializing && (

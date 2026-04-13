@@ -1,4 +1,4 @@
-# Hacker_Bot Tools
+# Haki Tools
 
 ## Built-in OpenClaw Tools
 

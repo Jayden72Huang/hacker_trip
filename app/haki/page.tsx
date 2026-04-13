@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { Bot, ArrowLeft, Users } from 'lucide-react';
 import Link from 'next/link';
-import { HackerBot } from './components/HackerBot';
+import { Haki } from './components/HackerBot';
 
-export default function HackerBotPage() {
+export default function HakiPage() {
   const { data: session, status } = useSession();
   const [mounted, setMounted] = useState(false);
   const [hasInvite, setHasInvite] = useState(false);
@@ -25,7 +25,7 @@ export default function HackerBotPage() {
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center animate-pulse">
             <Bot size={24} className="text-white" />
           </div>
-          <p className="font-space-mono text-sm text-gray-500">Loading Hacker Bot...</p>
+          <p className="font-space-mono text-sm text-gray-500">Loading Haki...</p>
         </div>
       </div>
     );
@@ -55,7 +55,7 @@ export default function HackerBotPage() {
             </>
           ) : (
             <>
-              <p className="font-space-mono text-gray-400">请先登录后使用 Hacker Bot</p>
+              <p className="font-space-mono text-gray-400">请先登录后使用 Haki</p>
               <Link
                 href="/"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all font-space-mono text-sm text-gray-300"
@@ -70,5 +70,5 @@ export default function HackerBotPage() {
     );
   }
 
-  return <HackerBot user={session.user!} />;
+  return <Haki user={session.user!} />;
 }

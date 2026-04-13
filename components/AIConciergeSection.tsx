@@ -137,10 +137,10 @@ export function AIConciergeSection() {
                   查看帮助中心
                 </Link>
                 <Link
-                  href="/hacker-bot"
+                  href="/haki"
                   className="inline-flex items-center justify-center rounded-full border border-white/12 bg-white/[0.03] px-5 py-3 font-space-mono text-sm text-gray-300 transition-colors hover:bg-white/[0.06] hover:text-white"
                 >
-                  进入 Hacker Bot
+                  进入 Haki
                 </Link>
               </div>
             </div>

@@ -1,6 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/hacker-bot/:path*',
+        destination: '/haki/:path*',
+        permanent: true,
+      },
+      {
+        source: '/hacker-bot',
+        destination: '/haki',
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

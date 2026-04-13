@@ -146,7 +146,7 @@ export function McpPanel() {
           <div className="pt-3 border-t border-white/5">
             <p className="font-space-mono text-[10px] text-gray-600">
               {selectedMcp.builtin
-                ? 'HackerBot 会根据对话上下文自动调用此工具，无需手动触发'
+                ? 'Haki 会根据对话上下文自动调用此工具，无需手动触发'
                 : '安装后在 Agent 对话中自动可用，Bot 会根据需要调用这些工具'}
             </p>
           </div>
@@ -206,7 +206,7 @@ export function McpPanel() {
             </span>
           </div>
           <p className="font-space-mono text-[10px] text-gray-600 leading-relaxed">
-            团队可接入自定义 MCP Server 扩展 HackerBot 能力，如 Supabase、Figma、Slack 等。敬请期待。
+            团队可接入自定义 MCP Server 扩展 Haki 能力，如 Supabase、Figma、Slack 等。敬请期待。
           </p>
         </div>
       </div>

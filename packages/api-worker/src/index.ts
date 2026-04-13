@@ -6,6 +6,7 @@ import { rateLimit } from './middleware/rate-limit';
 import hackathonsRoutes from './routes/v1/hackathons';
 import worksRoutes from './routes/v1/works';
 import statsRoutes from './routes/v1/stats';
+import { handleMcpRequest } from './mcp/server';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -27,9 +28,11 @@ v1.route('/stats', statsRoutes);
 
 app.route('/v1', v1);
 
-// MCP endpoint placeholder (will be implemented in Phase 3)
-app.all('/mcp', (c) => {
-  return c.json({ error: { code: 'NOT_IMPLEMENTED', message: 'MCP server coming soon', status: 501 } }, 501);
+// MCP endpoint — JSON-RPC over HTTP (no API key required, public read-only data)
+app.post('/mcp', async (c) => {
+  const body = await c.req.text();
+  const response = await handleMcpRequest(body, c.env.DATABASE_URL);
+  return c.json(response);
 });
 
 // 404 fallback

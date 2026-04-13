@@ -5,7 +5,7 @@ import type { Message, Artifact, TeamMember } from '../components/HackerBot';
 import type { HackathonInfo } from '../components/HackathonBar';
 import type { ApiKeyStatus } from '../components/SettingsModal';
 
-interface HackerBotSessionState {
+interface HakiSessionState {
   teamId: string | null;
   teamName: string | null;
   sessionId: string | null;
@@ -19,13 +19,13 @@ interface HackerBotSessionState {
   error: string | null;
 }
 
-const WELCOME_MESSAGE_CONTENT = `Hey! 我是 **Hacker_Bot**，你的黑客松 AI 数字队友 🤖\n\n我可以帮你：\n- **/analyze** — 分析赛题、规则和评分标准\n- **/brainstorm** — 一起脑暴项目想法\n- **/plan** — 规划任务、分工和排期\n- **/resources** — 找开源项目、框架和工具\n- **/pitch** — 准备路演材料和 Demo 脚本\n\n先告诉我，你在参加哪个黑客松？可以发我比赛链接或者描述一下比赛。`;
+const WELCOME_MESSAGE_CONTENT = `Hey! 我是 **Haki**，你的黑客松 AI 数字队友 🤖\n\n我可以帮你：\n- **/analyze** — 分析赛题、规则和评分标准\n- **/brainstorm** — 一起脑暴项目想法\n- **/plan** — 规划任务、分工和排期\n- **/resources** — 找开源项目、框架和工具\n- **/pitch** — 准备路演材料和 Demo 脚本\n\n先告诉我，你在参加哪个黑客松？可以发我比赛链接或者描述一下比赛。`;
 
-export function useHackerBotSession(user: {
+export function useHakiSession(user: {
   id?: string;
   name?: string | null;
 }) {
-  const [state, setState] = useState<HackerBotSessionState>({
+  const [state, setState] = useState<HakiSessionState>({
     teamId: null,
     teamName: null,
     sessionId: null,
@@ -194,7 +194,7 @@ export function useHackerBotSession(user: {
         error: null,
       });
     } catch (err) {
-      console.error('HackerBot session init error:', err);
+      console.error('Haki session init error:', err);
       setState((prev) => ({
         ...prev,
         isInitializing: false,

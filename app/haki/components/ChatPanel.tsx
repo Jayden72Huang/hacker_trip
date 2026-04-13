@@ -65,7 +65,7 @@ export function ChatPanel({ messages, isLoading, onOpenSettings }: ChatPanelProp
               {msg.isStreaming && !msg.content && (!msg.toolCalls || msg.toolCalls.length === 0) ? (
                 <div className="flex items-center gap-2">
                   <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent animate-pulse font-semibold">
-                    HackerBot
+                    Haki
                   </span>
                   <span className="text-gray-400 animate-pulse">正在思考</span>
                   <span className="flex gap-0.5">

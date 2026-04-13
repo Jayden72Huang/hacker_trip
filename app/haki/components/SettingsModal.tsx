@@ -124,7 +124,7 @@ export function SettingsModal({ teamId, apiKeyStatus, onClose, onSaved }: Settin
           </div>
 
           <p className="text-xs text-gray-500 leading-relaxed">
-            选择 AI 模型提供商并配置 API Key，用于驱动 Hacker Bot 对话能力。Key 仅用于你的团队，不会分享给其他人。
+            选择 AI 模型提供商并配置 API Key，用于驱动 Haki 对话能力。Key 仅用于你的团队，不会分享给其他人。
           </p>
 
           {/* Provider selector grid */}
