@@ -22,6 +22,13 @@
       "when": 1772078631831,
       "tag": "0002_exotic_silk_fever",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1776091548121,
+      "tag": "0003_cheerful_wilson_fisk",
+      "breakpoints": true
     }
   ]
 }

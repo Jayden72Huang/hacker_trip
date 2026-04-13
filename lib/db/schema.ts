@@ -25,6 +25,15 @@ export const participationRole = pgEnum('participation_role', [
   'judge',
 ]);
 export const organizerStatus = pgEnum('organizer_status', ['pending', 'approved', 'rejected']);
+export const verificationStatus = pgEnum('verification_status', [
+  'draft', 'pending', 'ai_reviewed', 'approved', 'rejected',
+]);
+export const articleStatus = pgEnum('article_status', [
+  'invited', 'draft', 'in_review', 'published', 'rejected',
+]);
+export const articleType = pgEnum('article_type', [
+  'experience', 'interview', 'guest_post',
+]);
 
 // ============ NextAuth 必需表 ============
 
@@ -141,6 +150,18 @@ export const projects = pgTable('project', {
   hackathonName: text('hackathon_name'),
   isPublic: boolean('is_public').default(true),
   isFeatured: boolean('is_featured').default(false),
+  // 验证系统字段
+  externalHackathonUrl: text('external_hackathon_url'),
+  verificationStatus: verificationStatus('verification_status').default('draft'),
+  aiConfidenceScore: integer('ai_confidence_score'),
+  aiReviewResult: jsonb('ai_review_result'),
+  aiReviewedAt: timestamp('ai_reviewed_at', { mode: 'date' }),
+  adminReviewerId: text('admin_reviewer_id').references(() => users.id, { onDelete: 'set null' }),
+  adminReviewNotes: text('admin_review_notes'),
+  adminReviewedAt: timestamp('admin_reviewed_at', { mode: 'date' }),
+  roleInProject: text('role_in_project'),
+  screenshots: jsonb('screenshots').default(sql`'[]'::jsonb`),
+  videoKey: text('video_key'),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
 });
@@ -566,3 +587,122 @@ export const draftHackathons = pgTable('draft_hackathon', {
   reviewedAt: timestamp('reviewed_at', { mode: 'date' }),
   publishedAt: timestamp('published_at', { mode: 'date' }),
 });
+
+// ============ 作品团队成员 ============
+
+export const workTeamMembers = pgTable('work_team_member', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  projectId: text('project_id')
+    .notNull()
+    .references(() => projects.id, { onDelete: 'cascade' }),
+  userId: text('user_id')
+    .references(() => users.id, { onDelete: 'set null' }),
+  name: text('name').notNull(),
+  role: text('role'),
+  avatar: text('avatar'),
+  github: text('github'),
+  linkedin: text('linkedin'),
+});
+
+// ============ 作品验证日志 ============
+
+export const verificationLogs = pgTable('verification_log', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  projectId: text('project_id')
+    .notNull()
+    .references(() => projects.id, { onDelete: 'cascade' }),
+  action: text('action').notNull(), // submitted, ai_review, admin_approve, admin_reject, resubmit
+  actorId: text('actor_id')
+    .references(() => users.id, { onDelete: 'set null' }),
+  details: jsonb('details'),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+});
+
+// ============ API Key 管理 ============
+
+export const apiKeys = pgTable('api_key', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  keyHash: text('key_hash').notNull().unique(),
+  keyPrefix: text('key_prefix').notNull(), // 前 8 字符用于展示
+  tier: text('tier').default('free'), // free, pro, enterprise
+  rateLimitRpm: integer('rate_limit_rpm').default(30),
+  rateLimitRpd: integer('rate_limit_rpd').default(500),
+  scopes: jsonb('scopes').default(sql`'["read"]'::jsonb`),
+  isActive: boolean('is_active').default(true),
+  lastUsedAt: timestamp('last_used_at', { mode: 'date' }),
+  requestCount: integer('request_count').default(0),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+  expiresAt: timestamp('expires_at', { mode: 'date' }),
+});
+
+// ============ 通知系统 ============
+
+export const notifications = pgTable('notification', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(), // hackathon_match, registration_deadline, work_verified, system
+  title: text('title').notNull(),
+  body: text('body'),
+  linkUrl: text('link_url'),
+  relatedHackathonId: text('related_hackathon_id')
+    .references(() => hackathons.id, { onDelete: 'set null' }),
+  isRead: boolean('is_read').default(false),
+  emailSent: boolean('email_sent').default(false),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+});
+
+// ============ 社区精选内容 ============
+
+export const articles = pgTable(
+  'article',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    slug: text('slug').notNull(),
+    title: text('title').notNull(),
+    subtitle: text('subtitle'),
+    type: articleType('type').notNull(),
+    coverImage: text('cover_image'),
+    content: text('content').notNull(), // Markdown
+    excerpt: text('excerpt'),
+    authorId: text('author_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    authorBio: text('author_bio'),
+    relatedHackathonId: text('related_hackathon_id')
+      .references(() => hackathons.id, { onDelete: 'set null' }),
+    tags: jsonb('tags').default(sql`'[]'::jsonb`),
+    status: articleStatus('status').default('invited'),
+    invitedBy: text('invited_by')
+      .references(() => users.id, { onDelete: 'set null' }),
+    invitedAt: timestamp('invited_at', { mode: 'date' }),
+    submittedAt: timestamp('submitted_at', { mode: 'date' }),
+    reviewedBy: text('reviewed_by')
+      .references(() => users.id, { onDelete: 'set null' }),
+    reviewedAt: timestamp('reviewed_at', { mode: 'date' }),
+    reviewNotes: text('review_notes'),
+    publishedAt: timestamp('published_at', { mode: 'date' }),
+    isFeatured: boolean('is_featured').default(false),
+    viewCount: integer('view_count').default(0),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+    updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
+  },
+  (table) => ({
+    slugUnique: uniqueIndex('article_slug_unique').on(table.slug),
+  })
+);

@@ -1,0 +1,17 @@
+name = "hackertrip-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# KV namespace for rate limiting
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "placeholder-replace-after-create"
+
+[vars]
+API_VERSION = "v1"
+CORS_ORIGIN = "https://hackertrip.space"
+
+# Secrets (set via `wrangler secret put`):
+# DATABASE_URL
+# API_MASTER_KEY
