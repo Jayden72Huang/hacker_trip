@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Menu, X, LogOut, Bot, Sparkles, Trophy, Users, BookOpen, Swords, Rocket } from 'lucide-react';
+import { Menu, X, LogOut, Bot, Sparkles, Trophy, Users, BookOpen, Swords, Rocket, FileText } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { UserMenu } from './UserMenu';
 import { SignInModal } from './SignInModal';
@@ -106,6 +106,12 @@ export function Navbar() {
                     href: '/works',
                     description: '黑客松作品曝光与推广',
                     icon: <Trophy size={16} />
+                  },
+                  {
+                    title: '专栏文章',
+                    href: '/community/articles',
+                    description: '参赛经验 · 获奖访谈',
+                    icon: <FileText size={16} />
                   },
                   {
                     title: '社区广场',
@@ -215,6 +221,14 @@ export function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   作品展示
+                </Link>
+                <Link
+                  href="/community/articles"
+                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors flex items-center gap-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <FileText size={14} />
+                  专栏文章
                 </Link>
                 <Link
                   href="/community"

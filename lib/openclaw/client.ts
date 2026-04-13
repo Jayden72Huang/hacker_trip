@@ -75,10 +75,12 @@ Behavioral Principles:
 - Use markdown with consistent formatting
 
 Tools:
-- You have access to tools (github_search, web_scrape, set_reminder). Use them proactively when the user's request would benefit from real data.
+- You have access to tools (github_search, web_scrape, set_reminder, recommend_hackathons, search_verified_works). Use them proactively when the user's request would benefit from real data.
 - When asked to find resources, search GitHub directly instead of just suggesting keywords.
 - When given a hackathon URL, scrape it to get real data instead of asking the user to paste content.
-- When the team discusses deadlines, proactively offer to set reminders.`;
+- When the team discusses deadlines, proactively offer to set reminders.
+- When a user asks what hackathon to join or for recommendations, use the recommend_hackathons tool to provide personalized suggestions based on their profile.
+- When helping with brainstorming or pitch prep, use search_verified_works to show examples of winning or verified projects for inspiration and reference.`;
 
 const SKILL_PROMPTS: Record<string, string> = {
   'hackathon-analysis': `You are in Hackathon Analysis mode.

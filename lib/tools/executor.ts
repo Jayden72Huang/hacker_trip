@@ -6,6 +6,8 @@ import type { ToolResult, ToolContext } from './types';
 import { githubSearch } from './github-search';
 import { webScrape } from './web-scrape';
 import { setReminder } from './set-reminder';
+import { recommendHackathons } from './recommend-hackathons';
+import { searchVerifiedWorks } from './search-verified-works';
 
 const TOOL_TIMEOUT = 15000; // 15 seconds
 
@@ -48,6 +50,15 @@ async function dispatchTool(
       return setReminder(
         input as unknown as Parameters<typeof setReminder>[0],
         context
+      );
+    case 'recommend_hackathons':
+      return recommendHackathons(
+        input as unknown as Parameters<typeof recommendHackathons>[0],
+        context
+      );
+    case 'search_verified_works':
+      return searchVerifiedWorks(
+        input as unknown as Parameters<typeof searchVerifiedWorks>[0]
       );
     default:
       return {

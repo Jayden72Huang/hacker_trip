@@ -100,4 +100,50 @@ export const TOOL_DEFINITIONS: AnthropicTool[] = [
       required: ['title', 'remind_at'],
     },
   },
+  {
+    name: 'recommend_hackathons',
+    description:
+      'Get personalized hackathon recommendations based on the user\'s skills and interests. Returns scored and ranked hackathons with match reasons.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        limit: {
+          type: 'number',
+          description:
+            'Max number of recommendations to return (1-10). Defaults to 5.',
+        },
+      },
+    },
+  },
+  {
+    name: 'search_verified_works',
+    description:
+      'Search verified hackathon works on the platform for reference and inspiration. Returns approved projects with details like tech stack, awards, and demo links.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        query: {
+          type: 'string',
+          description:
+            'Free-text search query to match against project name, tagline, and description.',
+        },
+        hackathon_name: {
+          type: 'string',
+          description:
+            'Filter by hackathon name (partial match supported).',
+        },
+        tech_stack: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            'Filter by technology stack (e.g., ["React", "Python"]). Matches any of the listed technologies.',
+        },
+        limit: {
+          type: 'number',
+          description:
+            'Max results to return (1-20). Defaults to 5.',
+        },
+      },
+    },
+  },
 ];

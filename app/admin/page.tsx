@@ -23,6 +23,7 @@ import { OrganizerReview } from './components/OrganizerReview';
 import { ProductAwardsManager } from './components/ProductAwardsManager';
 import { AdminSettings } from './components/AdminSettings';
 import { WorksReview } from './components/WorksReview';
+import { ArticleManager } from './components/ArticleManager';
 
 type MenuItem = {
   id: string;
@@ -47,6 +48,7 @@ const menuItems: MenuItem[] = [
     children: [
       { id: 'drafts', label: '草稿箱' },
       { id: 'works-review', label: '作品审核' },
+      { id: 'articles', label: '社区内容' },
       { id: 'product-awards', label: '作品 & 奖项' },
     ],
   },
@@ -205,6 +207,7 @@ export default function AdminPage() {
             {activeTab === 'google-search' && <GoogleSearch onSuccess={handleDraftRefresh} />}
             {activeTab === 'drafts' && <DraftList key={refreshKey} />}
             {activeTab === 'works-review' && <WorksReview />}
+            {activeTab === 'articles' && <ArticleManager />}
             {activeTab === 'product-awards' && <ProductAwardsManager />}
           </div>
         </div>
