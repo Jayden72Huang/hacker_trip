@@ -11,6 +11,8 @@ import { BaseScraper } from '../core/base-scraper';
 import { GenericScraper } from '../sites/generic';
 import { DoraHacksScraper } from '../sites/dorahacks-cn';
 import { JinaLLMScraper } from '../core/jina-llm-scraper';
+import { XhsScraper } from '../core/xhs-scraper';
+import { WechatScraper } from '../core/wechat-scraper';
 
 export class ScraperFactory {
   /**
@@ -19,6 +21,28 @@ export class ScraperFactory {
    */
   static async smartScrape(url: string): Promise<ScrapeResult> {
     const hasAnthropicKey = !!process.env.ANTHROPIC_API_KEY;
+    const platform = this.identifyPlatform(url);
+
+    // 0. 平台专属爬虫（XHS、微信等需要特殊处理的平台）
+    if (platform === '小红书') {
+      try {
+        const result = await new XhsScraper().scrape(url);
+        if (result.success) return result;
+        console.warn('XHS scraper failed, falling back:', result.error);
+      } catch (err) {
+        console.warn('XHS scraper failed, falling back:', err);
+      }
+    }
+
+    if (platform === '微信公众号') {
+      try {
+        const result = await new WechatScraper().scrape(url);
+        if (result.success) return result;
+        console.warn('WeChat scraper failed, falling back:', result.error);
+      } catch (err) {
+        console.warn('WeChat scraper failed, falling back:', err);
+      }
+    }
 
     // 1. 优先：Jina + LLM（需要 API Key）
     if (hasAnthropicKey) {
@@ -81,6 +105,8 @@ export class ScraperFactory {
     if (domain.includes('nowcoder')) return '牛客网';
     if (domain.includes('huodongxing')) return '活动行';
     if (domain.includes('hudongba')) return '互动吧';
+    if (domain.includes('xiaohongshu') || domain.includes('xhslink')) return '小红书';
+    if (domain.includes('mp.weixin.qq.com') || domain.includes('weixin.qq.com')) return '微信公众号';
 
     return '通用';
   }

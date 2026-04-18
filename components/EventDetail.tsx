@@ -18,48 +18,27 @@ import {
   Trophy,
   Users,
 } from 'lucide-react';
-import type { Hackathon, InfoCard } from '@/data/hackathons';
+import type { HomepageHackathon, InfoCard } from '@/lib/types/hackathon';
 
 type Props = {
-  hackathon: Hackathon;
+  hackathon: HomepageHackathon;
   isSubscribed: boolean;
   onToggleSubscribe: () => Promise<'subscribed' | 'unsubscribed' | 'login-required'>;
 };
 
-/**
- * 计算倒计时天数
- */
-function calculateCountdown(dateRange: string): number | null {
+function calculateCountdown(startDate: string): number | null {
   try {
-    const monthMap: { [key: string]: number } = {
-      Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-      Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
-    };
-
-    const match = dateRange.match(/([A-Z][a-z]+)\s+(\d{1,2})/);
-    if (!match) return null;
-
-    const [, month, day] = match;
-    const monthIndex = monthMap[month];
-    if (monthIndex === undefined) return null;
-
-    const eventDate = new Date(2026, monthIndex, parseInt(day));
+    const eventDate = new Date(startDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
-    const diffTime = eventDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
+    const diffDays = Math.ceil((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     return diffDays > 0 ? diffDays : null;
   } catch {
     return null;
   }
 }
 
-/**
- * 获取状态显示信息
- */
-function getStatusInfo(hackathon: Hackathon) {
+function getStatusInfo(hackathon: HomepageHackathon) {
   if (hackathon.isPast || hackathon.status === 'closed') {
     return {
       text: '已结束',
@@ -79,7 +58,7 @@ function getStatusInfo(hackathon: Hackathon) {
     };
   }
 
-  const countdown = calculateCountdown(hackathon.dateRange);
+  const countdown = calculateCountdown(hackathon.startDate);
   if (countdown !== null && countdown > 0) {
     return {
       text: `倒计时 ${countdown} 天`,
@@ -97,25 +76,18 @@ function getStatusInfo(hackathon: Hackathon) {
   };
 }
 
-/**
- * 解析日期格式
- */
-function parseDateDisplay(dateRange: string): string {
-  const monthMap: { [key: string]: string } = {
-    Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06',
-    Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12'
-  };
-
-  const match = dateRange.match(/([A-Z][a-z]+)\s+(\d{1,2})(?:–(\d{1,2}))?/);
-  if (!match) return dateRange;
-
-  const [, month, startDay, endDay] = match;
-  const monthNum = monthMap[month] || month;
-
-  if (endDay) {
-    return `2026.${monthNum}.${startDay.padStart(2, '0')}-${endDay.padStart(2, '0')}`;
+function parseDateDisplay(startDate: string, endDate: string): string {
+  const s = new Date(startDate);
+  const e = new Date(endDate);
+  const year = s.getFullYear();
+  const month = String(s.getMonth() + 1).padStart(2, '0');
+  const startDay = String(s.getDate()).padStart(2, '0');
+  const endDay = String(e.getDate()).padStart(2, '0');
+  if (s.getMonth() === e.getMonth()) {
+    return `${year}.${month}.${startDay}-${endDay}`;
   }
-  return `2026.${monthNum}.${startDay.padStart(2, '0')}`;
+  const endMonth = String(e.getMonth() + 1).padStart(2, '0');
+  return `${year}.${month}.${startDay}-${endMonth}.${endDay}`;
 }
 
 // 图标映射
@@ -136,7 +108,7 @@ function withReferral(url: string, campaign: string) {
   return `${url}${delimiter}utm_source=hackertrip&utm_medium=referral&utm_campaign=${campaign}`;
 }
 
-function getRegistrationAction(hackathon: Hackathon) {
+function getRegistrationAction(hackathon: HomepageHackathon) {
   const campaignId = `hackathon_${hackathon.id}_signup`;
   const reg = hackathon.registration;
 
@@ -169,7 +141,7 @@ function getRegistrationAction(hackathon: Hackathon) {
 }
 
 // 默认信息卡片
-function getDefaultInfoCards(hackathon: Hackathon): InfoCard[] {
+function getDefaultInfoCards(hackathon: HomepageHackathon): InfoCard[] {
   return [
     { icon: 'trophy', label: '奖金池', value: hackathon.prizePool },
     { icon: 'users', label: '团队数', value: hackathon.teams },
@@ -185,7 +157,7 @@ export function EventDetail({ hackathon, isSubscribed, onToggleSubscribe }: Prop
   const [pendingExternal, setPendingExternal] = useState<{ href: string; siteName?: string } | null>(null);
 
   const statusInfo = getStatusInfo(hackathon);
-  const formattedDate = parseDateDisplay(hackathon.dateRange);
+  const formattedDate = parseDateDisplay(hackathon.startDate, hackathon.endDate);
   const registrationAction = getRegistrationAction(hackathon);
   const router = useRouter();
 

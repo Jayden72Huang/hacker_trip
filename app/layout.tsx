@@ -1,20 +1,27 @@
 import type { Metadata } from "next";
-import { Sora, Space_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { HakiAssistantWidget } from "@/components/HakiAssistantWidget";
 import "./globals.css";
 
-const sora = Sora({
-  subsets: ["latin"],
+const sora = localFont({
+  src: [
+    { path: "../public/fonts/sora-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "../public/fonts/sora-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "../public/fonts/sora-latin-600-normal.woff2", weight: "600", style: "normal" },
+    { path: "../public/fonts/sora-latin-700-normal.woff2", weight: "700", style: "normal" },
+    { path: "../public/fonts/sora-latin-800-normal.woff2", weight: "800", style: "normal" },
+  ],
   variable: "--font-sora",
-  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-const spaceMono = Space_Mono({
-  subsets: ["latin"],
+const spaceMono = localFont({
+  src: [
+    { path: "../public/fonts/space-mono-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "../public/fonts/space-mono-latin-700-normal.woff2", weight: "700", style: "normal" },
+  ],
   variable: "--font-space-mono",
-  weight: ["400", "700"],
   display: "swap",
 });
 

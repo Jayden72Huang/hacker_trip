@@ -29,6 +29,13 @@
       "when": 1776091548121,
       "tag": "0003_cheerful_wilson_fisk",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1776518745084,
+      "tag": "0004_natural_titanium_man",
+      "breakpoints": true
     }
   ]
 }

@@ -18,6 +18,8 @@
     "@aws-sdk/s3-request-presigner": "^3.981.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@fontsource/sora": "^5.2.8",
+    "@fontsource/space-mono": "^5.2.9",
     "@mendable/firecrawl-js": "^4.15.4",
     "@mui/icons-material": "^7.3.8",
     "@mui/material": "^7.3.8",

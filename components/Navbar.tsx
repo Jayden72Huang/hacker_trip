@@ -56,7 +56,7 @@ export function Navbar() {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-7 lg:gap-9">
               <Link
-                href="/"
+                href="/explore"
                 className="font-space-mono text-sm text-gray-400 hover:text-white transition-colors"
               >
                 黑客松
@@ -177,7 +177,7 @@ export function Navbar() {
             <div className="md:hidden mt-2 glass rounded-2xl p-4 border border-white/5">
               <div className="flex flex-col gap-2">
                 <Link
-                  href="/"
+                  href="/explore"
                   className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >

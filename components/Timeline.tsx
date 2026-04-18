@@ -2,35 +2,19 @@
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { hackathons } from '@/data/hackathons';
+import type { HomepageHackathon } from '@/lib/types/hackathon';
 
 type TimeRange = 'past-month' | 'past-half' | 'all' | 'future-month' | 'future-half';
 
 type TimelineProps = {
+  hackathons: HomepageHackathon[];
   selectedId: string;
   onSelect: (id: string) => void;
   subscriptions: string[];
 };
 
-// 解析日期字符串，返回Date对象
-function parseHackathonDate(dateRange: string): Date | null {
-  const monthMap: { [key: string]: number } = {
-    Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-    Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
-  };
-
-  const match = dateRange.match(/([A-Z][a-z]+)\s+(\d{1,2})/);
-  if (!match) return null;
-
-  const [, month, day] = match;
-  const monthIndex = monthMap[month];
-  if (monthIndex === undefined) return null;
-
-  return new Date(2026, monthIndex, parseInt(day));
-}
-
 // 根据时间范围筛选hackathons
-function filterByTimeRange(timeRange: TimeRange) {
+function filterByTimeRange(hackathons: HomepageHackathon[], timeRange: TimeRange) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -47,8 +31,8 @@ function filterByTimeRange(timeRange: TimeRange) {
   sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
 
   return hackathons.filter(h => {
-    const eventDate = parseHackathonDate(h.dateRange);
-    if (!eventDate) return true;
+    const eventDate = new Date(h.startDate);
+    if (isNaN(eventDate.getTime())) return true;
 
     switch (timeRange) {
       case 'past-month':
@@ -66,29 +50,26 @@ function filterByTimeRange(timeRange: TimeRange) {
   });
 }
 
-export function Timeline({ selectedId, onSelect, subscriptions }: TimelineProps) {
+export function Timeline({ hackathons, selectedId, onSelect, subscriptions }: TimelineProps) {
   const [timeRange, setTimeRange] = useState<TimeRange>('all');
 
   // 根据时间范围筛选
   const filteredHackathons = useMemo(() => {
-    return filterByTimeRange(timeRange);
-  }, [timeRange]);
+    return filterByTimeRange(hackathons, timeRange);
+  }, [hackathons, timeRange]);
 
   // 获取时间点的颜色样式
-  const getDotStyle = (hackathon: typeof hackathons[0], isSelected: boolean) => {
+  const getDotStyle = (hackathon: HomepageHackathon, isSelected: boolean) => {
     const isSubscribed = subscriptions.includes(hackathon.id);
     const isPast = hackathon.isPast;
 
     if (isSelected) {
-      // 选中状态
       if (isSubscribed) {
-        // 已订阅：彩色发光
         return {
           dot: 'bg-gradient-to-r from-indigo-400 to-purple-400 scale-150 shadow-lg shadow-indigo-500/50',
           glow: 'w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-30 blur-lg animate-pulse'
         };
       } else {
-        // 未订阅：白色发光
         return {
           dot: 'bg-white scale-150 shadow-lg shadow-white/50',
           glow: 'w-12 h-12 bg-white opacity-25 blur-lg animate-pulse'
@@ -97,15 +78,12 @@ export function Timeline({ selectedId, onSelect, subscriptions }: TimelineProps)
     }
 
     if (isPast) {
-      // 已结束
       if (isSubscribed) {
-        // 已订阅且结束：橙色
         return {
           dot: 'bg-gradient-to-r from-orange-400 to-amber-400 group-hover:scale-125',
           glow: 'w-8 h-8 bg-orange-500 opacity-10 group-hover:opacity-20'
         };
       } else {
-        // 未订阅且结束：灰色
         return {
           dot: 'bg-gray-600 group-hover:bg-gray-500 group-hover:scale-110',
           glow: ''
@@ -113,15 +91,12 @@ export function Timeline({ selectedId, onSelect, subscriptions }: TimelineProps)
       }
     }
 
-    // 未来的黑客松
     if (isSubscribed) {
-      // 已订阅：彩色
       return {
         dot: 'bg-gradient-to-r from-indigo-500 to-purple-500 group-hover:scale-125',
         glow: 'w-8 h-8 bg-gradient-to-r from-indigo-400 to-purple-400 opacity-10 group-hover:opacity-20'
       };
     } else {
-      // 未订阅：白色点
       return {
         dot: 'bg-white/70 group-hover:bg-white group-hover:scale-110',
         glow: ''

@@ -122,6 +122,7 @@ export default function LaunchPage() {
           projectName: projectName.trim(),
           tagline: content?.productHunt?.tagline || '',
           description: description.trim(),
+          targetAudience: targetAudience.trim(),
         }),
       });
       if (!res.ok) {

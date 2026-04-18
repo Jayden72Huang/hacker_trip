@@ -11,21 +11,49 @@ import { Features } from '@/components/Features';
 import { Testimonials } from '@/components/Testimonials';
 import { Footer } from '@/components/Footer';
 import { SignInModal } from '@/components/SignInModal';
-import { hackathons } from '@/data/hackathons';
+import type { HomepageHackathon } from '@/lib/types/hackathon';
+import { Loader2 } from 'lucide-react';
 
 const STORAGE_KEY = 'hackertrip_subscriptions';
 
 export default function Home() {
   const { data: session } = useSession();
   const [signInModalOpen, setSignInModalOpen] = useState(false);
+  const [hackathons, setHackathons] = useState<HomepageHackathon[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const defaultId = useMemo(() => {
-    const upcoming = hackathons.find((h) => !h.isPast);
-    return upcoming ? upcoming.id : hackathons[0].id;
+  // 从数据库加载黑客松
+  useEffect(() => {
+    fetch('/api/hackathons?sort=date')
+      .then(res => res.json())
+      .then(data => {
+        const list = Array.isArray(data) ? data : [];
+        // 按时间正序排列（最早的在前）
+        list.sort((a: HomepageHackathon, b: HomepageHackathon) =>
+          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+        );
+        setHackathons(list);
+      })
+      .catch(() => setHackathons([]))
+      .finally(() => setLoading(false));
   }, []);
 
-  const [selectedId, setSelectedId] = useState<string>(defaultId);
+  const defaultId = useMemo(() => {
+    if (hackathons.length === 0) return '';
+    const upcoming = hackathons.find((h) => !h.isPast);
+    return upcoming ? upcoming.id : hackathons[0].id;
+  }, [hackathons]);
+
+  const [selectedId, setSelectedId] = useState<string>('');
   const [subscriptions, setSubscriptions] = useState<string[]>([]);
+
+  // 当 hackathons 加载完成后设置默认选中
+  useEffect(() => {
+    if (defaultId && !selectedId) {
+      setSelectedId(defaultId);
+    }
+  }, [defaultId, selectedId]);
+
   const selected = hackathons.find((h) => h.id === selectedId) ?? hackathons[0];
 
   // 从localStorage加载订阅状态
@@ -89,16 +117,31 @@ export default function Home() {
       <Navbar />
       <main className="pt-10">
         <Hero />
-        <Timeline
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-          subscriptions={subscriptions}
-        />
-        <EventDetail
-          hackathon={selected}
-          isSubscribed={subscriptions.includes(selected.id)}
-          onToggleSubscribe={() => toggleSubscription(selected.id)}
-        />
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
+          </div>
+        ) : hackathons.length > 0 ? (
+          <>
+            <Timeline
+              hackathons={hackathons}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              subscriptions={subscriptions}
+            />
+            {selected && (
+              <EventDetail
+                hackathon={selected}
+                isSubscribed={subscriptions.includes(selected.id)}
+                onToggleSubscribe={() => toggleSubscription(selected.id)}
+              />
+            )}
+          </>
+        ) : (
+          <div className="flex justify-center items-center py-20">
+            <p className="text-gray-500 font-space-mono">暂无黑客松活动</p>
+          </div>
+        )}
         <LogoMarquee />
         <Features />
         <Testimonials />

@@ -24,6 +24,7 @@ import { ProductAwardsManager } from './components/ProductAwardsManager';
 import { AdminSettings } from './components/AdminSettings';
 import { WorksReview } from './components/WorksReview';
 import { ArticleManager } from './components/ArticleManager';
+import { HackathonManager } from './components/HackathonManager';
 
 type MenuItem = {
   id: string;
@@ -50,6 +51,7 @@ const menuItems: MenuItem[] = [
       { id: 'works-review', label: '作品审核' },
       { id: 'articles', label: '社区内容' },
       { id: 'product-awards', label: '作品 & 奖项' },
+      { id: 'hackathon-manager', label: '黑客松管理' },
     ],
   },
   {
@@ -209,6 +211,12 @@ export default function AdminPage() {
             {activeTab === 'works-review' && <WorksReview />}
             {activeTab === 'articles' && <ArticleManager />}
             {activeTab === 'product-awards' && <ProductAwardsManager />}
+            {activeTab === 'hackathon-manager' && (
+              <HackathonManager
+                refreshKey={refreshKey}
+                onRefresh={() => setRefreshKey((prev) => prev + 1)}
+              />
+            )}
           </div>
         </div>
       </main>

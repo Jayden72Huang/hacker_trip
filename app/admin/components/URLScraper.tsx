@@ -66,7 +66,7 @@ const defaultSites: SavedSite[] = [
   { id: '4', name: '活动行科技', url: 'https://www.huodongxing.com/eventlist?tag=%E7%A7%91%E6%8A%80', platform: '活动行' },
 ];
 
-const platformOptions = ['DoraHacks', '牛客网', '活动行', '互动吧', '掘金', 'Devpost', 'MLH', '其他'];
+const platformOptions = ['DoraHacks', '牛客网', '活动行', '互动吧', '掘金', 'Devpost', 'MLH', '小红书', '微信公众号', '其他'];
 
 const scheduleOptions = [
   { value: 'daily', label: '每日', desc: '每天凌晨 2 点自动爬取' },

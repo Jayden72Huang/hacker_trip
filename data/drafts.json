@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "draftId": "draft-mo30q2fksyo8j",
+    "name": "春潮 Spring｜深圳黑客松",
+    "dateRange": "4.23-4.26",
+    "city": "深圳",
+    "country": "中国",
+    "venue": "深圳雪花啤酒小镇",
+    "prizePool": "15w+现金奖金池，10w+软硬件奖品 ",
+    "teams": "1000人",
+    "format": "offline",
+    "theme": "智慧城市",
+    "website": "http://xhslink.com/o/9bwRU80HpvA ",
+    "summary": "倒计时一周！！ \t 4.23-4.26，深圳雪花啤酒小镇 AttraX「春潮 Spring｜深圳黑客松」 \t 💰 15w+现金奖金池，10w+软硬件奖品 🎤 1000人+路演日规模，专业展示舞台 ✈️ 我们还要送 6 位 Outlier 去伦敦玩三周！ \t 五大赛道：软件社交 / 硬件 / 出海 / 创作 / 智慧城市 顶级开发工具全包——模型额度、开发板、机械臂、3D打印 零食咖啡全程供给，",
+    "tracks": [],
+    "agenda": [],
+    "status": "pending",
+    "isPast": false,
+    "id": "春潮-spring-深圳黑客松正式向你发出邀请-mo30q16i",
+    "shortName": "春潮·Spring",
+    "brief": "http://xhslink.com/o/9bwRU80HpvA ",
+    "source": "http://xhslink.com/o/9bwRU80HpvA ",
+    "createdAt": "2026-04-17T14:43:20.912Z",
+    "hostOrganizer": "AttraX"
+  }
+]
