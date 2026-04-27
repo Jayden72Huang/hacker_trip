@@ -1,24 +1,54 @@
 /**
- * API: 草稿箱 CRUD
+ * API: 草稿箱 CRUD（数据库版）
  * GET    /api/drafts       - 获取所有草稿
  * POST   /api/drafts       - 创建草稿
- * PUT    /api/drafts/:id   - 更新草稿
- * DELETE /api/drafts/:id   - 删除草稿
+ * PUT    /api/drafts        - 更新草稿
+ * DELETE /api/drafts?draftId=xxx - 删除草稿
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
-import type { DraftHackathon } from '@/scrapers/core/types';
-
-const DRAFTS_FILE = path.join(process.cwd(), 'data', 'drafts.json');
+import { db } from '@/lib/db';
+import { draftHackathons } from '@/lib/db/schema';
+import { eq, desc } from 'drizzle-orm';
 
 /**
- * GET: 获取所有草稿
+ * GET: 获取所有草稿（status != 'published'）
  */
 export async function GET() {
   try {
-    const drafts = await readDrafts();
+    const rows = await db
+      .select()
+      .from(draftHackathons)
+      .orderBy(desc(draftHackathons.createdAt));
+
+    // 转为前端期望的格式
+    const drafts = rows.map((r) => ({
+      draftId: r.id,
+      name: r.name,
+      shortName: r.shortName,
+      city: r.city,
+      country: r.country,
+      venue: r.venue,
+      dateRange: r.dateRange,
+      startDate: r.startDate,
+      endDate: r.endDate,
+      mode: r.format,
+      theme: r.theme,
+      summary: r.summary,
+      prizePool: r.prizePool,
+      teams: r.teams,
+      tracks: r.tracks,
+      agenda: r.agenda,
+      organizers: r.organizers,
+      sponsors: r.sponsors,
+      website: r.sourceUrl,
+      source: r.sourceUrl,
+      platform: r.platform,
+      confidence: r.confidence,
+      status: r.status,
+      createdAt: r.createdAt?.toISOString(),
+    }));
+
     return NextResponse.json({ success: true, drafts });
   } catch (error) {
     console.error('Get drafts error:', error);
@@ -44,24 +74,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const drafts = await readDrafts();
-
-    const newDraft: DraftHackathon = {
-      draftId: generateDraftId(),
-      ...data,
-      source,
-      createdAt: new Date().toISOString(),
-      status: 'pending'
-    };
-
-    drafts.push(newDraft);
-    await writeDrafts(drafts);
+    const [row] = await db
+      .insert(draftHackathons)
+      .values({
+        sourceUrl: data.website || data.source || source,
+        platform: data.platform || 'manual',
+        name: data.name,
+        shortName: data.shortName,
+        city: data.city,
+        country: data.country || '中国',
+        venue: data.venue,
+        dateRange: data.dateRange,
+        startDate: data.startDate ? new Date(data.startDate) : null,
+        endDate: data.endDate ? new Date(data.endDate) : null,
+        format: data.mode || data.format,
+        theme: data.theme,
+        summary: data.summary,
+        prizePool: data.prizePool,
+        teams: data.teams,
+        tracks: data.tracks || [],
+        agenda: data.agenda || [],
+        organizers: data.organizers || [],
+        sponsors: data.sponsors || [],
+        confidence: data.confidence,
+        status: 'pending',
+      })
+      .returning();
 
     return NextResponse.json({
       success: true,
-      draft: newDraft
+      draft: { draftId: row.id, ...data },
     });
-
   } catch (error) {
     console.error('Create draft error:', error);
     return NextResponse.json(
@@ -86,28 +129,36 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const drafts = await readDrafts();
-    const index = drafts.findIndex(d => d.draftId === draftId);
+    const updateValues: Record<string, unknown> = {};
+    if (data.name !== undefined) updateValues.name = data.name;
+    if (data.shortName !== undefined) updateValues.shortName = data.shortName;
+    if (data.city !== undefined) updateValues.city = data.city;
+    if (data.venue !== undefined) updateValues.venue = data.venue;
+    if (data.dateRange !== undefined) updateValues.dateRange = data.dateRange;
+    if (data.startDate !== undefined) updateValues.startDate = new Date(data.startDate);
+    if (data.endDate !== undefined) updateValues.endDate = new Date(data.endDate);
+    if (data.mode !== undefined) updateValues.format = data.mode;
+    if (data.theme !== undefined) updateValues.theme = data.theme;
+    if (data.summary !== undefined) updateValues.summary = data.summary;
+    if (data.prizePool !== undefined) updateValues.prizePool = data.prizePool;
+    if (data.tracks !== undefined) updateValues.tracks = data.tracks;
+    if (data.organizers !== undefined) updateValues.organizers = data.organizers;
+    if (data.website !== undefined) updateValues.sourceUrl = data.website;
 
-    if (index === -1) {
+    const [updated] = await db
+      .update(draftHackathons)
+      .set(updateValues)
+      .where(eq(draftHackathons.id, draftId))
+      .returning();
+
+    if (!updated) {
       return NextResponse.json(
         { error: '草稿不存在' },
         { status: 404 }
       );
     }
 
-    drafts[index] = {
-      ...drafts[index],
-      ...data
-    };
-
-    await writeDrafts(drafts);
-
-    return NextResponse.json({
-      success: true,
-      draft: drafts[index]
-    });
-
+    return NextResponse.json({ success: true, draft: updated });
   } catch (error) {
     console.error('Update draft error:', error);
     return NextResponse.json(
@@ -132,20 +183,19 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const drafts = await readDrafts();
-    const filtered = drafts.filter(d => d.draftId !== draftId);
+    const [deleted] = await db
+      .delete(draftHackathons)
+      .where(eq(draftHackathons.id, draftId))
+      .returning({ id: draftHackathons.id });
 
-    if (filtered.length === drafts.length) {
+    if (!deleted) {
       return NextResponse.json(
         { error: '草稿不存在' },
         { status: 404 }
       );
     }
 
-    await writeDrafts(filtered);
-
     return NextResponse.json({ success: true });
-
   } catch (error) {
     console.error('Delete draft error:', error);
     return NextResponse.json(
@@ -153,30 +203,4 @@ export async function DELETE(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-/**
- * 读取草稿文件
- */
-async function readDrafts(): Promise<DraftHackathon[]> {
-  try {
-    const content = await fs.readFile(DRAFTS_FILE, 'utf-8');
-    return JSON.parse(content);
-  } catch {
-    return [];
-  }
-}
-
-/**
- * 写入草稿文件
- */
-async function writeDrafts(drafts: DraftHackathon[]): Promise<void> {
-  await fs.writeFile(DRAFTS_FILE, JSON.stringify(drafts, null, 2), 'utf-8');
-}
-
-/**
- * 生成草稿 ID
- */
-function generateDraftId(): string {
-  return 'draft-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
