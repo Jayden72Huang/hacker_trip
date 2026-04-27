@@ -23,6 +23,7 @@ export async function GET() {
       skills: users.skills,
       notificationPrefs: users.notificationPrefs,
       image: users.image,
+      role: users.role,
     })
     .from(users)
     .where(eq(users.id, session.user.id));

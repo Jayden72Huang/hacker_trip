@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
 // 需要保护的路由
-const protectedRoutes = ['/admin', '/organize/create', '/dashboard', '/settings', '/haki', '/works/submit', '/works/my', '/community/write'];
+const protectedRoutes = ['/admin', '/organizer', '/organize/create', '/dashboard', '/settings', '/haki', '/works/submit', '/works/my', '/community/write'];
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
@@ -13,8 +13,13 @@ export default auth((req) => {
     pathname.startsWith(route)
   );
 
-  // 未登录访问受保护路由 -> 重定向到首页
+  // 未登录访问受保护路由
   if (isProtectedRoute && !isLoggedIn) {
+    // API 路由返回 401，不重定向
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    // 页面路由重定向到首页
     const redirectUrl = new URL('/', req.url);
     redirectUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(redirectUrl);

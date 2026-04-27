@@ -28,8 +28,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     session({ session, user }) {
       if (session.user) {
         session.user.id = user.id;
+        (session.user as { role?: string }).role = (user as { role?: string }).role || 'user';
       }
       return session;
+    },
+  },
+  events: {
+    async createUser({ user }) {
+      // 没有头像的新用户分配像素风默认头像
+      if (!user.image && user.id) {
+        const seed = encodeURIComponent(user.name || user.email || user.id);
+        const avatarUrl = `https://api.dicebear.com/9.x/pixel-art/svg?seed=${seed}`;
+        const { db: database } = await import('./db');
+        const { users } = await import('./db/schema');
+        const { eq } = await import('drizzle-orm');
+        await database.update(users).set({ image: avatarUrl }).where(eq(users.id, user.id));
+      }
     },
   },
 });

@@ -13,9 +13,7 @@ import {
   Home,
   UserCheck,
   Inbox,
-  Globe,
 } from 'lucide-react';
-import { URLScraper } from './components/URLScraper';
 import { TextUploader } from './components/TextUploader';
 import { DraftList } from './components/DraftList';
 import { GoogleSearch } from './components/GoogleSearch';
@@ -25,6 +23,7 @@ import { AdminSettings } from './components/AdminSettings';
 import { WorksReview } from './components/WorksReview';
 import { ArticleManager } from './components/ArticleManager';
 import { HackathonManager } from './components/HackathonManager';
+import { SmartImporter } from './components/SmartImporter';
 
 type MenuItem = {
   id: string;
@@ -43,32 +42,32 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    id: 'hackathon',
+    label: '黑客松管理',
+    icon: LayoutDashboard,
+    children: [
+      { id: 'hackathon-manager', label: '活动列表' },
+      { id: 'drafts', label: '草稿箱' },
+      { id: 'smart-import', label: '智能采集' },
+      { id: 'text-parser', label: '文本解析' },
+      { id: 'google-search', label: 'Google 检索' },
+    ],
+  },
+  {
     id: 'content',
     label: '内容管理',
     icon: FileText,
     children: [
-      { id: 'drafts', label: '草稿箱' },
       { id: 'works-review', label: '作品审核' },
       { id: 'articles', label: '社区内容' },
       { id: 'product-awards', label: '作品 & 奖项' },
-      { id: 'hackathon-manager', label: '黑客松管理' },
-    ],
-  },
-  {
-    id: 'scraping',
-    label: '信息爬取',
-    icon: Globe,
-    children: [
-      { id: 'url-scraper', label: 'URL 爬取' },
-      { id: 'text-parser', label: '文本解析' },
-      { id: 'google-search', label: 'Google 检索' },
     ],
   },
 ];
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('organizer-review');
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['users', 'content', 'scraping']);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['users', 'hackathon', 'content']);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -204,7 +203,7 @@ export default function AdminPage() {
         <div className="flex-1 p-8 overflow-y-auto">
           <div className="max-w-6xl">
             {activeTab === 'organizer-review' && <OrganizerReview />}
-            {activeTab === 'url-scraper' && <URLScraper onSuccess={handleDataAdded} />}
+            {activeTab === 'smart-import' && <SmartImporter onSuccess={handleDataAdded} />}
             {activeTab === 'text-parser' && <TextUploader onSuccess={handleDataAdded} />}
             {activeTab === 'google-search' && <GoogleSearch onSuccess={handleDraftRefresh} />}
             {activeTab === 'drafts' && <DraftList key={refreshKey} />}

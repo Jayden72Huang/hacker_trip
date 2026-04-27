@@ -1,43 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { checkApprovedOrganizer } from '@/lib/auth-helpers';
 import { db } from '@/lib/db';
-import { hackathons, users } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
-
-async function isAdmin(): Promise<boolean> {
-  const session = await auth();
-  console.log('[isAdmin] session user id:', session?.user?.id, 'full user:', JSON.stringify(session?.user));
-  if (!session?.user?.id) return false;
-  const [user] = await db.select({ role: users.role }).from(users).where(eq(users.id, session.user.id));
-  console.log('[isAdmin] db role:', user?.role);
-  return user?.role === 'admin';
-}
+import { hackathons } from '@/lib/db/schema';
+import { desc, eq } from 'drizzle-orm';
 
 /**
- * GET /api/admin/hackathons — 获取所有已发布的黑客松（Admin）
+ * GET /api/organizer/hackathons — 获取当前组织者创建的黑客松
  */
 export async function GET() {
-  // Debug: log session info
-  const session = await auth();
-  console.log('[admin/hackathons] session:', JSON.stringify(session?.user));
-
-  if (!(await isAdmin())) {
+  const authResult = await checkApprovedOrganizer();
+  if (!authResult.authorized) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const list = await db
     .select()
     .from(hackathons)
+    .where(eq(hackathons.createdBy, authResult.userId))
     .orderBy(desc(hackathons.createdAt));
 
   return NextResponse.json(list);
 }
 
 /**
- * POST /api/admin/hackathons — 从草稿发布黑客松
+ * POST /api/organizer/hackathons — 组织者发布自己的黑客松
  */
 export async function POST(request: NextRequest) {
-  if (!(await isAdmin())) {
+  const authResult = await checkApprovedOrganizer();
+  if (!authResult.authorized) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -52,7 +42,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '名称和日期为必填' }, { status: 400 });
   }
 
-  // 生成 slug
   const slug = name
     .toLowerCase()
     .replace(/[^a-z0-9\u4e00-\u9fff]+/g, '-')
@@ -93,8 +82,9 @@ export async function POST(request: NextRequest) {
       infoCards: infoCards || null,
       organizers: organizers || [],
       status: 'upcoming',
-      isVerified: true,
+      isVerified: false,
       isFeatured: false,
+      createdBy: authResult.userId,
     })
     .returning();
 

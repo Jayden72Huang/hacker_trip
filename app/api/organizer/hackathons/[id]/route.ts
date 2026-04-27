@@ -1,37 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { checkApprovedOrganizer } from '@/lib/auth-helpers';
 import { db } from '@/lib/db';
-import { hackathons, users } from '@/lib/db/schema';
+import { hackathons } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
-async function isAdmin(): Promise<boolean> {
-  const session = await auth();
-  if (!session?.user?.id) return false;
-  const [user] = await db.select({ role: users.role }).from(users).where(eq(users.id, session.user.id));
-  return user?.role === 'admin';
+async function ownsHackathon(id: string, userId: string): Promise<boolean> {
+  const [hackathon] = await db
+    .select({ createdBy: hackathons.createdBy })
+    .from(hackathons)
+    .where(eq(hackathons.id, id));
+
+  return hackathon?.createdBy === userId;
 }
 
 /**
- * PATCH /api/admin/hackathons/[id] — 更新黑客松（状态、精选、编辑）
+ * PATCH /api/organizer/hackathons/[id] — 更新当前组织者自己的黑客松
  */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await isAdmin())) {
+  const authResult = await checkApprovedOrganizer();
+  if (!authResult.authorized) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const { id } = await params;
+  if (!(await ownsHackathon(id, authResult.userId))) {
+    return NextResponse.json({ error: '无权操作' }, { status: 403 });
+  }
+
   const body = await request.json();
 
-  // 只允许更新特定字段
   const allowedFields: Record<string, unknown> = {};
   const editableKeys = [
     'name', 'description', 'website', 'startDate', 'endDate',
     'registrationDeadline', 'mode', 'location', 'prizePool',
     'organizer', 'tracks', 'tags', 'sponsors', 'logo', 'coverImage',
-    'status', 'isFeatured', 'isVerified',
+    'status',
     'shortName', 'city', 'country', 'venue', 'theme', 'summary',
     'teams', 'brief', 'hostOrganizer', 'agenda', 'registration',
     'infoCards', 'organizers',
@@ -67,17 +73,21 @@ export async function PATCH(
 }
 
 /**
- * DELETE /api/admin/hackathons/[id] — 删除黑客松
+ * DELETE /api/organizer/hackathons/[id] — 删除当前组织者自己的黑客松
  */
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await isAdmin())) {
+  const authResult = await checkApprovedOrganizer();
+  if (!authResult.authorized) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const { id } = await params;
+  if (!(await ownsHackathon(id, authResult.userId))) {
+    return NextResponse.json({ error: '无权操作' }, { status: 403 });
+  }
 
   const [deleted] = await db
     .delete(hackathons)

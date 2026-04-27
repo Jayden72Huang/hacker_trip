@@ -128,10 +128,18 @@ export default function ExplorePage() {
           <div className="relative rounded-2xl overflow-hidden mb-10">
             {/* 背景图 */}
             <div
-              className="absolute inset-0 bg-cover bg-center opacity-30"
+              className="absolute inset-0 bg-cover bg-center opacity-40 transition-opacity duration-500"
               style={{ backgroundImage: "url('/images/events-banner.png')" }}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#05060a]/60 via-transparent to-[#05060a]/60" />
+            {/* 左右遮罩：选中侧更亮（透明度低），未选中侧更暗 */}
+            <div
+              className="absolute inset-0 transition-all duration-500"
+              style={{
+                background: activeTab === 'upcoming'
+                  ? 'linear-gradient(to right, rgba(5,6,10,0.15) 0%, rgba(5,6,10,0.4) 50%, rgba(5,6,10,0.75) 100%)'
+                  : 'linear-gradient(to right, rgba(5,6,10,0.75) 0%, rgba(5,6,10,0.4) 50%, rgba(5,6,10,0.15) 100%)'
+              }}
+            />
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#05060a]/80" />
 
             <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-6 px-8 py-8">

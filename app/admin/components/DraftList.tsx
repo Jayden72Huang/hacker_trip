@@ -1,22 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { HackathonEditor } from './HackathonEditor';
 import type { DraftHackathon } from '@/scrapers/core/types';
 
-export function DraftList() {
+interface DraftListProps {
+  apiBase?: string;
+}
+
+export function DraftList({ apiBase }: DraftListProps) {
+  const base = apiBase ?? '/api';
   const [drafts, setDrafts] = useState<DraftHackathon[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDraft, setSelectedDraft] = useState<DraftHackathon | null>(null);
   const [publishing, setPublishing] = useState(false);
 
-  useEffect(() => {
-    loadDrafts();
-  }, []);
-
-  const loadDrafts = async () => {
+  const loadDrafts = useCallback(async () => {
     try {
-      const res = await fetch('/api/drafts');
+      const res = await fetch(`${base}/drafts`);
       const data = await res.json();
       if (data.success) {
         setDrafts(data.drafts);
@@ -26,13 +27,17 @@ export function DraftList() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [base]);
+
+  useEffect(() => {
+    loadDrafts();
+  }, [loadDrafts]);
 
   const handleDelete = async (draftId: string) => {
     if (!confirm('确定要删除这条草稿吗？')) return;
 
     try {
-      const res = await fetch(`/api/drafts?draftId=${draftId}`, {
+      const res = await fetch(`${base}/drafts?draftId=${draftId}`, {
         method: 'DELETE'
       });
 
@@ -50,7 +55,7 @@ export function DraftList() {
 
   const handleUpdate = async (draftId: string, data: any) => {
     try {
-      const res = await fetch('/api/drafts', {
+      const res = await fetch(`${base}/drafts`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ draftId, data })

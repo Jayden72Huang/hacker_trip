@@ -133,6 +133,7 @@ export const hackathons = pgTable(
     isFeatured: boolean('is_featured').default(false),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
     updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
+    createdBy: text('created_by').references(() => users.id, { onDelete: 'set null' }),
   },
   (table) => ({
     slugUnique: uniqueIndex('hackathon_slug_unique').on(table.slug),
@@ -600,6 +601,7 @@ export const draftHackathons = pgTable('draft_hackathon', {
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
   reviewedAt: timestamp('reviewed_at', { mode: 'date' }),
   publishedAt: timestamp('published_at', { mode: 'date' }),
+  createdBy: text('created_by').references(() => users.id, { onDelete: 'set null' }),
 });
 
 // ============ 作品团队成员 ============

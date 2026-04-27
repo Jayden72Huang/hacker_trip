@@ -2,15 +2,34 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, Shield, Crown, Gamepad2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+
+const ROLE_CONFIG: Record<string, { label: string; color: string; icon: typeof Shield }> = {
+  admin: { label: '管理员', color: 'text-red-400 bg-red-500/10', icon: Crown },
+  organizer: { label: '组织者', color: 'text-indigo-400 bg-indigo-500/10', icon: Shield },
+  user: { label: '选手', color: 'text-gray-400 bg-white/5', icon: Gamepad2 },
+};
 
 export function UserMenu() {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [userRole, setUserRole] = useState<string>('user');
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // 从 API 获取用户真实 role
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetch('/api/user/role')
+        .then(res => res.json())
+        .then(data => {
+          if (data.role) setUserRole(data.role);
+        })
+        .catch(() => {});
+    }
+  }, [session?.user?.id]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -57,9 +76,21 @@ export function UserMenu() {
       {isOpen && (
         <div className="absolute top-full right-0 mt-2 w-56 rounded-xl bg-gray-900 border border-white/10 shadow-xl overflow-hidden z-50">
           <div className="px-4 py-3 border-b border-white/10">
-            <p className="font-sora text-sm font-medium text-white truncate">
-              {displayName}
-            </p>
+            <div className="flex items-center justify-between mb-1">
+              <p className="font-sora text-sm font-medium text-white truncate">
+                {displayName}
+              </p>
+              {(() => {
+                const cfg = ROLE_CONFIG[userRole] || ROLE_CONFIG.user;
+                const Icon = cfg.icon;
+                return (
+                  <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-space-mono font-medium ${cfg.color}`}>
+                    <Icon size={10} />
+                    {cfg.label}
+                  </span>
+                );
+              })()}
+            </div>
             <p className="font-space-mono text-xs text-gray-500 truncate">
               {user?.email}
             </p>
@@ -74,6 +105,26 @@ export function UserMenu() {
               <User size={16} />
               个人中心
             </Link>
+            {userRole === 'admin' && (
+              <Link
+                href="/admin"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm font-space-mono text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 transition-all"
+              >
+                <Crown size={16} />
+                管理后台
+              </Link>
+            )}
+            {userRole === 'organizer' && (
+              <Link
+                href="/organizer"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm font-space-mono text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 transition-all"
+              >
+                <Shield size={16} />
+                组织者后台
+              </Link>
+            )}
           </div>
 
           <div className="py-2 border-t border-white/10">

@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import {
-  Star,
   Trash2,
   RefreshCw,
   Plus,
@@ -57,6 +56,8 @@ interface DraftItem {
 interface HackathonManagerProps {
   refreshKey?: number;
   onRefresh?: () => void;
+  apiBase?: string;
+  showFeaturedToggle?: boolean;
 }
 
 // ---------- helpers ----------
@@ -113,7 +114,17 @@ const MODE_LABELS: Record<string, string> = {
 
 // ---------- component ----------
 
-export function HackathonManager({ refreshKey, onRefresh }: HackathonManagerProps) {
+export function HackathonManager({
+  refreshKey,
+  onRefresh,
+  apiBase,
+  showFeaturedToggle = true,
+}: HackathonManagerProps) {
+  const base = apiBase ?? '/api/admin';
+  const draftsBase = apiBase ?? '/api';
+  const gridColumnsClass = showFeaturedToggle
+    ? 'grid-cols-[1fr_120px_140px_100px_80px_60px_100px]'
+    : 'grid-cols-[1fr_120px_140px_100px_80px_100px]';
   const [hackathons, setHackathons] = useState<PublishedHackathon[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -133,7 +144,7 @@ export function HackathonManager({ refreshKey, onRefresh }: HackathonManagerProp
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/admin/hackathons');
+      const res = await fetch(`${base}/hackathons`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setHackathons(Array.isArray(data) ? data : []);
@@ -143,7 +154,7 @@ export function HackathonManager({ refreshKey, onRefresh }: HackathonManagerProp
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [base]);
 
   useEffect(() => {
     loadHackathons();
@@ -154,7 +165,7 @@ export function HackathonManager({ refreshKey, onRefresh }: HackathonManagerProp
   const loadDrafts = async () => {
     setDraftsLoading(true);
     try {
-      const res = await fetch('/api/drafts');
+      const res = await fetch(`${draftsBase}/drafts`);
       const data = await res.json();
       if (data.success) {
         setDrafts(data.drafts ?? []);
@@ -192,7 +203,7 @@ export function HackathonManager({ refreshKey, onRefresh }: HackathonManagerProp
         sourceUrl: draft.source || null,
       };
 
-      const res = await fetch('/api/admin/hackathons', {
+      const res = await fetch(`${base}/hackathons`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -217,7 +228,7 @@ export function HackathonManager({ refreshKey, onRefresh }: HackathonManagerProp
 
   const handleToggleFeatured = async (h: PublishedHackathon) => {
     try {
-      const res = await fetch(`/api/admin/hackathons/${h.id}`, {
+      const res = await fetch(`${base}/hackathons/${h.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isFeatured: !h.isFeatured }),
@@ -236,7 +247,7 @@ export function HackathonManager({ refreshKey, onRefresh }: HackathonManagerProp
     setStatusDropdownId(null);
     if (newStatus === h.status) return;
     try {
-      const res = await fetch(`/api/admin/hackathons/${h.id}`, {
+      const res = await fetch(`${base}/hackathons/${h.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
@@ -254,7 +265,7 @@ export function HackathonManager({ refreshKey, onRefresh }: HackathonManagerProp
   const handleDelete = async (h: PublishedHackathon) => {
     if (!window.confirm(`确定要删除「${h.name}」吗？此操作不可撤销。`)) return;
     try {
-      const res = await fetch(`/api/admin/hackathons/${h.id}`, { method: 'DELETE' });
+      const res = await fetch(`${base}/hackathons/${h.id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error();
       setHackathons((prev) => prev.filter((item) => item.id !== h.id));
       onRefresh?.();
@@ -332,13 +343,13 @@ export function HackathonManager({ refreshKey, onRefresh }: HackathonManagerProp
       {!loading && hackathons.length > 0 && (
         <div className="rounded-2xl border border-white/10 bg-white/[0.02] overflow-hidden">
           {/* Table header */}
-          <div className="grid grid-cols-[1fr_120px_140px_100px_80px_60px_100px] gap-4 px-5 py-3 border-b border-white/10 text-xs font-space-mono text-gray-500 uppercase tracking-wide">
+          <div className={`grid ${gridColumnsClass} gap-4 px-5 py-3 border-b border-white/10 text-xs font-space-mono text-gray-500 uppercase tracking-wide`}>
             <span>名称</span>
             <span>地点</span>
             <span>日期</span>
             <span>状态</span>
             <span>模式</span>
-            <span className="text-center">精选</span>
+            {showFeaturedToggle && <span className="text-center">首页置顶</span>}
             <span className="text-right">操作</span>
           </div>
 
@@ -348,7 +359,7 @@ export function HackathonManager({ refreshKey, onRefresh }: HackathonManagerProp
             return (
               <div
                 key={h.id}
-                className="grid grid-cols-[1fr_120px_140px_100px_80px_60px_100px] gap-4 px-5 py-3.5 border-b border-white/5 hover:bg-white/[0.03] transition-colors items-center"
+                className={`grid ${gridColumnsClass} gap-4 px-5 py-3.5 border-b border-white/5 hover:bg-white/[0.03] transition-colors items-center`}
               >
                 {/* Name */}
                 <div className="min-w-0">
@@ -417,23 +428,24 @@ export function HackathonManager({ refreshKey, onRefresh }: HackathonManagerProp
                   </span>
                 </div>
 
-                {/* Featured */}
-                <div className="flex justify-center">
-                  <button
-                    onClick={() => handleToggleFeatured(h)}
-                    className="p-1 rounded-md hover:bg-white/10 transition-colors"
-                    title={h.isFeatured ? '取消精选' : '设为精选'}
-                  >
-                    <Star
-                      size={16}
-                      className={
-                        h.isFeatured
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'text-gray-600 hover:text-gray-400'
-                      }
-                    />
-                  </button>
-                </div>
+                {/* Featured Toggle */}
+                {showFeaturedToggle && (
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => handleToggleFeatured(h)}
+                      className={`relative w-10 h-5 rounded-full transition-colors ${
+                        h.isFeatured ? 'bg-indigo-500' : 'bg-gray-700'
+                      }`}
+                      title={h.isFeatured ? '取消首页置顶' : '设为首页置顶'}
+                    >
+                      <span
+                        className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                          h.isFeatured ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                )}
 
                 {/* Actions */}
                 <div className="flex items-center justify-end gap-1">
