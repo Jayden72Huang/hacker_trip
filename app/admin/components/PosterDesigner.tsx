@@ -149,6 +149,11 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
     });
   }, [hackathon.tracks]);
 
+  const organizers = useMemo(() => {
+    const o = hackathon.organizers || [];
+    return o.slice(0, 4).map((org: { name: string }) => org.name);
+  }, [hackathon.organizers]);
+
   const headerY = 60;
   const titleY = 200;
   const dateY = titleSize <= 50 ? 270 : 290;
@@ -157,7 +162,9 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
   const cardW = (W - PAD * 2 - 20) / 2;
   const cardH = 90;
   const tracksY = cardsY + cardH * 2 + 20 + 30;
-  const qrY = 1040;
+  const trackSpacingCalc = tracks.length <= 3 ? 56 : tracks.length <= 4 ? 50 : 44;
+  const organizerY = tracks.length > 0 ? tracksY + 40 + tracks.length * trackSpacingCalc + 20 : tracksY;
+  const qrY = organizers.length > 0 ? organizerY + 60 : 1040;
 
   const handleDownloadSvg = () => {
     if (!svgRef.current) return;
@@ -310,6 +317,19 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
                 </g>
               );
             })()}
+
+            {/* Organizers */}
+            {organizers.length > 0 && (
+              <g>
+                <text x={PAD} y={organizerY} fill="rgba(255,255,255,0.7)" fontSize="22" fontWeight="600" fontFamily="Sora, sans-serif" letterSpacing="2">
+                  主办方
+                </text>
+                <line x1={PAD + 80} y1={organizerY - 6} x2={W - PAD} y2={organizerY - 6} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                <text x={PAD} y={organizerY + 36} fill="rgba(255,255,255,0.6)" fontSize="24" fontFamily="Sora, sans-serif">
+                  {organizers.join(' · ')}
+                </text>
+              </g>
+            )}
 
             {/* QR Code Section */}
             <rect x={PAD} y={qrY} width={W - PAD * 2} height={250} rx="24" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" />
