@@ -229,7 +229,7 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
               HACKERTRIP
             </text>
             <text x={PAD + 60} y={headerY + 42} fill="rgba(255,255,255,0.4)" fontSize="16" fontFamily="Sora, sans-serif">
-              AI-Native 黑客松发现与组局平台
+              连接创造者，加速从 0 到 1
             </text>
             <line x1={PAD} y1={headerY + 56} x2={W - PAD} y2={headerY + 56} stroke={theme.accent} strokeOpacity="0.25" strokeWidth="1.5" />
 
