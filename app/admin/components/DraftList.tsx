@@ -77,26 +77,33 @@ export function DraftList({ apiBase }: DraftListProps) {
   };
 
   const handlePublish = async (draft: DraftHackathon) => {
-    if (!confirm(`确定要发布「${draft.name}」吗？\n\n发布后将添加到正式数据中。`)) {
+    if (!confirm(`确定要发布「${draft.name}」吗？\n\n发布后将添加到正式黑客松列表中。`)) {
       return;
     }
 
     setPublishing(true);
 
     try {
-      // TODO: 实现发布到 hackathons.ts 的逻辑
-      // 这里需要修改 data/hackathons.ts 文件
-      alert('发布功能需要手动实现：\n\n1. 将草稿数据复制到 data/hackathons.ts\n2. 删除该草稿\n\n或者可以连接数据库来实现自动发布。');
-
-      // 暂时只是标记为已发布
-      await handleUpdate(draft.draftId, {
-        ...draft,
-        status: 'approved'
+      const res = await fetch(`${base}/drafts/publish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ draftId: draft.draftId }),
       });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        alert(`发布失败: ${result.error}`);
+        return;
+      }
+
+      alert(`✅ 发布成功！\n\n「${result.hackathon.name}」已添加到正式列表。`);
+      setDrafts(prev => prev.filter(d => d.draftId !== draft.draftId));
+      setSelectedDraft(null);
 
     } catch (error) {
       console.error('Publish error:', error);
-      alert('发布失败');
+      alert('发布失败，请稍后重试');
     } finally {
       setPublishing(false);
     }
@@ -171,13 +178,13 @@ export function DraftList({ apiBase }: DraftListProps) {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {draft.confidence && (
+                  {draft.confidence != null && (
                     <span className={`px-2 py-1 rounded-full font-space-mono text-xs ${
-                      draft.confidence > 0.7 ? 'bg-green-500/20 text-green-400' :
-                      draft.confidence > 0.4 ? 'bg-yellow-500/20 text-yellow-400' :
+                      draft.confidence > 70 ? 'bg-green-500/20 text-green-400' :
+                      draft.confidence > 40 ? 'bg-yellow-500/20 text-yellow-400' :
                       'bg-red-500/20 text-red-400'
                     }`}>
-                      {(draft.confidence * 100).toFixed(0)}%
+                      {draft.confidence}%
                     </span>
                   )}
                   <button

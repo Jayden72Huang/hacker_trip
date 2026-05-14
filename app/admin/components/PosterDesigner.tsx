@@ -77,7 +77,7 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
       hackathon.prizePool ? `奖金 ${hackathon.prizePool}` : '',
       hackathon.teams ? `队伍 ${hackathon.teams}` : ''
     ].filter(Boolean) as string[];
-    return items.slice(0, 3);
+    return items.slice(0, 3).map(t => t.length > 10 ? t.slice(0, 10) + '…' : t);
   }, [hackathon.format, hackathon.prizePool, hackathon.theme, hackathon.teams]);
 
   const handleDownloadSvg = () => {
@@ -218,10 +218,16 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
               </text>
 
               {tags.map((tag, index) => {
-                const x = 180 + index * 250;
+                const charWidth = Array.from(tag).reduce((sum, ch) => sum + (ch.charCodeAt(0) > 255 ? 28 : 16), 0);
+                const boxWidth = Math.max(charWidth + 48, 120);
+                const prevWidths = tags.slice(0, index).reduce((sum, t) => {
+                  const w = Array.from(t).reduce((s, ch) => s + (ch.charCodeAt(0) > 255 ? 28 : 16), 0);
+                  return sum + Math.max(w + 48, 120) + 20;
+                }, 0);
+                const x = 180 + prevWidths;
                 return (
                   <g key={tag + index}>
-                    <rect x={x} y="910" width="220" height="64" rx="32" fill="rgba(255,255,255,0.12)" />
+                    <rect x={x} y="910" width={boxWidth} height="64" rx="32" fill="rgba(255,255,255,0.12)" />
                     <text x={x + 24} y="950" fill="#FFFFFF" fontSize="26" fontFamily="Space Mono, sans-serif">
                       {tag}
                     </text>
@@ -242,7 +248,10 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
               官网
             </text>
             <text x="360" y="1150" fill="#FFFFFF" fontSize="30" fontFamily="Space Mono, sans-serif">
-              {hackathon.website ? hackathon.website.replace(/^https?:\/\//, '') : '待补充'}
+              {hackathon.website ? (() => {
+                const url = hackathon.website.replace(/^https?:\/\//, '');
+                return url.length > 28 ? url.slice(0, 28) + '…' : url;
+              })() : '待补充'}
             </text>
 
             <text x="360" y="1210" fill="rgba(255,255,255,0.6)" fontSize="22" fontFamily="Space Mono, sans-serif">
