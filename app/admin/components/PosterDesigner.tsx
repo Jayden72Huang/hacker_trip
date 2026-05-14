@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { DraftHackathon } from '@/scrapers/core/types';
+import type { InfoCard } from '@/data/hackathons';
 import QRCode from 'qrcode';
 
 type PosterTheme = {
@@ -23,24 +24,25 @@ const W = 1080;
 const H = 1350;
 const PAD = 80;
 
-function calcUnits(text: string) {
-  return Array.from(text).reduce((s, ch) => s + (ch.charCodeAt(0) > 255 ? 1 : 0.6), 0);
+function truncate(text: string, max: number): string {
+  if (!text) return '';
+  return text.length > max ? text.slice(0, max) + '…' : text;
 }
 
-function wrapText(text: string, maxUnits: number, maxLines: number): string[] {
+function wrapText(text: string, maxChars: number, maxLines: number): string[] {
   if (!text) return [];
   const lines: string[] = [];
   let current = '';
-  let units = 0;
+  let count = 0;
   for (const char of Array.from(text)) {
-    const w = char.charCodeAt(0) > 255 ? 1 : 0.6;
-    if (units + w > maxUnits && current) {
+    const w = char.charCodeAt(0) > 255 ? 2 : 1;
+    if (count + w > maxChars && current) {
       lines.push(current);
       current = char;
-      units = w;
+      count = w;
     } else {
       current += char;
-      units += w;
+      count += w;
     }
   }
   if (current) lines.push(current);
@@ -50,14 +52,6 @@ function wrapText(text: string, maxUnits: number, maxLines: number): string[] {
     lines[maxLines - 1] = last.slice(0, -1) + '…';
   }
   return lines;
-}
-
-function titleStyle(name: string) {
-  const u = calcUnits(name);
-  if (u <= 10) return { size: 80, max: 10, lh: 96 };
-  if (u <= 15) return { size: 66, max: 13, lh: 80 };
-  if (u <= 22) return { size: 54, max: 16, lh: 66 };
-  return { size: 44, max: 20, lh: 54 };
 }
 
 function makeSvgDataUrl(svgString: string) {
@@ -96,44 +90,53 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
       .catch(() => {});
   }, []);
 
-  const name = hackathon.name || '未命名黑客松';
-  const ts = useMemo(() => titleStyle(name), [name]);
-  const titleLines = useMemo(() => wrapText(name, ts.max, 2), [name, ts.max]);
+  // Title: prefer shortName, truncate to 16 chars max
+  const displayName = truncate(hackathon.shortName || hackathon.name || '未命名黑客松', 16);
+  const titleSize = displayName.length <= 8 ? 76 : displayName.length <= 12 ? 62 : 50;
+
+  // Summary: max 2 lines, ~20 chars per line
   const summaryLines = useMemo(
-    () => wrapText(hackathon.summary || '', 20, 3),
+    () => wrapText(truncate(hackathon.summary || '', 60), 36, 2),
     [hackathon.summary]
   );
 
-  const formatMap: Record<string, string> = { offline: '线下', online: '线上', hybrid: '混合' };
-  const infoItems = useMemo(() => {
-    const items: { label: string; value: string }[] = [];
-    if (hackathon.format) items.push({ label: '形式', value: formatMap[hackathon.format] || hackathon.format });
-    if (hackathon.prizePool) items.push({ label: '奖金', value: hackathon.prizePool.length > 14 ? hackathon.prizePool.slice(0, 14) + '…' : hackathon.prizePool });
-    if (hackathon.teams) items.push({ label: '规模', value: hackathon.teams.length > 14 ? hackathon.teams.slice(0, 14) + '…' : hackathon.teams });
-    if (hackathon.theme) items.push({ label: '主题', value: hackathon.theme.length > 14 ? hackathon.theme.slice(0, 14) + '…' : hackathon.theme });
-    return items.slice(0, 4);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hackathon.format, hackathon.prizePool, hackathon.teams, hackathon.theme]);
+  // 4 info cards from editor's infoCards, or fallback to auto-generated
+  const cards = useMemo(() => {
+    const editorCards = (hackathon as unknown as Record<string, unknown>).infoCards as InfoCard[] | undefined;
+    if (editorCards && editorCards.length >= 4) {
+      return editorCards.slice(0, 4).map((c) => ({
+        label: truncate(c.label, 6),
+        value: truncate(c.value, 12),
+      }));
+    }
+    return [
+      { label: '奖金池', value: truncate(hackathon.prizePool || '—', 12) },
+      { label: '规模', value: truncate(hackathon.teams || '—', 12) },
+      { label: '主题', value: truncate(hackathon.theme || '—', 12) },
+      { label: '地点', value: truncate(hackathon.venue || hackathon.city || '—', 12) },
+    ];
+  }, [hackathon]);
 
-  // Dynamic Y layout
-  const headerY = 70;
+  // Tracks: max 4 tracks, title only
+  const tracks = useMemo(() => {
+    const t = hackathon.tracks || [];
+    return t.slice(0, 4).map((tr) => truncate(tr.title, 18));
+  }, [hackathon.tracks]);
+
+  // ---- Fixed Y Layout ----
+  const headerY = 60;
   const titleY = 200;
-  const titleEndY = titleY + titleLines.length * ts.lh;
-  const dateY = titleEndY + 30;
-  const summaryY = dateY + 56;
-  const summaryEndY = summaryY + summaryLines.length * 40;
-
-  const infoRows = Math.ceil(infoItems.length / 2);
-  const infoH = infoRows * 70 + 30;
-  const infoY = summaryEndY + 40;
-
-  const qrY = Math.max(infoY + infoH + 40, 1000);
-  const qrBoxH = 260;
+  const dateY = titleSize <= 50 ? 270 : 290;
+  const summaryY = dateY + 54;
+  const cardsY = summaryY + summaryLines.length * 38 + 30;
+  const cardW = (W - PAD * 2 - 20) / 2; // 2 columns with 20px gap
+  const cardH = 90;
+  const tracksY = cardsY + cardH * 2 + 20 + 30;
+  const qrY = 1040;
 
   const handleDownloadSvg = () => {
     if (!svgRef.current) return;
-    const serializer = new XMLSerializer();
-    const svgString = serializer.serializeToString(svgRef.current);
+    const svgString = new XMLSerializer().serializeToString(svgRef.current);
     const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -145,8 +148,7 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
 
   const handleDownloadPng = () => {
     if (!svgRef.current) return;
-    const serializer = new XMLSerializer();
-    const svgString = serializer.serializeToString(svgRef.current);
+    const svgString = new XMLSerializer().serializeToString(svgRef.current);
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
@@ -172,9 +174,7 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h4 className="font-space-mono text-sm font-medium text-gray-400">
-            分享海报
-          </h4>
+          <h4 className="font-space-mono text-sm font-medium text-gray-400">分享海报</h4>
           <p className="font-space-mono text-xs text-gray-500 mt-1">
             自动生成带二维码的分享海报，扫码可进入 HackerTrip 平台
           </p>
@@ -189,16 +189,10 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
               <option key={t.id} value={t.id}>{t.name}</option>
             ))}
           </select>
-          <button
-            onClick={handleDownloadSvg}
-            className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors font-space-mono text-xs text-gray-300"
-          >
+          <button onClick={handleDownloadSvg} className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors font-space-mono text-xs text-gray-300">
             下载 SVG
           </button>
-          <button
-            onClick={handleDownloadPng}
-            className="px-4 py-2 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 transition-colors font-space-mono text-xs text-indigo-200"
-          >
+          <button onClick={handleDownloadPng} className="px-4 py-2 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 transition-colors font-space-mono text-xs text-indigo-200">
             下载 PNG
           </button>
         </div>
@@ -206,13 +200,7 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
 
       <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
         <div className="w-full overflow-hidden rounded-2xl border border-white/10">
-          <svg
-            ref={svgRef}
-            viewBox={`0 0 ${W} ${H}`}
-            width="100%"
-            height="100%"
-            preserveAspectRatio="xMidYMid meet"
-          >
+          <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
             <defs>
               <linearGradient id="poster-bg" x1="0" y1="0" x2="0.4" y2="1">
                 <stop offset="0%" stopColor={theme.background[0]} />
@@ -232,171 +220,88 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
             <rect width={W} height={H} fill="url(#poster-bg)" />
             <rect width={W} height={H} fill="url(#poster-glow1)" />
             <rect width={W} height={H} fill="url(#poster-glow2)" />
-
-            {/* Decorative circles */}
             <circle cx={W - 120} cy={160} r={140} fill={theme.accent} opacity="0.08" />
             <circle cx={140} cy={H - 200} r={180} fill={theme.highlight} opacity="0.08" />
 
             {/* Header: Logo + Brand */}
-            {logoDataUrl && (
-              <image href={logoDataUrl} x={PAD} y={headerY - 8} width="52" height="52" />
-            )}
-            <text
-              x={PAD + 64}
-              y={headerY + 30}
-              fill="rgba(255,255,255,0.85)"
-              fontSize="26"
-              fontWeight="600"
-              fontFamily="Sora, sans-serif"
-              letterSpacing="3"
-            >
+            {logoDataUrl && <image href={logoDataUrl} x={PAD} y={headerY - 6} width="48" height="48" />}
+            <text x={PAD + 60} y={headerY + 28} fill="rgba(255,255,255,0.85)" fontSize="24" fontWeight="600" fontFamily="Sora, sans-serif" letterSpacing="3">
               HACKERTRIP
             </text>
-            <line
-              x1={PAD}
-              y1={headerY + 60}
-              x2={W - PAD}
-              y2={headerY + 60}
-              stroke={theme.accent}
-              strokeOpacity="0.25"
-              strokeWidth="1.5"
-            />
+            <line x1={PAD} y1={headerY + 52} x2={W - PAD} y2={headerY + 52} stroke={theme.accent} strokeOpacity="0.25" strokeWidth="1.5" />
 
-            {/* Title */}
-            <text fill="#FFFFFF" fontSize={ts.size} fontWeight="700" fontFamily="Sora, sans-serif">
-              {titleLines.map((line, i) => (
-                <tspan key={i} x={PAD} y={titleY + i * ts.lh}>
-                  {line}
-                </tspan>
-              ))}
+            {/* Title — single line, truncated */}
+            <text x={PAD} y={titleY} fill="#FFFFFF" fontSize={titleSize} fontWeight="700" fontFamily="Sora, sans-serif">
+              {displayName}
             </text>
 
             {/* Date · City */}
-            <text
-              x={PAD}
-              y={dateY}
-              fill={theme.accent}
-              fontSize="34"
-              fontWeight="500"
-              fontFamily="Sora, sans-serif"
-            >
-              {hackathon.dateRange || '时间待定'} · {hackathon.city || '城市待定'}
+            <text x={PAD} y={dateY} fill={theme.accent} fontSize="32" fontWeight="500" fontFamily="Sora, sans-serif">
+              {truncate(hackathon.dateRange || '时间待定', 20)} · {truncate(hackathon.city || '城市待定', 6)}
             </text>
-
-            {/* Venue */}
-            {hackathon.venue && (
-              <text
-                x={PAD}
-                y={dateY + 36}
-                fill="rgba(255,255,255,0.5)"
-                fontSize="24"
-                fontFamily="Sora, sans-serif"
-              >
-                {hackathon.venue}
-              </text>
-            )}
 
             {/* Summary */}
             {summaryLines.length > 0 && (
-              <text fill="rgba(255,255,255,0.6)" fontSize="28" fontFamily="Sora, sans-serif">
+              <text fill="rgba(255,255,255,0.55)" fontSize="26" fontFamily="Sora, sans-serif">
                 {summaryLines.map((line, i) => (
-                  <tspan key={i} x={PAD} y={summaryY + i * 40}>
-                    {line}
-                  </tspan>
+                  <tspan key={i} x={PAD} y={summaryY + i * 38}>{line}</tspan>
                 ))}
               </text>
             )}
 
-            {/* Info Grid */}
-            {infoItems.length > 0 && (
+            {/* 4 Info Cards — 2×2 grid */}
+            {cards.map((card, i) => {
+              const col = i % 2;
+              const row = Math.floor(i / 2);
+              const x = PAD + col * (cardW + 20);
+              const y = cardsY + row * (cardH + 16);
+              return (
+                <g key={i}>
+                  <rect x={x} y={y} width={cardW} height={cardH} rx="16" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" />
+                  <text x={x + 24} y={y + 36} fill={theme.accent} fontSize="20" fontFamily="Sora, sans-serif" opacity="0.9">
+                    {card.label}
+                  </text>
+                  <text x={x + 24} y={y + 68} fill="#FFFFFF" fontSize="26" fontWeight="600" fontFamily="Sora, sans-serif">
+                    {card.value}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Tracks Section */}
+            {tracks.length > 0 && (
               <g>
-                <rect
-                  x={PAD}
-                  y={infoY}
-                  width={W - PAD * 2}
-                  height={infoH}
-                  rx="20"
-                  fill="rgba(255,255,255,0.05)"
-                  stroke="rgba(255,255,255,0.08)"
-                />
-                {infoItems.map((item, i) => {
-                  const col = i % 2;
-                  const row = Math.floor(i / 2);
-                  const x = PAD + 40 + col * 430;
-                  const y = infoY + 48 + row * 70;
-                  return (
-                    <g key={i}>
-                      <text x={x} y={y} fill={theme.accent} fontSize="20" fontFamily="Sora, sans-serif" opacity="0.8">
-                        {item.label}
-                      </text>
-                      <text x={x + 70} y={y} fill="#FFFFFF" fontSize="24" fontWeight="500" fontFamily="Sora, sans-serif">
-                        {item.value}
-                      </text>
-                    </g>
-                  );
-                })}
+                <text x={PAD} y={tracksY} fill="rgba(255,255,255,0.7)" fontSize="22" fontWeight="600" fontFamily="Sora, sans-serif" letterSpacing="2">
+                  赛道
+                </text>
+                <line x1={PAD + 60} y1={tracksY - 6} x2={W - PAD} y2={tracksY - 6} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                {tracks.map((title, i) => (
+                  <g key={i}>
+                    <circle cx={PAD + 16} cy={tracksY + 38 + i * 44} r="5" fill={theme.accent} opacity="0.7" />
+                    <text x={PAD + 34} y={tracksY + 44 + i * 44} fill="rgba(255,255,255,0.75)" fontSize="24" fontFamily="Sora, sans-serif">
+                      {title}
+                    </text>
+                  </g>
+                ))}
               </g>
             )}
 
             {/* QR Code Section */}
-            <rect
-              x={PAD}
-              y={qrY}
-              width={W - PAD * 2}
-              height={qrBoxH}
-              rx="24"
-              fill="rgba(255,255,255,0.06)"
-              stroke="rgba(255,255,255,0.1)"
-            />
-
-            {/* QR code with white bg for scannability */}
-            <rect x={PAD + 24} y={qrY + 18} width="224" height="224" rx="16" fill="#ffffff" />
-            {qrDataUrl && (
-              <image href={qrDataUrl} x={PAD + 28} y={qrY + 22} width="216" height="216" />
-            )}
-
-            {/* CTA text */}
-            <text
-              x={PAD + 280}
-              y={qrY + 80}
-              fill="#FFFFFF"
-              fontSize="34"
-              fontWeight="700"
-              fontFamily="Sora, sans-serif"
-            >
+            <rect x={PAD} y={qrY} width={W - PAD * 2} height={250} rx="24" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" />
+            <rect x={PAD + 20} y={qrY + 15} width="220" height="220" rx="14" fill="#ffffff" />
+            {qrDataUrl && <image href={qrDataUrl} x={PAD + 24} y={qrY + 19} width="212" height="212" />}
+            <text x={PAD + 270} y={qrY + 75} fill="#FFFFFF" fontSize="32" fontWeight="700" fontFamily="Sora, sans-serif">
               扫码了解详情
             </text>
-            <text
-              x={PAD + 280}
-              y={qrY + 124}
-              fill="#FFFFFF"
-              fontSize="34"
-              fontWeight="700"
-              fontFamily="Sora, sans-serif"
-            >
+            <text x={PAD + 270} y={qrY + 118} fill="#FFFFFF" fontSize="32" fontWeight="700" fontFamily="Sora, sans-serif">
               & 报名参赛
             </text>
-            <text
-              x={PAD + 280}
-              y={qrY + 178}
-              fill={theme.accent}
-              fontSize="26"
-              fontFamily="Sora, sans-serif"
-              letterSpacing="1"
-            >
+            <text x={PAD + 270} y={qrY + 172} fill={theme.accent} fontSize="24" fontFamily="Sora, sans-serif" letterSpacing="1">
               hackertrip.space
             </text>
 
             {/* Footer */}
-            <text
-              x={W / 2}
-              y={H - 28}
-              fill="rgba(255,255,255,0.3)"
-              fontSize="18"
-              fontFamily="Sora, sans-serif"
-              textAnchor="middle"
-              letterSpacing="3"
-            >
+            <text x={W / 2} y={H - 24} fill="rgba(255,255,255,0.3)" fontSize="18" fontFamily="Sora, sans-serif" textAnchor="middle" letterSpacing="3">
               POWERED BY HACKERTRIP
             </text>
           </svg>
