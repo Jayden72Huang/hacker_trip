@@ -250,8 +250,8 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
       )}
 
       {/* Poster Preview — scaled down proportionally */}
-      <div className="rounded-2xl bg-white/5 border border-white/10 p-3">
-        <div className="max-w-[280px] mx-auto rounded-xl border border-white/10">
+      <div className="rounded-2xl bg-white/5 border border-white/10 p-3 flex justify-center">
+        <div className="w-[260px] rounded-xl border border-white/10" style={{ aspectRatio: `${W}/${H}` }}>
           <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
             <defs>
               <linearGradient id="poster-bg" x1="0" y1="0" x2="0.4" y2="1">
