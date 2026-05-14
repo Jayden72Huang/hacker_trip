@@ -25,6 +25,7 @@ interface TemplateConfig {
   tagline: string;
   taglineColor: string;
   taglineSize: number;
+  titleMaxChars: number;
   summaryMaxChars: number;
   ctaLine1: string;
   ctaLine2: string;
@@ -38,6 +39,7 @@ const defaultTemplate: TemplateConfig = {
   tagline: '连接创造者，加速从 0 到 1',
   taglineColor: 'rgba(255,255,255,0.4)',
   taglineSize: 18,
+  titleMaxChars: 16,
   summaryMaxChars: 80,
   ctaLine1: '扫码了解详情',
   ctaLine2: '& 报名参赛',
@@ -140,7 +142,7 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
       .catch(() => {});
   }, [tpl.qrUrl]);
 
-  const displayName = truncate(hackathon.shortName || hackathon.name || '未命名黑客松', 16);
+  const displayName = truncate(hackathon.shortName || hackathon.name || '未命名黑客松', tpl.titleMaxChars);
   const titleSize = displayName.length <= 8 ? 76 : displayName.length <= 12 ? 62 : 50;
 
   const summaryLines = useMemo(
@@ -415,16 +417,29 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
                   />
                 </div>
               </div>
-              <div>
-                <label className="block font-space-mono text-xs text-gray-500 mb-1">简介字数上限</label>
-                <input
-                  type="number"
-                  min={20}
-                  max={200}
-                  value={tpl.summaryMaxChars}
-                  onChange={(e) => setTpl((prev) => ({ ...prev, summaryMaxChars: Number(e.target.value) || 80 }))}
-                  className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-xs"
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block font-space-mono text-xs text-gray-500 mb-1">标题字数</label>
+                  <input
+                    type="number"
+                    min={6}
+                    max={40}
+                    value={tpl.titleMaxChars}
+                    onChange={(e) => setTpl((prev) => ({ ...prev, titleMaxChars: Number(e.target.value) || 16 }))}
+                    className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block font-space-mono text-xs text-gray-500 mb-1">简介字数</label>
+                  <input
+                    type="number"
+                    min={20}
+                    max={200}
+                    value={tpl.summaryMaxChars}
+                    onChange={(e) => setTpl((prev) => ({ ...prev, summaryMaxChars: Number(e.target.value) || 80 }))}
+                    className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-xs"
+                  />
+                </div>
               </div>
               {tplField('CTA 第一行', 'ctaLine1')}
               {tplField('CTA 第二行', 'ctaLine2')}
