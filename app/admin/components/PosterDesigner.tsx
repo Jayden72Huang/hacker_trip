@@ -157,14 +157,14 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
   const headerY = 60;
   const titleY = 200;
   const dateY = titleSize <= 50 ? 270 : 290;
-  const summaryY = dateY + 54;
+  const organizerY = dateY + 46;
+  const summaryY = organizers.length > 0 ? organizerY + 40 : dateY + 54;
   const cardsY = summaryY + summaryLines.length * 38 + 30;
   const cardW = (W - PAD * 2 - 20) / 2;
   const cardH = 90;
   const tracksY = cardsY + cardH * 2 + 20 + 30;
   const trackSpacingCalc = tracks.length <= 3 ? 56 : tracks.length <= 4 ? 50 : 44;
-  const organizerY = tracks.length > 0 ? tracksY + 40 + tracks.length * trackSpacingCalc + 20 : tracksY;
-  const qrY = organizers.length > 0 ? organizerY + 60 : 1040;
+  const qrY = 1040;
 
   const handleDownloadSvg = () => {
     if (!svgRef.current) return;
@@ -268,6 +268,13 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
               {truncate(hackathon.dateRange || '时间待定', 20)} · {truncate(hackathon.city || '城市待定', 6)}
             </text>
 
+            {/* Organizers — between date and summary */}
+            {organizers.length > 0 && (
+              <text x={PAD} y={organizerY} fill="rgba(255,255,255,0.5)" fontSize="22" fontFamily="Sora, sans-serif">
+                主办：{organizers.join(' · ')}
+              </text>
+            )}
+
             {/* Summary */}
             {summaryLines.length > 0 && (
               <text fill="rgba(255,255,255,0.55)" fontSize="26" fontFamily="Sora, sans-serif">
@@ -317,19 +324,6 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
                 </g>
               );
             })()}
-
-            {/* Organizers */}
-            {organizers.length > 0 && (
-              <g>
-                <text x={PAD} y={organizerY} fill="rgba(255,255,255,0.7)" fontSize="22" fontWeight="600" fontFamily="Sora, sans-serif" letterSpacing="2">
-                  主办方
-                </text>
-                <line x1={PAD + 80} y1={organizerY - 6} x2={W - PAD} y2={organizerY - 6} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-                <text x={PAD} y={organizerY + 36} fill="rgba(255,255,255,0.6)" fontSize="24" fontFamily="Sora, sans-serif">
-                  {organizers.join(' · ')}
-                </text>
-              </g>
-            )}
 
             {/* QR Code Section */}
             <rect x={PAD} y={qrY} width={W - PAD * 2} height={250} rx="24" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" />

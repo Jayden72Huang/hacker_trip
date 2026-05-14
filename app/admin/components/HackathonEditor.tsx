@@ -218,13 +218,20 @@ export function HackathonEditor({ draft, onSave, onPublish, onDelete, publishing
 
             <div>
               <label className="block font-space-mono text-xs text-gray-500 mb-2">
-                主办方（显示在地址旁边）
+                主办方（多个用顿号分隔，如：BEYOND · 澳门政府）
               </label>
               <input
                 type="text"
-                value={(formData as any).hostOrganizer || ''}
-                onChange={(e) => handleChange('hostOrganizer', e.target.value)}
-                placeholder="例：北京市科技创新委员会"
+                value={
+                  Array.isArray(formData.organizers) && formData.organizers.length > 0
+                    ? formData.organizers.map((o: { name: string }) => o.name).join('、')
+                    : ''
+                }
+                onChange={(e) => {
+                  const names = e.target.value.split(/[、,，]/).map(s => s.trim()).filter(Boolean);
+                  handleChange('organizers', names.map(name => ({ name })));
+                }}
+                placeholder="例：BEYOND · 澳门政府"
                 className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-sm"
               />
             </div>
