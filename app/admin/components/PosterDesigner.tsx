@@ -23,6 +23,8 @@ const posterThemes: PosterTheme[] = [
 interface TemplateConfig {
   brandName: string;
   tagline: string;
+  taglineColor: string;
+  taglineSize: number;
   summaryMaxChars: number;
   ctaLine1: string;
   ctaLine2: string;
@@ -34,6 +36,8 @@ interface TemplateConfig {
 const defaultTemplate: TemplateConfig = {
   brandName: 'HackerTrip',
   tagline: '连接创造者，加速从 0 到 1',
+  taglineColor: 'rgba(255,255,255,0.4)',
+  taglineSize: 18,
   summaryMaxChars: 80,
   ctaLine1: '扫码了解详情',
   ctaLine2: '& 报名参赛',
@@ -117,7 +121,7 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
   const titleSize = displayName.length <= 8 ? 76 : displayName.length <= 12 ? 62 : 50;
 
   const summaryLines = useMemo(
-    () => wrapText(truncate(hackathon.summary || '', tpl.summaryMaxChars), 36, 3),
+    () => wrapText(truncate(hackathon.summary || '', tpl.summaryMaxChars), 52, 3),
     [hackathon.summary, tpl.summaryMaxChars]
   );
 
@@ -224,6 +228,11 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
                 <stop offset="0%" stopColor={theme.highlight} stopOpacity="0.12" />
                 <stop offset="100%" stopColor={theme.background[0]} stopOpacity="0" />
               </radialGradient>
+              <linearGradient id="brand-gradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#a5b4fc" />
+                <stop offset="50%" stopColor="#c4b5fd" />
+                <stop offset="100%" stopColor="#f9a8d4" />
+              </linearGradient>
             </defs>
 
             <rect width={W} height={H} fill="url(#poster-bg)" />
@@ -232,12 +241,12 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
             <circle cx={W - 120} cy={160} r={140} fill={theme.accent} opacity="0.08" />
             <circle cx={140} cy={H - 200} r={180} fill={theme.highlight} opacity="0.08" />
 
-            {/* Header: logo + brand + tagline on one line */}
+            {/* Header: logo + brand (gradient) + tagline on one line */}
             {logoDataUrl && <image href={logoDataUrl} x={PAD} y={headerY - 6} width="48" height="48" />}
-            <text x={PAD + 60} y={headerY + 24} fill="rgba(255,255,255,0.85)" fontSize="28" fontWeight="600" fontFamily="Sora, sans-serif" letterSpacing="2">
+            <text x={PAD + 60} y={headerY + 24} fill="url(#brand-gradient)" fontSize="28" fontWeight="700" fontFamily="Sora, sans-serif" letterSpacing="2">
               {tpl.brandName}
             </text>
-            <text x={PAD + 60 + tpl.brandName.length * 18 + 16} y={headerY + 24} fill="rgba(255,255,255,0.35)" fontSize="18" fontFamily="Sora, sans-serif">
+            <text x={PAD + 60 + tpl.brandName.length * 18 + 16} y={headerY + 24} fill={tpl.taglineColor} fontSize={tpl.taglineSize} fontFamily="Sora, sans-serif">
               {tpl.tagline}
             </text>
             <line x1={PAD} y1={headerY + 56} x2={W - PAD} y2={headerY + 56} stroke={theme.accent} strokeOpacity="0.25" strokeWidth="1.5" />
@@ -352,6 +361,28 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
             <div className="space-y-2">
               {tplField('品牌名', 'brandName')}
               {tplField('品牌标语', 'tagline')}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block font-space-mono text-xs text-gray-500 mb-1">标语颜色</label>
+                  <input
+                    type="color"
+                    value={tpl.taglineColor.startsWith('rgba') ? '#9ca3af' : tpl.taglineColor}
+                    onChange={(e) => setTpl((prev) => ({ ...prev, taglineColor: e.target.value }))}
+                    className="w-full h-8 rounded-lg bg-white/5 border border-white/10 cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <label className="block font-space-mono text-xs text-gray-500 mb-1">标语字号</label>
+                  <input
+                    type="number"
+                    min={12}
+                    max={32}
+                    value={tpl.taglineSize}
+                    onChange={(e) => setTpl((prev) => ({ ...prev, taglineSize: Number(e.target.value) || 18 }))}
+                    className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-xs"
+                  />
+                </div>
+              </div>
               <div>
                 <label className="block font-space-mono text-xs text-gray-500 mb-1">简介字数上限</label>
                 <input
