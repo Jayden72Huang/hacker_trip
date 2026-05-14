@@ -84,12 +84,35 @@ function makeSvgDataUrl(svgString: string) {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
 }
 
+const TPL_STORAGE_KEY = 'hackertrip-poster-template';
+
+function loadSavedTemplate(): TemplateConfig {
+  if (typeof window === 'undefined') return defaultTemplate;
+  try {
+    const saved = localStorage.getItem(TPL_STORAGE_KEY);
+    if (saved) return { ...defaultTemplate, ...JSON.parse(saved) };
+  } catch {}
+  return defaultTemplate;
+}
+
 export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
   const [themeId, setThemeId] = useState(posterThemes[0].id);
-  const [tpl, setTpl] = useState<TemplateConfig>(defaultTemplate);
+  const [tpl, setTpl] = useState<TemplateConfig>(loadSavedTemplate);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [logoDataUrl, setLogoDataUrl] = useState('');
+  const [tplSaved, setTplSaved] = useState(false);
+
+  const handleSaveTemplate = () => {
+    localStorage.setItem(TPL_STORAGE_KEY, JSON.stringify(tpl));
+    setTplSaved(true);
+    setTimeout(() => setTplSaved(false), 2000);
+  };
+
+  const handleResetTemplate = () => {
+    setTpl(defaultTemplate);
+    localStorage.removeItem(TPL_STORAGE_KEY);
+  };
 
   const theme = useMemo(
     () => posterThemes.find((t) => t.id === themeId) || posterThemes[0],
@@ -408,6 +431,20 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
               {tplField('二维码链接', 'qrUrl')}
               {tplField('显示网址', 'urlDisplay')}
               {tplField('底部文字', 'footer')}
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={handleSaveTemplate}
+                  className="flex-1 px-3 py-2 rounded-lg bg-green-500/20 hover:bg-green-500/30 transition-colors font-space-mono text-xs text-green-300 border border-green-500/30"
+                >
+                  {tplSaved ? '已保存 ✓' : '保存模板'}
+                </button>
+                <button
+                  onClick={handleResetTemplate}
+                  className="flex-1 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors font-space-mono text-xs text-gray-400 border border-white/10"
+                >
+                  恢复默认
+                </button>
+              </div>
             </div>
           </div>
 
