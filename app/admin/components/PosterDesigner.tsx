@@ -23,6 +23,7 @@ const posterThemes: PosterTheme[] = [
 interface TemplateConfig {
   brandName: string;
   tagline: string;
+  summaryMaxChars: number;
   ctaLine1: string;
   ctaLine2: string;
   qrUrl: string;
@@ -33,6 +34,7 @@ interface TemplateConfig {
 const defaultTemplate: TemplateConfig = {
   brandName: 'HACKERTRIP',
   tagline: '连接创造者，加速从 0 到 1',
+  summaryMaxChars: 80,
   ctaLine1: '扫码了解详情',
   ctaLine2: '& 报名参赛',
   qrUrl: 'https://hackertrip.space',
@@ -115,8 +117,8 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
   const titleSize = displayName.length <= 8 ? 76 : displayName.length <= 12 ? 62 : 50;
 
   const summaryLines = useMemo(
-    () => wrapText(truncate(hackathon.summary || '', 60), 36, 2),
-    [hackathon.summary]
+    () => wrapText(truncate(hackathon.summary || '', tpl.summaryMaxChars), 36, 3),
+    [hackathon.summary, tpl.summaryMaxChars]
   );
 
   const cards = useMemo(() => {
@@ -137,7 +139,10 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
 
   const tracks = useMemo(() => {
     const t = hackathon.tracks || [];
-    return t.slice(0, 5).map((tr) => truncate(tr.title, 20));
+    return t.slice(0, 5).map((tr) => {
+      const desc = tr.description ? ` — ${tr.description}` : '';
+      return truncate(`${tr.title}${desc}`, 36);
+    });
   }, [hackathon.tracks]);
 
   const headerY = 60;
@@ -347,6 +352,17 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
             <div className="space-y-2">
               {tplField('品牌名', 'brandName')}
               {tplField('品牌标语', 'tagline')}
+              <div>
+                <label className="block font-space-mono text-xs text-gray-500 mb-1">简介字数上限</label>
+                <input
+                  type="number"
+                  min={20}
+                  max={200}
+                  value={tpl.summaryMaxChars}
+                  onChange={(e) => setTpl((prev) => ({ ...prev, summaryMaxChars: Number(e.target.value) || 80 }))}
+                  className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-xs"
+                />
+              </div>
               {tplField('CTA 第一行', 'ctaLine1')}
               {tplField('CTA 第二行', 'ctaLine2')}
               {tplField('二维码链接', 'qrUrl')}
