@@ -157,8 +157,7 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
   const headerY = 60;
   const titleY = 200;
   const dateY = titleSize <= 50 ? 270 : 290;
-  const organizerY = dateY + 46;
-  const summaryY = organizers.length > 0 ? organizerY + 40 : dateY + 54;
+  const summaryY = dateY + 54;
   const cardsY = summaryY + summaryLines.length * 38 + 30;
   const cardW = (W - PAD * 2 - 20) / 2;
   const cardH = 90;
@@ -263,17 +262,13 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
               {displayName}
             </text>
 
-            {/* Date · City */}
+            {/* Date · City · Organizers */}
             <text x={PAD} y={dateY} fill={theme.accent} fontSize="32" fontWeight="500" fontFamily="Sora, sans-serif">
               {truncate(hackathon.dateRange || '时间待定', 20)} · {truncate(hackathon.city || '城市待定', 6)}
+              {organizers.length > 0 && (
+                <tspan fill="rgba(255,255,255,0.45)" fontSize="24"> | {organizers.join(' · ')}</tspan>
+              )}
             </text>
-
-            {/* Organizers — between date and summary */}
-            {organizers.length > 0 && (
-              <text x={PAD} y={organizerY} fill="rgba(255,255,255,0.5)" fontSize="22" fontFamily="Sora, sans-serif">
-                主办：{organizers.join(' · ')}
-              </text>
-            )}
 
             {/* Summary */}
             {summaryLines.length > 0 && (
