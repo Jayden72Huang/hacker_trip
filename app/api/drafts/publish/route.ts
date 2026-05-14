@@ -29,10 +29,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '草稿不存在' }, { status: 404 });
     }
 
-    if (draft.publishedHackathonId) {
-      return NextResponse.json({ error: '该草稿已发布' }, { status: 400 });
-    }
-
     if (!draft.name || !draft.startDate || !draft.endDate) {
       return NextResponse.json(
         { error: '缺少必要字段：名称、开始日期、结束日期' },
@@ -40,55 +36,92 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const baseSlug = generateSlug(draft.shortName || draft.name);
-    let slug = baseSlug;
-    let attempt = 0;
-    while (true) {
-      const existing = await db
-        .select({ id: hackathons.id })
-        .from(hackathons)
-        .where(eq(hackathons.slug, slug))
-        .limit(1);
-      if (existing.length === 0) break;
-      attempt++;
-      slug = `${baseSlug}-${attempt}`;
-    }
-
     const location = [draft.city, draft.venue].filter(Boolean).join(' · ');
+    const hostOrganizer = Array.isArray(draft.organizers) && draft.organizers.length > 0
+      ? (draft.organizers as { name: string }[])[0].name
+      : undefined;
 
-    const [hackathon] = await db
-      .insert(hackathons)
-      .values({
-        name: draft.name,
-        slug,
-        shortName: draft.shortName,
-        description: draft.summary,
-        summary: draft.summary,
-        website: draft.sourceUrl,
-        sourceUrl: draft.sourceUrl,
-        startDate: draft.startDate,
-        endDate: draft.endDate,
-        mode: (draft.format as 'offline' | 'online' | 'hybrid') || 'hybrid',
-        location,
-        city: draft.city,
-        country: draft.country,
-        venue: draft.venue,
-        theme: draft.theme,
-        prizePool: draft.prizePool,
-        teams: draft.teams,
-        tracks: draft.tracks,
-        agenda: draft.agenda,
-        organizers: draft.organizers,
-        sponsors: draft.sponsors,
-        hostOrganizer: Array.isArray(draft.organizers) && draft.organizers.length > 0
-          ? (draft.organizers as { name: string }[])[0].name
-          : undefined,
-        status: 'upcoming',
-        isVerified: false,
-        isFeatured: false,
-        createdBy: draft.createdBy,
-      })
-      .returning();
+    let hackathon;
+
+    if (draft.publishedHackathonId) {
+      // Re-publish: update existing hackathon
+      const [updated] = await db
+        .update(hackathons)
+        .set({
+          name: draft.name,
+          shortName: draft.shortName,
+          description: draft.summary,
+          summary: draft.summary,
+          website: draft.sourceUrl,
+          sourceUrl: draft.sourceUrl,
+          startDate: draft.startDate,
+          endDate: draft.endDate,
+          mode: (draft.format as 'offline' | 'online' | 'hybrid') || 'hybrid',
+          location,
+          city: draft.city,
+          country: draft.country,
+          venue: draft.venue,
+          theme: draft.theme,
+          prizePool: draft.prizePool,
+          teams: draft.teams,
+          tracks: draft.tracks,
+          agenda: draft.agenda,
+          organizers: draft.organizers,
+          sponsors: draft.sponsors,
+          hostOrganizer,
+        })
+        .where(eq(hackathons.id, draft.publishedHackathonId))
+        .returning();
+      hackathon = updated;
+    } else {
+      // First publish: create new hackathon
+      const baseSlug = generateSlug(draft.shortName || draft.name);
+      let slug = baseSlug;
+      let attempt = 0;
+      while (true) {
+        const existing = await db
+          .select({ id: hackathons.id })
+          .from(hackathons)
+          .where(eq(hackathons.slug, slug))
+          .limit(1);
+        if (existing.length === 0) break;
+        attempt++;
+        slug = `${baseSlug}-${attempt}`;
+      }
+
+      const [created] = await db
+        .insert(hackathons)
+        .values({
+          name: draft.name,
+          slug,
+          shortName: draft.shortName,
+          description: draft.summary,
+          summary: draft.summary,
+          website: draft.sourceUrl,
+          sourceUrl: draft.sourceUrl,
+          startDate: draft.startDate,
+          endDate: draft.endDate,
+          mode: (draft.format as 'offline' | 'online' | 'hybrid') || 'hybrid',
+          location,
+          city: draft.city,
+          country: draft.country,
+          venue: draft.venue,
+          theme: draft.theme,
+          prizePool: draft.prizePool,
+          teams: draft.teams,
+          tracks: draft.tracks,
+          agenda: draft.agenda,
+          organizers: draft.organizers,
+          sponsors: draft.sponsors,
+          hostOrganizer,
+          status: 'upcoming',
+          isVerified: false,
+          isFeatured: false,
+          createdBy: draft.createdBy,
+        })
+        .returning();
+      hackathon = created;
+    }
 
     await db
       .update(draftHackathons)
@@ -99,8 +132,10 @@ export async function POST(request: NextRequest) {
       })
       .where(eq(draftHackathons.id, draftId));
 
+    const action = draft.publishedHackathonId ? '更新' : '发布';
     return NextResponse.json({
       success: true,
+      action,
       hackathon: {
         id: hackathon.id,
         name: hackathon.name,

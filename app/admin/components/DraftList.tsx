@@ -79,9 +79,12 @@ export function DraftList({ apiBase }: DraftListProps) {
   };
 
   const handlePublish = async (draft: DraftHackathon) => {
-    if (!confirm(`确定要发布「${draft.name}」吗？\n\n发布后将添加到正式黑客松列表中。`)) {
-      return;
-    }
+    const draftAny = draft as unknown as Record<string, unknown>;
+    const isUpdate = draftAny.status === 'published';
+    const confirmMsg = isUpdate
+      ? '确定要更新到正式列表吗?'
+      : '确定要发布到正式列表吗?';
+    if (!confirm(confirmMsg)) return;
 
     setPublishing(true);
 
@@ -95,13 +98,13 @@ export function DraftList({ apiBase }: DraftListProps) {
       const result = await res.json();
 
       if (!res.ok) {
-        alert(`发布失败: ${result.error}`);
+        alert(`${isUpdate ? '更新' : '发布'}失败: ${result.error}`);
         return;
       }
 
-      alert(`✅ 发布成功！\n\n「${result.hackathon.name}」已添加到正式列表。`);
-      setDrafts(prev => prev.filter(d => d.draftId !== draft.draftId));
-      setSelectedDraft(null);
+      const action = result.action || '发布';
+      alert(action + '成功!');
+      loadDrafts();
 
     } catch (error) {
       console.error('Publish error:', error);
