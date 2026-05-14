@@ -32,7 +32,7 @@ interface TemplateConfig {
 }
 
 const defaultTemplate: TemplateConfig = {
-  brandName: 'HACKERTRIP',
+  brandName: 'HackerTrip',
   tagline: '连接创造者，加速从 0 到 1',
   summaryMaxChars: 80,
   ctaLine1: '扫码了解详情',
@@ -232,12 +232,12 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
             <circle cx={W - 120} cy={160} r={140} fill={theme.accent} opacity="0.08" />
             <circle cx={140} cy={H - 200} r={180} fill={theme.highlight} opacity="0.08" />
 
-            {/* Header */}
+            {/* Header: logo + brand + tagline on one line */}
             {logoDataUrl && <image href={logoDataUrl} x={PAD} y={headerY - 6} width="48" height="48" />}
-            <text x={PAD + 60} y={headerY + 18} fill="rgba(255,255,255,0.85)" fontSize="24" fontWeight="600" fontFamily="Sora, sans-serif" letterSpacing="3">
+            <text x={PAD + 60} y={headerY + 24} fill="rgba(255,255,255,0.85)" fontSize="28" fontWeight="600" fontFamily="Sora, sans-serif" letterSpacing="2">
               {tpl.brandName}
             </text>
-            <text x={PAD + 60} y={headerY + 42} fill="rgba(255,255,255,0.4)" fontSize="16" fontFamily="Sora, sans-serif">
+            <text x={PAD + 60 + tpl.brandName.length * 18 + 16} y={headerY + 24} fill="rgba(255,255,255,0.35)" fontSize="18" fontFamily="Sora, sans-serif">
               {tpl.tagline}
             </text>
             <line x1={PAD} y1={headerY + 56} x2={W - PAD} y2={headerY + 56} stroke={theme.accent} strokeOpacity="0.25" strokeWidth="1.5" />
