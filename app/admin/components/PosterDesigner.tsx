@@ -249,9 +249,9 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
         </div>
       )}
 
-      {/* Poster Preview — constrained height */}
+      {/* Poster Preview — scaled down proportionally */}
       <div className="rounded-2xl bg-white/5 border border-white/10 p-3">
-        <div className="max-h-[480px] overflow-hidden rounded-xl border border-white/10">
+        <div className="max-w-[280px] mx-auto rounded-xl border border-white/10">
           <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
             <defs>
               <linearGradient id="poster-bg" x1="0" y1="0" x2="0.4" y2="1">
