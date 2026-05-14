@@ -120,7 +120,7 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
   // Tracks: max 4 tracks, title only
   const tracks = useMemo(() => {
     const t = hackathon.tracks || [];
-    return t.slice(0, 4).map((tr) => truncate(tr.title, 18));
+    return t.slice(0, 5).map((tr) => truncate(tr.title, 20));
   }, [hackathon.tracks]);
 
   // ---- Fixed Y Layout ----
@@ -225,10 +225,13 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
 
             {/* Header: Logo + Brand */}
             {logoDataUrl && <image href={logoDataUrl} x={PAD} y={headerY - 6} width="48" height="48" />}
-            <text x={PAD + 60} y={headerY + 28} fill="rgba(255,255,255,0.85)" fontSize="24" fontWeight="600" fontFamily="Sora, sans-serif" letterSpacing="3">
+            <text x={PAD + 60} y={headerY + 18} fill="rgba(255,255,255,0.85)" fontSize="24" fontWeight="600" fontFamily="Sora, sans-serif" letterSpacing="3">
               HACKERTRIP
             </text>
-            <line x1={PAD} y1={headerY + 52} x2={W - PAD} y2={headerY + 52} stroke={theme.accent} strokeOpacity="0.25" strokeWidth="1.5" />
+            <text x={PAD + 60} y={headerY + 42} fill="rgba(255,255,255,0.4)" fontSize="16" fontFamily="Sora, sans-serif">
+              发现全球黑客松，开启你的创造之旅
+            </text>
+            <line x1={PAD} y1={headerY + 56} x2={W - PAD} y2={headerY + 56} stroke={theme.accent} strokeOpacity="0.25" strokeWidth="1.5" />
 
             {/* Title — single line, truncated */}
             <text x={PAD} y={titleY} fill="#FFFFFF" fontSize={titleSize} fontWeight="700" fontFamily="Sora, sans-serif">
@@ -269,22 +272,26 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
             })}
 
             {/* Tracks Section */}
-            {tracks.length > 0 && (
-              <g>
-                <text x={PAD} y={tracksY} fill="rgba(255,255,255,0.7)" fontSize="22" fontWeight="600" fontFamily="Sora, sans-serif" letterSpacing="2">
-                  赛道
-                </text>
-                <line x1={PAD + 60} y1={tracksY - 6} x2={W - PAD} y2={tracksY - 6} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-                {tracks.map((title, i) => (
-                  <g key={i}>
-                    <circle cx={PAD + 16} cy={tracksY + 38 + i * 44} r="5" fill={theme.accent} opacity="0.7" />
-                    <text x={PAD + 34} y={tracksY + 44 + i * 44} fill="rgba(255,255,255,0.75)" fontSize="24" fontFamily="Sora, sans-serif">
-                      {title}
-                    </text>
-                  </g>
-                ))}
-              </g>
-            )}
+            {tracks.length > 0 && (() => {
+              const trackSpacing = tracks.length <= 3 ? 56 : tracks.length <= 4 ? 50 : 44;
+              const trackFontSize = tracks.length <= 3 ? 30 : tracks.length <= 4 ? 28 : 24;
+              return (
+                <g>
+                  <text x={PAD} y={tracksY} fill="rgba(255,255,255,0.7)" fontSize="22" fontWeight="600" fontFamily="Sora, sans-serif" letterSpacing="2">
+                    赛道
+                  </text>
+                  <line x1={PAD + 60} y1={tracksY - 6} x2={W - PAD} y2={tracksY - 6} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                  {tracks.map((title, i) => (
+                    <g key={i}>
+                      <circle cx={PAD + 18} cy={tracksY + 40 + i * trackSpacing} r="6" fill={theme.accent} opacity="0.8" />
+                      <text x={PAD + 38} y={tracksY + 48 + i * trackSpacing} fill="rgba(255,255,255,0.8)" fontSize={trackFontSize} fontWeight="500" fontFamily="Sora, sans-serif">
+                        {title}
+                      </text>
+                    </g>
+                  ))}
+                </g>
+              );
+            })()}
 
             {/* QR Code Section */}
             <rect x={PAD} y={qrY} width={W - PAD * 2} height={250} rx="24" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" />
