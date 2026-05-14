@@ -203,8 +203,8 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
       <h4 className="font-space-mono text-sm font-medium text-gray-400">分享海报</h4>
 
       <div className="flex gap-4 items-start">
-        {/* Left: Poster Preview */}
-        <div className="shrink-0 w-[280px] rounded-xl border border-white/10" style={{ aspectRatio: `${W}/${H}` }}>
+        {/* Left: Poster Preview — 2/3 width */}
+        <div className="w-2/3 shrink-0 rounded-xl border border-white/10" style={{ aspectRatio: `${W}/${H}` }}>
           <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
             <defs>
               <linearGradient id="poster-bg" x1="0" y1="0" x2="0.4" y2="1">
