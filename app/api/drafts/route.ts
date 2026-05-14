@@ -158,7 +158,33 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ success: true, draft: updated });
+    const draft = {
+      draftId: updated.id,
+      name: updated.name,
+      shortName: updated.shortName,
+      city: updated.city,
+      country: updated.country,
+      venue: updated.venue,
+      dateRange: updated.dateRange,
+      startDate: updated.startDate,
+      endDate: updated.endDate,
+      mode: updated.format,
+      theme: updated.theme,
+      summary: updated.summary,
+      prizePool: updated.prizePool,
+      teams: updated.teams,
+      tracks: updated.tracks,
+      agenda: updated.agenda,
+      organizers: updated.organizers,
+      sponsors: updated.sponsors,
+      website: updated.sourceUrl,
+      source: updated.sourceUrl,
+      platform: updated.platform,
+      confidence: updated.confidence,
+      status: updated.status,
+      createdAt: updated.createdAt?.toISOString(),
+    };
+    return NextResponse.json({ success: true, draft });
   } catch (error) {
     console.error('Update draft error:', error);
     return NextResponse.json(
