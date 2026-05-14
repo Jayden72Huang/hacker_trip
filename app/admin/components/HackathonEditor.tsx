@@ -116,15 +116,39 @@ export function HackathonEditor({ draft, onSave, onPublish, onDelete, publishing
 
             <div>
               <label className="block font-space-mono text-xs text-gray-500 mb-2">
-                时间范围 *
+                时间范围（显示文本）
               </label>
               <input
                 type="text"
                 value={formData.dateRange || ''}
                 onChange={(e) => handleChange('dateRange', e.target.value)}
-                placeholder="例: Mar 15-16"
+                placeholder="例: 2026年4月23日-26日"
                 className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-sm"
               />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-space-mono text-xs text-gray-500 mb-2">
+                  开始日期 *
+                </label>
+                <input
+                  type="date"
+                  value={(formData as any).startDate ? new Date((formData as any).startDate).toISOString().split('T')[0] : ''}
+                  onChange={(e) => handleChange('startDate', e.target.value || null)}
+                  className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-sm"
+                />
+              </div>
+              <div>
+                <label className="block font-space-mono text-xs text-gray-500 mb-2">
+                  结束日期 *
+                </label>
+                <input
+                  type="date"
+                  value={(formData as any).endDate ? new Date((formData as any).endDate).toISOString().split('T')[0] : ''}
+                  onChange={(e) => handleChange('endDate', e.target.value || null)}
+                  className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-sm"
+                />
+              </div>
             </div>
 
             <div>
