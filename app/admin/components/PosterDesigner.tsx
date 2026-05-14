@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { DraftHackathon } from '@/scrapers/core/types';
 import type { InfoCard } from '@/data/hackathons';
 import QRCode from 'qrcode';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 type PosterTheme = {
   id: string;
@@ -19,6 +20,26 @@ const posterThemes: PosterTheme[] = [
   { id: 'forest', name: '森林绿', background: ['#051B12', '#064E3B'], accent: '#34D399', highlight: '#6EE7B7' },
   { id: 'neon', name: '霓虹紫', background: ['#16062E', '#4C1D95'], accent: '#F472B6', highlight: '#C4B5FD' },
 ];
+
+interface TemplateConfig {
+  brandName: string;
+  tagline: string;
+  ctaLine1: string;
+  ctaLine2: string;
+  qrUrl: string;
+  urlDisplay: string;
+  footer: string;
+}
+
+const defaultTemplate: TemplateConfig = {
+  brandName: 'HACKERTRIP',
+  tagline: '连接创造者，加速从 0 到 1',
+  ctaLine1: '扫码了解详情',
+  ctaLine2: '& 报名参赛',
+  qrUrl: 'https://hackertrip.space',
+  urlDisplay: 'hackertrip.space',
+  footer: 'POWERED BY HACKERTRIP',
+};
 
 const W = 1080;
 const H = 1350;
@@ -60,6 +81,8 @@ function makeSvgDataUrl(svgString: string) {
 
 export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
   const [themeId, setThemeId] = useState(posterThemes[0].id);
+  const [tpl, setTpl] = useState<TemplateConfig>(defaultTemplate);
+  const [showTplEditor, setShowTplEditor] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [logoDataUrl, setLogoDataUrl] = useState('');
@@ -81,26 +104,23 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
   }, []);
 
   useEffect(() => {
-    QRCode.toDataURL('https://hackertrip.space', {
+    QRCode.toDataURL(tpl.qrUrl || 'https://hackertrip.space', {
       width: 280,
       margin: 2,
       color: { dark: '#000000', light: '#ffffff' },
     })
       .then(setQrDataUrl)
       .catch(() => {});
-  }, []);
+  }, [tpl.qrUrl]);
 
-  // Title: prefer shortName, truncate to 16 chars max
   const displayName = truncate(hackathon.shortName || hackathon.name || '未命名黑客松', 16);
   const titleSize = displayName.length <= 8 ? 76 : displayName.length <= 12 ? 62 : 50;
 
-  // Summary: max 2 lines, ~20 chars per line
   const summaryLines = useMemo(
     () => wrapText(truncate(hackathon.summary || '', 60), 36, 2),
     [hackathon.summary]
   );
 
-  // 4 info cards from editor's infoCards, or fallback to auto-generated
   const cards = useMemo(() => {
     const editorCards = (hackathon as unknown as Record<string, unknown>).infoCards as InfoCard[] | undefined;
     if (editorCards && editorCards.length >= 4) {
@@ -117,19 +137,17 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
     ];
   }, [hackathon]);
 
-  // Tracks: max 4 tracks, title only
   const tracks = useMemo(() => {
     const t = hackathon.tracks || [];
     return t.slice(0, 5).map((tr) => truncate(tr.title, 20));
   }, [hackathon.tracks]);
 
-  // ---- Fixed Y Layout ----
   const headerY = 60;
   const titleY = 200;
   const dateY = titleSize <= 50 ? 270 : 290;
   const summaryY = dateY + 54;
   const cardsY = summaryY + summaryLines.length * 38 + 30;
-  const cardW = (W - PAD * 2 - 20) / 2; // 2 columns with 20px gap
+  const cardW = (W - PAD * 2 - 20) / 2;
   const cardH = 90;
   const tracksY = cardsY + cardH * 2 + 20 + 30;
   const qrY = 1040;
@@ -170,12 +188,24 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
     img.src = makeSvgDataUrl(svgString);
   };
 
+  const tplField = (label: string, key: keyof TemplateConfig) => (
+    <div>
+      <label className="block font-space-mono text-xs text-gray-500 mb-1">{label}</label>
+      <input
+        type="text"
+        value={tpl[key]}
+        onChange={(e) => setTpl((prev) => ({ ...prev, [key]: e.target.value }))}
+        className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-xs"
+      />
+    </div>
+  );
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h4 className="font-space-mono text-sm font-medium text-gray-400">分享海报</h4>
-          <p className="font-space-mono text-xs text-gray-500 mt-1">
+          <p className="font-space-mono text-xs text-gray-500 mt-0.5">
             自动生成带二维码的分享海报，扫码可进入 HackerTrip 平台
           </p>
         </div>
@@ -183,23 +213,45 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
           <select
             value={themeId}
             onChange={(e) => setThemeId(e.target.value)}
-            className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-xs"
+            className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-xs"
           >
             {posterThemes.map((t) => (
               <option key={t.id} value={t.id}>{t.name}</option>
             ))}
           </select>
-          <button onClick={handleDownloadSvg} className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors font-space-mono text-xs text-gray-300">
-            下载 SVG
+          <button
+            onClick={() => setShowTplEditor(!showTplEditor)}
+            className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors font-space-mono text-xs text-gray-300 flex items-center gap-1"
+          >
+            模板 {showTplEditor ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           </button>
-          <button onClick={handleDownloadPng} className="px-4 py-2 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 transition-colors font-space-mono text-xs text-indigo-200">
-            下载 PNG
+          <button onClick={handleDownloadSvg} className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors font-space-mono text-xs text-gray-300">
+            SVG
+          </button>
+          <button onClick={handleDownloadPng} className="px-3 py-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 transition-colors font-space-mono text-xs text-indigo-200">
+            PNG
           </button>
         </div>
       </div>
 
-      <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
-        <div className="w-full overflow-hidden rounded-2xl border border-white/10">
+      {/* Template Editor */}
+      {showTplEditor && (
+        <div className="p-4 rounded-xl bg-white/5 border border-white/10 grid grid-cols-2 gap-3">
+          {tplField('品牌名', 'brandName')}
+          {tplField('品牌标语', 'tagline')}
+          {tplField('CTA 第一行', 'ctaLine1')}
+          {tplField('CTA 第二行', 'ctaLine2')}
+          {tplField('二维码链接', 'qrUrl')}
+          {tplField('显示网址', 'urlDisplay')}
+          <div className="col-span-2">
+            {tplField('底部文字', 'footer')}
+          </div>
+        </div>
+      )}
+
+      {/* Poster Preview — constrained height */}
+      <div className="rounded-2xl bg-white/5 border border-white/10 p-3">
+        <div className="max-h-[480px] overflow-hidden rounded-xl border border-white/10">
           <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
             <defs>
               <linearGradient id="poster-bg" x1="0" y1="0" x2="0.4" y2="1">
@@ -216,24 +268,23 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
               </radialGradient>
             </defs>
 
-            {/* Background */}
             <rect width={W} height={H} fill="url(#poster-bg)" />
             <rect width={W} height={H} fill="url(#poster-glow1)" />
             <rect width={W} height={H} fill="url(#poster-glow2)" />
             <circle cx={W - 120} cy={160} r={140} fill={theme.accent} opacity="0.08" />
             <circle cx={140} cy={H - 200} r={180} fill={theme.highlight} opacity="0.08" />
 
-            {/* Header: Logo + Brand */}
+            {/* Header */}
             {logoDataUrl && <image href={logoDataUrl} x={PAD} y={headerY - 6} width="48" height="48" />}
             <text x={PAD + 60} y={headerY + 18} fill="rgba(255,255,255,0.85)" fontSize="24" fontWeight="600" fontFamily="Sora, sans-serif" letterSpacing="3">
-              HACKERTRIP
+              {tpl.brandName}
             </text>
             <text x={PAD + 60} y={headerY + 42} fill="rgba(255,255,255,0.4)" fontSize="16" fontFamily="Sora, sans-serif">
-              连接创造者，加速从 0 到 1
+              {tpl.tagline}
             </text>
             <line x1={PAD} y1={headerY + 56} x2={W - PAD} y2={headerY + 56} stroke={theme.accent} strokeOpacity="0.25" strokeWidth="1.5" />
 
-            {/* Title — single line, truncated */}
+            {/* Title */}
             <text x={PAD} y={titleY} fill="#FFFFFF" fontSize={titleSize} fontWeight="700" fontFamily="Sora, sans-serif">
               {displayName}
             </text>
@@ -252,7 +303,7 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
               </text>
             )}
 
-            {/* 4 Info Cards — 2×2 grid */}
+            {/* 4 Info Cards */}
             {cards.map((card, i) => {
               const col = i % 2;
               const row = Math.floor(i / 2);
@@ -271,7 +322,7 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
               );
             })}
 
-            {/* Tracks Section */}
+            {/* Tracks */}
             {tracks.length > 0 && (() => {
               const trackSpacing = tracks.length <= 3 ? 56 : tracks.length <= 4 ? 50 : 44;
               const trackFontSize = tracks.length <= 3 ? 30 : tracks.length <= 4 ? 28 : 24;
@@ -298,18 +349,18 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
             <rect x={PAD + 20} y={qrY + 15} width="220" height="220" rx="14" fill="#ffffff" />
             {qrDataUrl && <image href={qrDataUrl} x={PAD + 24} y={qrY + 19} width="212" height="212" />}
             <text x={PAD + 270} y={qrY + 75} fill="#FFFFFF" fontSize="32" fontWeight="700" fontFamily="Sora, sans-serif">
-              扫码了解详情
+              {tpl.ctaLine1}
             </text>
             <text x={PAD + 270} y={qrY + 118} fill="#FFFFFF" fontSize="32" fontWeight="700" fontFamily="Sora, sans-serif">
-              & 报名参赛
+              {tpl.ctaLine2}
             </text>
             <text x={PAD + 270} y={qrY + 172} fill={theme.accent} fontSize="24" fontFamily="Sora, sans-serif" letterSpacing="1">
-              hackertrip.space
+              {tpl.urlDisplay}
             </text>
 
             {/* Footer */}
             <text x={W / 2} y={H - 24} fill="rgba(255,255,255,0.3)" fontSize="18" fontFamily="Sora, sans-serif" textAnchor="middle" letterSpacing="3">
-              POWERED BY HACKERTRIP
+              {tpl.footer}
             </text>
           </svg>
         </div>
