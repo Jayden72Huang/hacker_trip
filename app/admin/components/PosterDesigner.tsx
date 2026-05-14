@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { DraftHackathon } from '@/scrapers/core/types';
 import type { InfoCard } from '@/data/hackathons';
 import QRCode from 'qrcode';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 
 type PosterTheme = {
   id: string;
@@ -82,7 +81,6 @@ function makeSvgDataUrl(svgString: string) {
 export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
   const [themeId, setThemeId] = useState(posterThemes[0].id);
   const [tpl, setTpl] = useState<TemplateConfig>(defaultTemplate);
-  const [showTplEditor, setShowTplEditor] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [logoDataUrl, setLogoDataUrl] = useState('');
@@ -202,56 +200,11 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h4 className="font-space-mono text-sm font-medium text-gray-400">分享海报</h4>
-          <p className="font-space-mono text-xs text-gray-500 mt-0.5">
-            自动生成带二维码的分享海报，扫码可进入 HackerTrip 平台
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <select
-            value={themeId}
-            onChange={(e) => setThemeId(e.target.value)}
-            className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-indigo-500/50 font-space-mono text-xs"
-          >
-            {posterThemes.map((t) => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
-          <button
-            onClick={() => setShowTplEditor(!showTplEditor)}
-            className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors font-space-mono text-xs text-gray-300 flex items-center gap-1"
-          >
-            模板 {showTplEditor ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-          </button>
-          <button onClick={handleDownloadSvg} className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors font-space-mono text-xs text-gray-300">
-            SVG
-          </button>
-          <button onClick={handleDownloadPng} className="px-3 py-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 transition-colors font-space-mono text-xs text-indigo-200">
-            PNG
-          </button>
-        </div>
-      </div>
+      <h4 className="font-space-mono text-sm font-medium text-gray-400">分享海报</h4>
 
-      {/* Template Editor */}
-      {showTplEditor && (
-        <div className="p-4 rounded-xl bg-white/5 border border-white/10 grid grid-cols-2 gap-3">
-          {tplField('品牌名', 'brandName')}
-          {tplField('品牌标语', 'tagline')}
-          {tplField('CTA 第一行', 'ctaLine1')}
-          {tplField('CTA 第二行', 'ctaLine2')}
-          {tplField('二维码链接', 'qrUrl')}
-          {tplField('显示网址', 'urlDisplay')}
-          <div className="col-span-2">
-            {tplField('底部文字', 'footer')}
-          </div>
-        </div>
-      )}
-
-      {/* Poster Preview — scaled down proportionally */}
-      <div className="rounded-2xl bg-white/5 border border-white/10 p-3 flex justify-center">
-        <div className="w-[260px] rounded-xl border border-white/10" style={{ aspectRatio: `${W}/${H}` }}>
+      <div className="flex gap-4 items-start">
+        {/* Left: Poster Preview */}
+        <div className="shrink-0 w-[280px] rounded-xl border border-white/10" style={{ aspectRatio: `${W}/${H}` }}>
           <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
             <defs>
               <linearGradient id="poster-bg" x1="0" y1="0" x2="0.4" y2="1">
@@ -363,6 +316,57 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
               {tpl.footer}
             </text>
           </svg>
+        </div>
+
+        {/* Right: Controls Panel */}
+        <div className="flex-1 min-w-0 space-y-4">
+          {/* Theme Selector */}
+          <div>
+            <label className="block font-space-mono text-xs text-gray-500 mb-2">配色风格</label>
+            <div className="grid grid-cols-2 gap-2">
+              {posterThemes.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setThemeId(t.id)}
+                  className={`px-3 py-2 rounded-lg border font-space-mono text-xs transition-colors ${
+                    themeId === t.id
+                      ? 'border-indigo-500/50 bg-indigo-500/10 text-white'
+                      : 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10'
+                  }`}
+                >
+                  <span className="inline-block w-2.5 h-2.5 rounded-full mr-1.5" style={{ background: t.accent }} />
+                  {t.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Template Fields */}
+          <div>
+            <label className="block font-space-mono text-xs text-gray-500 mb-2">模板内容</label>
+            <div className="space-y-2">
+              {tplField('品牌名', 'brandName')}
+              {tplField('品牌标语', 'tagline')}
+              {tplField('CTA 第一行', 'ctaLine1')}
+              {tplField('CTA 第二行', 'ctaLine2')}
+              {tplField('二维码链接', 'qrUrl')}
+              {tplField('显示网址', 'urlDisplay')}
+              {tplField('底部文字', 'footer')}
+            </div>
+          </div>
+
+          {/* Export Buttons */}
+          <div>
+            <label className="block font-space-mono text-xs text-gray-500 mb-2">导出</label>
+            <div className="flex gap-2">
+              <button onClick={handleDownloadSvg} className="flex-1 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors font-space-mono text-xs text-gray-300 border border-white/10">
+                SVG
+              </button>
+              <button onClick={handleDownloadPng} className="flex-1 px-3 py-2 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 transition-colors font-space-mono text-xs text-indigo-200 border border-indigo-500/30">
+                PNG
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
