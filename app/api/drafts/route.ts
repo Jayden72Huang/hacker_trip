@@ -133,17 +133,23 @@ export async function PUT(request: NextRequest) {
     if (data.name !== undefined) updateValues.name = data.name;
     if (data.shortName !== undefined) updateValues.shortName = data.shortName;
     if (data.city !== undefined) updateValues.city = data.city;
+    if (data.country !== undefined) updateValues.country = data.country;
     if (data.venue !== undefined) updateValues.venue = data.venue;
     if (data.dateRange !== undefined) updateValues.dateRange = data.dateRange;
-    if (data.startDate !== undefined) updateValues.startDate = new Date(data.startDate);
-    if (data.endDate !== undefined) updateValues.endDate = new Date(data.endDate);
+    if (data.startDate !== undefined) updateValues.startDate = data.startDate ? new Date(data.startDate) : null;
+    if (data.endDate !== undefined) updateValues.endDate = data.endDate ? new Date(data.endDate) : null;
     if (data.mode !== undefined) updateValues.format = data.mode;
     if (data.theme !== undefined) updateValues.theme = data.theme;
     if (data.summary !== undefined) updateValues.summary = data.summary;
     if (data.prizePool !== undefined) updateValues.prizePool = data.prizePool;
+    if (data.teams !== undefined) updateValues.teams = data.teams;
     if (data.tracks !== undefined) updateValues.tracks = data.tracks;
+    if (data.agenda !== undefined) updateValues.agenda = data.agenda;
     if (data.organizers !== undefined) updateValues.organizers = data.organizers;
+    if (data.sponsors !== undefined) updateValues.sponsors = data.sponsors;
+    if (data.confidence !== undefined) updateValues.confidence = data.confidence;
     if (data.website !== undefined) updateValues.sourceUrl = data.website;
+    if (data.source !== undefined && !data.website) updateValues.sourceUrl = data.source;
 
     const [updated] = await db
       .update(draftHackathons)

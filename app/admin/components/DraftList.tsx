@@ -69,6 +69,8 @@ export function DraftList({ apiBase }: DraftListProps) {
         ));
         setSelectedDraft(result.draft);
         alert('更新成功！');
+      } else {
+        alert(`更新失败: ${result.error || '未知错误'}`);
       }
     } catch (error) {
       console.error('Update draft error:', error);
