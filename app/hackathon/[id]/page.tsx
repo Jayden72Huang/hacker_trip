@@ -21,9 +21,9 @@ import { toHomepageHackathon, type HomepageHackathon } from '@/lib/types/hackath
 import { RegistrationForm } from './RegistrationForm';
 
 type Params = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 function withReferral(url: string, campaign: string) {
@@ -74,10 +74,11 @@ const badgeStyles: Record<string, string> = {
 };
 
 export default async function HackathonDetailPage({ params }: Params) {
+  const { id } = await params;
   const [row] = await db
     .select()
     .from(hackathons)
-    .where(eq(hackathons.id, params.id))
+    .where(eq(hackathons.id, id))
     .limit(1);
 
   if (!row) {
