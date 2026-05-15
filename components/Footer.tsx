@@ -67,28 +67,28 @@ export function Footer() {
                 <span className="font-sora text-xl font-bold bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent">
                   {userCount}+
                 </span>
-                <span className="font-space-mono text-[11px] text-gray-400">开发者</span>
+                <span className="font-space-mono text-[11px] text-gray-400 whitespace-nowrap">开发者</span>
               </div>
               <div className="w-px h-10 bg-gradient-to-b from-transparent via-white/20 to-transparent" />
               <div className="flex flex-col items-center gap-1">
                 <span className="font-sora text-xl font-bold bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent">
                   {projectCount}
                 </span>
-                <span className="font-space-mono text-[11px] text-gray-400">作品</span>
+                <span className="font-space-mono text-[11px] text-gray-400 whitespace-nowrap">作品</span>
               </div>
               <div className="w-px h-10 bg-gradient-to-b from-transparent via-white/20 to-transparent" />
               <div className="flex flex-col items-center gap-1">
                 <span className="font-sora text-xl font-bold bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent">
                   6
                 </span>
-                <span className="font-space-mono text-[11px] text-gray-400">活动</span>
+                <span className="font-space-mono text-[11px] text-gray-400 whitespace-nowrap">活动</span>
               </div>
               <div className="w-px h-10 bg-gradient-to-b from-transparent via-white/20 to-transparent" />
               <div className="flex flex-col items-center gap-1">
                 <span className="font-sora text-xl font-bold bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent">
                   $230K+
                 </span>
-                <span className="font-space-mono text-[11px] text-gray-400">奖金池</span>
+                <span className="font-space-mono text-[11px] text-gray-400 whitespace-nowrap">奖金池</span>
               </div>
             </div>
 

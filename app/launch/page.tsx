@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { ToolPageHero } from '@/components/ToolPageHero';
 
 interface GeneratedContent {
   productHunt: {
@@ -157,20 +158,18 @@ export default function LaunchPage() {
   const hasResults = content || posterData;
 
   return (
-    <div className="min-h-screen bg-[#05060a] text-white">
+    <div className="relative min-h-screen bg-[#05060a] text-white">
+      <div className="fixed inset-0 -z-20 grid-bg opacity-40" aria-hidden />
       <Navbar />
 
-      <main className="max-w-4xl mx-auto px-4 pt-32 pb-20">
-        {/* Hero */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#7c5dff] via-[#c759ff] to-[#4de1ff] bg-clip-text text-transparent">
-            赛后加速器
-          </h1>
-          <p className="text-gray-400 text-lg max-w-xl mx-auto">
-            AI 一键生成推广素材，让你的项目被全世界看见
-          </p>
-        </div>
+      <ToolPageHero
+        eyebrow="AI Launch Toolkit"
+        title="赛后加速器"
+        description="AI 一键生成推广素材，让你的项目被全世界看见"
+        backgroundImage="/images/tool-launch-bg.png"
+      />
 
+      <main className="relative z-10 max-w-4xl mx-auto px-4 pb-20 -mt-10">
         {/* Input Form */}
         <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6 md:p-8 mb-10">
           <div className="space-y-5">

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { ToolPageHero } from '@/components/ToolPageHero';
 import { Sparkles, ExternalLink, Star, AlertTriangle, Clock, Loader2, ChevronDown } from 'lucide-react';
 
 const TRACKS = ['AI', 'Web3', 'DeFi', 'SaaS', 'GameFi', 'Social', 'Other'] as const;
@@ -109,27 +110,19 @@ export default function ArsenalPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#05060a] text-white">
+    <div className="relative min-h-screen bg-[#05060a] text-white">
+      <div className="fixed inset-0 -z-20 grid-bg opacity-40" aria-hidden />
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-12 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.06] border border-white/10 text-sm text-white/60 mb-6">
-            <Sparkles className="w-4 h-4 text-[#7c5dff]" />
-            AI-Powered Tech Stack
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#7c5dff] via-[#c759ff] to-[#4de1ff] bg-clip-text text-transparent">
-            AI 武器库
-          </h1>
-          <p className="text-lg text-white/50 max-w-2xl mx-auto">
-            描述你的项目想法，AI 帮你配齐最强技术栈
-          </p>
-        </div>
-      </section>
+      <ToolPageHero
+        eyebrow="AI-Powered Tech Stack"
+        title="AI 武器库"
+        description="描述你的项目想法，AI 帮你配齐最强技术栈"
+        backgroundImage="/images/tool-arsenal-bg.png"
+      />
 
       {/* Input Section */}
-      <section className="px-4 pb-16">
+      <section className="relative z-10 -mt-10 px-4 pb-16">
         <div className="max-w-3xl mx-auto">
           <div className="rounded-2xl bg-white/[0.02] border border-white/10 p-6 md:p-8">
             <label className="block text-sm text-white/40 mb-2">项目描述</label>

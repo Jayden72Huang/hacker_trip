@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowUpRight, Bot, LoaderCircle, MessageCircle, Send, Sparkles, X, Zap } from 'lucide-react';
+import { ArrowUpRight, Bot, LoaderCircle, MessageCircle, Send, Sparkles, X } from 'lucide-react';
 import { starterQuestions } from '@/data/platform-assistant';
 
 type StreamPhase = 'connecting' | 'thinking' | 'streaming' | 'done' | 'error';
@@ -176,8 +176,6 @@ export function HakiAssistantWidget() {
 
           if (trimmed.startsWith('event: ')) {
             const eventType = trimmed.slice(7);
-            // read next data line
-            const dataIdx = lines.indexOf(line) + 1;
             // we handle event+data in the data line below
             void eventType;
             continue;
@@ -223,7 +221,7 @@ export function HakiAssistantWidget() {
       }
 
       setStreamPhase('done');
-    } catch (error) {
+    } catch {
       if (abort.signal.aborted) return;
 
       setErrorState({
@@ -275,7 +273,7 @@ export function HakiAssistantWidget() {
   return (
     <div className={`pointer-events-none fixed z-[45] flex justify-center ${
       open
-        ? 'inset-x-0 bottom-0 sm:bottom-6 px-0 sm:px-4'
+        ? 'inset-x-0 bottom-0 top-3 items-end px-0 sm:bottom-6 sm:top-6 sm:px-4'
         : 'inset-x-0 bottom-4 sm:bottom-6 px-4'
     }`}>
       <motion.div
@@ -283,10 +281,9 @@ export function HakiAssistantWidget() {
         transition={{ type: 'spring', stiffness: 260, damping: 26 }}
         className={`glass glow pointer-events-auto relative w-full overflow-hidden border border-white/10 bg-white/[0.12] shadow-[0_24px_72px_rgba(7,12,24,0.34)] ${
           open
-            ? 'max-w-[520px] rounded-t-[30px] sm:rounded-[30px]'
+            ? 'flex max-h-full max-w-[520px] flex-col rounded-t-[30px] sm:rounded-[30px]'
             : 'max-w-[520px] rounded-[30px]'
         }`}
-        style={{ maxHeight: open ? 'calc(100dvh - 60px)' : undefined }}
       >
         <div className="pointer-events-none absolute inset-0 opacity-65">
           <div className="absolute -left-8 top-2 h-20 w-24 rounded-full bg-fuchsia-500/18 blur-2xl" />
@@ -296,7 +293,8 @@ export function HakiAssistantWidget() {
         <button
           type="button"
           onClick={() => setOpen((prev) => !prev)}
-          className="relative flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+          className="relative flex w-full shrink-0 items-center justify-between gap-4 px-5 py-4 text-left"
+          aria-label={open ? '关闭 Haki 聊天窗口' : '打开 Haki 聊天窗口'}
         >
           <div className="relative flex items-center gap-4">
             <div className="glass flex h-12 w-12 items-center justify-center rounded-2xl border border-white/12 bg-white/[0.12] text-cyan-100 shadow-[0_0_22px_rgba(77,225,255,0.12)]">
@@ -328,11 +326,11 @@ export function HakiAssistantWidget() {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.22, ease: 'easeOut' }}
-              className="relative border-t border-white/10 bg-white/[0.04]"
+              className="relative flex min-h-0 flex-1 flex-col border-t border-white/10 bg-white/[0.04]"
             >
               <div
                 ref={scrollRef}
-                className="haki-scrollbar max-h-[calc(100dvh-340px)] sm:max-h-[calc(100vh-310px)] min-h-[200px] overflow-y-auto px-4 py-4"
+                className="haki-scrollbar min-h-[160px] flex-1 overflow-y-auto px-4 py-4"
               >
                 <div className="space-y-3">
                   {messages.map((message) => {
@@ -372,7 +370,7 @@ export function HakiAssistantWidget() {
                 </div>
               </div>
 
-              <div className="border-t border-white/10 bg-white/[0.05] px-4 py-4">
+              <div className="shrink-0 border-t border-white/10 bg-white/[0.05] px-4 py-4">
                 {errorState && (
                   <div className="mb-3 rounded-[20px] border border-amber-300/18 bg-amber-400/12 px-4 py-3 text-sm text-amber-50/90">
                     <div className="flex items-start justify-between gap-3">

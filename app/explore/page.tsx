@@ -192,7 +192,7 @@ export default function ExplorePage() {
           </div>
 
           {/* 搜索和筛选栏 */}
-          <div className="glass rounded-2xl p-4 mb-8 border border-white/5">
+          <div className="glass rounded-2xl p-4 mb-8 border border-white/5 relative z-20">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
                 <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
