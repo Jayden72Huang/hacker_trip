@@ -151,6 +151,25 @@ export function Timeline({ hackathons, selectedId, onSelect, subscriptions }: Ti
             </span>
           </button>
 
+          {/* 时间范围筛选 - 移动端水平滚动 */}
+          <div className="w-full flex justify-center">
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 max-w-full">
+              {timeRangeButtons.map(btn => (
+                <button
+                  key={btn.key}
+                  onClick={() => setTimeRange(btn.key)}
+                  className={`px-3 py-1.5 rounded-full font-space-mono text-xs font-medium transition-all whitespace-nowrap shrink-0 ${
+                    timeRange === btn.key
+                      ? 'bg-white/10 text-white border border-white/20'
+                      : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
+                  }`}
+                >
+                  {btn.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* 时间线内容 */}
           <AnimatePresence mode="wait">
             {filteredHackathons.length > 0 ? (
@@ -160,30 +179,10 @@ export function Timeline({ hackathons, selectedId, onSelect, subscriptions }: Ti
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.4 }}
-                className="w-full flex items-center gap-6"
+                className="w-full overflow-x-auto"
               >
-              {/* 左侧：过去时间按钮 */}
-              <div className="flex items-center gap-2 shrink-0">
-                {timeRangeButtons
-                  .filter(btn => btn.position === 'left')
-                  .map(btn => (
-                    <button
-                      key={btn.key}
-                      onClick={() => setTimeRange(btn.key)}
-                      className={`px-3 py-1.5 rounded-full font-space-mono text-xs font-medium transition-all whitespace-nowrap ${
-                        timeRange === btn.key
-                          ? 'bg-white/10 text-white border border-white/20'
-                          : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
-                      }`}
-                    >
-                      {btn.label}
-                    </button>
-                  ))}
-              </div>
-
-              {/* 中间：时间线 */}
               <motion.div
-                className="flex-1"
+                className="min-w-[600px] px-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
@@ -277,25 +276,6 @@ export function Timeline({ hackathons, selectedId, onSelect, subscriptions }: Ti
                   ))}
                 </div>
               </motion.div>
-
-              {/* 右侧：未来时间按钮 */}
-              <div className="flex items-center gap-2 shrink-0">
-                {timeRangeButtons
-                  .filter(btn => btn.position === 'right')
-                  .map(btn => (
-                    <button
-                      key={btn.key}
-                      onClick={() => setTimeRange(btn.key)}
-                      className={`px-3 py-1.5 rounded-full font-space-mono text-xs font-medium transition-all whitespace-nowrap ${
-                        timeRange === btn.key
-                          ? 'bg-white/10 text-white border border-white/20'
-                          : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
-                      }`}
-                    >
-                      {btn.label}
-                    </button>
-                  ))}
-              </div>
             </motion.div>
           ) : (
             <motion.div

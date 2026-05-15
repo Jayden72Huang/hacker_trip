@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  buildPlatformKnowledgeDigest,
   buildPlatformSupportPrompt,
 } from '@/data/platform-assistant';
+import { db } from '@/lib/db';
+import { hackathons as hackathonsTable } from '@/lib/db/schema';
+import { toHomepageHackathon } from '@/lib/types/hackathon';
+import { desc } from 'drizzle-orm';
 
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_KEY;
 const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
@@ -67,11 +70,49 @@ export async function POST(request: NextRequest) {
         content: message.content,
       }));
 
+    const dbRows = await db
+      .select()
+      .from(hackathonsTable)
+      .orderBy(desc(hackathonsTable.startDate))
+      .limit(50);
+
+    const liveHackathons = dbRows.map(toHomepageHackathon);
+
+    const hackathonDigest = liveHackathons
+      .map((h) => {
+        const tracks = h.tracks.map((t) => t.title).join(' / ');
+        const registration =
+          h.registration?.mode === 'platform'
+            ? 'HackerTrip 站内报名'
+            : h.registration?.mode === 'external-form'
+              ? '主办方外部表单'
+              : h.registration?.siteName || '主办方官网';
+        return [
+          `- ${h.name}`,
+          `  城市: ${h.city}`,
+          `  时间: ${h.dateRange}`,
+          `  形式: ${h.format}`,
+          `  主题: ${h.theme}`,
+          `  奖金池: ${h.prizePool}`,
+          `  报名: ${registration}`,
+          tracks ? `  赛道: ${tracks}` : '',
+          h.hostOrganizer ? `  主办方: ${h.hostOrganizer}` : '',
+          h.isPast ? '  状态: 已结束' : '  状态: 进行中/即将开始',
+        ].filter(Boolean).join('\n');
+      })
+      .join('\n');
+
+    const upcoming = liveHackathons.filter((h) => !h.isPast);
+    const cities = [...new Set(liveHackathons.map((h) => h.city).filter(Boolean))];
+
     const systemPrompt = `${buildPlatformSupportPrompt()}
 
-以下是可参考的平台知识摘要。仅使用这些公开信息回答，不要引用内部实现，不要编造不存在的功能或活动。
+以下是可参考的平台知识摘要（实时从数据库获取）。仅使用这些公开信息回答，不要引用内部实现，不要编造不存在的功能或活动。
 
-${buildPlatformKnowledgeDigest()}`;
+平台概览: 当前收录 ${liveHackathons.length} 场黑客松，其中 ${upcoming.length} 场即将开始或进行中，覆盖 ${cities.length} 个城市。
+
+## 活动数据
+${hackathonDigest}`;
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30000);

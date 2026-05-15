@@ -273,12 +273,20 @@ export function HakiAssistantWidget() {
   }
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[45] flex justify-center px-4 sm:bottom-6">
+    <div className={`pointer-events-none fixed z-[45] flex justify-center ${
+      open
+        ? 'inset-x-0 bottom-0 sm:bottom-6 px-0 sm:px-4'
+        : 'inset-x-0 bottom-4 sm:bottom-6 px-4'
+    }`}>
       <motion.div
         layout
         transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-        className="glass glow pointer-events-auto relative w-full max-w-[520px] overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.12] shadow-[0_24px_72px_rgba(7,12,24,0.34)]"
-        style={{ maxHeight: open ? 'calc(100vh - 136px)' : undefined }}
+        className={`glass glow pointer-events-auto relative w-full overflow-hidden border border-white/10 bg-white/[0.12] shadow-[0_24px_72px_rgba(7,12,24,0.34)] ${
+          open
+            ? 'max-w-[520px] rounded-t-[30px] sm:rounded-[30px]'
+            : 'max-w-[520px] rounded-[30px]'
+        }`}
+        style={{ maxHeight: open ? 'calc(100dvh - 60px)' : undefined }}
       >
         <div className="pointer-events-none absolute inset-0 opacity-65">
           <div className="absolute -left-8 top-2 h-20 w-24 rounded-full bg-fuchsia-500/18 blur-2xl" />
@@ -324,7 +332,7 @@ export function HakiAssistantWidget() {
             >
               <div
                 ref={scrollRef}
-                className="haki-scrollbar max-h-[calc(100vh-310px)] min-h-[250px] overflow-y-auto px-4 py-4"
+                className="haki-scrollbar max-h-[calc(100dvh-340px)] sm:max-h-[calc(100vh-310px)] min-h-[200px] overflow-y-auto px-4 py-4"
               >
                 <div className="space-y-3">
                   {messages.map((message) => {
