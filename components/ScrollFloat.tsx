@@ -111,7 +111,7 @@ export default function ScrollFloat({
 
   return (
     <span ref={containerRef} className={`inline-block ${containerClassName}`}>
-      <span ref={textRef} className="inline-flex">
+      <span ref={textRef} className="inline-flex flex-wrap">
         {children}
       </span>
     </span>

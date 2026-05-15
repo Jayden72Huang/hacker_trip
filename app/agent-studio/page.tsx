@@ -137,7 +137,7 @@ export default function AgentStudioPage() {
           </div>
 
           {/* 主标题 */}
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
             <span className="text-white/90 block">Hacker Agent</span>
             <span className="block">
               <ScrollFloat
@@ -158,8 +158,8 @@ export default function AgentStudioPage() {
           </h1>
 
           {/* 副标题 */}
-          <p className="text-xl md:text-2xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed flex justify-center whitespace-nowrap">
-            在 Hacker Agent 创作空间，你将拥有赛题上下文和100+插件， 全程一站式助力，让你轻松参赛。
+          <p className="text-base md:text-2xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+            在 Hacker Agent 创作空间，你将拥有赛题上下文和100+插件，全程一站式助力，让你轻松参赛。
           </p>
 
           {/* Slogan + 申请内测按钮 */}
@@ -191,8 +191,8 @@ export default function AgentStudioPage() {
           </div>
 
           {/* Hacker Agent 目标标题（与上方加大间距） */}
-          <div className="mt-40" />
-          <h2 className="text-3xl md:text-6xl font-bold text-white/90 mb-6">
+          <div className="mt-20 md:mt-40" />
+          <h2 className="text-2xl md:text-6xl font-bold text-white/90 mb-6">
             Hacker Agent 初心
           </h2>
 
@@ -270,7 +270,7 @@ export default function AgentStudioPage() {
                 <SmartToyIcon sx={{ fontSize: 16 }} className="text-purple-400" />
                 <span className="text-sm font-medium text-purple-300">Hacker Agent 空间</span>
               </div>
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              <h2 className="text-2xl md:text-5xl font-bold text-white mb-4">
                 在这里组建你的 AI{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7c5dff] to-[#4de1ff]">
                   黑客松战队
@@ -574,10 +574,10 @@ export default function AgentStudioPage() {
           >
             <div className="inline-block p-8 md:p-12 rounded-3xl bg-gradient-to-br from-purple-500/10 to-cyan-500/10 border border-purple-500/20 backdrop-blur-sm">
               <div className="text-5xl mb-6">🎯</div>
-              <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              <h3 className="text-2xl md:text-4xl font-bold text-white mb-4">
                 抢先体验内测版
               </h3>
-              <p className="text-lg text-gray-400 mb-8 max-w-xl mx-auto">
+              <p className="text-sm md:text-lg text-gray-400 mb-8 max-w-xl mx-auto">
                 Agent 功能正在全力开发中，前 <span className="text-purple-400 font-bold">100</span> 名内测用户将获得
                 <span className="text-cyan-400 font-bold"> 终身 Pro 权益</span>
               </p>

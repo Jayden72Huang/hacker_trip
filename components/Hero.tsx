@@ -23,7 +23,7 @@ export function Hero() {
           </div>
 
           {/* H2 - 固定标题 */}
-          <h2 className="font-sora text-3xl md:text-4xl lg:text-5xl font-semibold text-gray-100 leading-snug">
+          <h2 className="font-sora text-2xl md:text-4xl lg:text-5xl font-semibold text-gray-100 leading-snug">
             <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
               HackerTrip
             </span>
@@ -31,7 +31,7 @@ export function Hero() {
           </h2>
 
           {/* H1 - 打字效果 */}
-          <h1 className="font-sora text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight min-h-[1.2em]">
+          <h1 className="font-sora text-[1.55rem] md:text-5xl lg:text-6xl font-extrabold leading-tight min-h-[1.2em]">
             <span className="bg-gradient-to-r from-white via-indigo-100 to-purple-100 bg-clip-text text-transparent">
               <TextType
                 texts={[
