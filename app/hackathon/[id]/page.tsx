@@ -14,8 +14,10 @@ import {
   Trophy,
   Users,
 } from 'lucide-react';
-import { hackathons } from '@/data/hackathons';
-import type { Hackathon } from '@/data/hackathons';
+import { db } from '@/lib/db';
+import { hackathons } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
+import { toHomepageHackathon, type HomepageHackathon } from '@/lib/types/hackathon';
 import { RegistrationForm } from './RegistrationForm';
 
 type Params = {
@@ -31,7 +33,7 @@ function withReferral(url: string, campaign: string) {
   return `${url}${delimiter}utm_source=hackertrip&utm_medium=referral&utm_campaign=${campaign}`;
 }
 
-function getRegistrationAction(hackathon: Hackathon) {
+function getRegistrationAction(hackathon: HomepageHackathon) {
   const campaignId = `hackathon_${hackathon.id}_detail`;
   const reg = hackathon.registration;
 
@@ -71,12 +73,18 @@ const badgeStyles: Record<string, string> = {
   platform: 'bg-green-500/15 text-green-100 border-green-500/30',
 };
 
-export default function HackathonDetailPage({ params }: Params) {
-  const hackathon = hackathons.find((h) => h.id === params.id);
-  if (!hackathon) {
+export default async function HackathonDetailPage({ params }: Params) {
+  const [row] = await db
+    .select()
+    .from(hackathons)
+    .where(eq(hackathons.id, params.id))
+    .limit(1);
+
+  if (!row) {
     notFound();
   }
 
+  const hackathon = toHomepageHackathon(row);
   const registrationAction = getRegistrationAction(hackathon);
 
   return (
