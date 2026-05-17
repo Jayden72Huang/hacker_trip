@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import Script from "next/script";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { HakiAssistantWidget } from "@/components/HakiAssistantWidget";
 import "./globals.css";
@@ -25,7 +26,10 @@ const spaceMono = localFont({
   display: "swap",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hackertrip.space';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "HackerTrip · Hackathon Timeline 2026",
   description:
     "跟踪全球黑客松旅程，查看每站城市、时间与报名信息，规划你的 2026 参赛日程。",
@@ -89,6 +93,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
+      <head>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-7JLBTD2NCG"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-7JLBTD2NCG');
+          `}
+        </Script>
+      </head>
       <body className={`${sora.variable} ${spaceMono.variable} antialiased bg-[#05060a] text-white`}>
         <SessionProvider>
           {children}
