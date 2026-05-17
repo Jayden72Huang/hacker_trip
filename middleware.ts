@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
 // 需要保护的路由
-const protectedRoutes = ['/admin', '/organizer', '/organize/create', '/dashboard', '/settings', '/haki', '/works/submit', '/works/my', '/community/write'];
+const protectedRoutes = ['/admin', '/organizer', '/organize/create', '/dashboard', '/settings', '/haki', '/works/submit', '/works/my', '/community/write', '/messages'];
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;

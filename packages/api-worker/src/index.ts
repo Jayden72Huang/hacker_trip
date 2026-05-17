@@ -4,8 +4,11 @@ import { cors } from './middleware/cors';
 import { apiKeyAuth } from './middleware/auth';
 import { rateLimit } from './middleware/rate-limit';
 import hackathonsRoutes from './routes/v1/hackathons';
-import worksRoutes from './routes/v1/works';
+import meRoutes from './routes/v1/me';
+import recommendationsRoutes from './routes/v1/recommendations';
 import statsRoutes from './routes/v1/stats';
+import teamSearchRoutes from './routes/v1/team-search';
+import worksRoutes from './routes/v1/works';
 import { handleMcpRequest } from './mcp/server';
 
 const app = new Hono<{ Bindings: Env }>();
@@ -23,6 +26,9 @@ const v1 = new Hono<{ Bindings: Env }>();
 v1.use('*', apiKeyAuth());
 v1.use('*', rateLimit());
 v1.route('/hackathons', hackathonsRoutes);
+v1.route('/me', meRoutes);
+v1.route('/team-search', teamSearchRoutes);
+v1.route('/recommendations', recommendationsRoutes);
 v1.route('/works', worksRoutes);
 v1.route('/stats', statsRoutes);
 

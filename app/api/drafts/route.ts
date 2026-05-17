@@ -10,12 +10,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { draftHackathons } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { checkAdmin } from '@/lib/auth-helpers';
+
+async function requireAdmin() {
+  const authResult = await checkAdmin();
+  if (!authResult.authorized) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  return null;
+}
 
 /**
  * GET: 获取所有草稿（status != 'published'）
  */
 export async function GET() {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const rows = await db
       .select()
       .from(draftHackathons)
@@ -64,6 +76,9 @@ export async function GET() {
  */
 export async function POST(request: NextRequest) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const body = await request.json();
     const { data, source = 'manual' } = body;
 
@@ -119,6 +134,9 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const body = await request.json();
     const { draftId, data } = body;
 
@@ -205,6 +223,9 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const { searchParams } = new URL(request.url);
     const draftId = searchParams.get('draftId');
 

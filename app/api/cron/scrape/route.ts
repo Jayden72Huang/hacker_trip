@@ -8,15 +8,20 @@ import { scrapeTargets, scrapeLogs, draftHackathons } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { ScraperFactory } from '@/scrapers/utils/scraper-factory';
 
+type ScrapeTarget = typeof scrapeTargets.$inferSelect;
+
 // 验证 Cron Secret（防止未授权调用）
 const CRON_SECRET = process.env.CRON_SECRET || 'dev-secret-change-in-production';
 
-export async function GET(request: NextRequest) {
-  // 1. 验证授权
+function validateCronSecret(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   const providedSecret = authHeader?.replace('Bearer ', '');
+  return providedSecret === CRON_SECRET;
+}
 
-  if (providedSecret !== CRON_SECRET) {
+export async function GET(request: NextRequest) {
+  // 1. 验证授权
+  if (!validateCronSecret(request)) {
     console.warn('[Cron] 未授权访问尝试');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -90,7 +95,7 @@ export async function GET(request: NextRequest) {
 /**
  * 爬取单个目标
  */
-async function scrapeTarget(target: any) {
+async function scrapeTarget(target: ScrapeTarget) {
   const startTime = Date.now();
   let logId: string | null = null;
 
@@ -154,7 +159,7 @@ async function scrapeTarget(target: any) {
       .set({
         lastScrapedAt: new Date(),
         lastStatus: 'success',
-        successCount: target.successCount + 1,
+        successCount: (target.successCount ?? 0) + 1,
         updatedAt: new Date(),
       })
       .where(eq(scrapeTargets.id, target.id));
@@ -195,7 +200,7 @@ async function scrapeTarget(target: any) {
         .set({
           lastScrapedAt: new Date(),
           lastStatus: 'error',
-          errorCount: target.errorCount + 1,
+          errorCount: (target.errorCount ?? 0) + 1,
           updatedAt: new Date(),
         })
         .where(eq(scrapeTargets.id, target.id));
@@ -217,6 +222,11 @@ async function scrapeTarget(target: any) {
 // POST /api/cron/scrape
 export async function POST(request: NextRequest) {
   try {
+    if (!validateCronSecret(request)) {
+      console.warn('[Manual Scrape] 未授权访问尝试');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { targetId } = body;
 

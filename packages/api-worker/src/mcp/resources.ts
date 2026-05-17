@@ -1,4 +1,4 @@
-import { eq, desc, sql } from 'drizzle-orm';
+import { and, eq, desc, sql } from 'drizzle-orm';
 import { type Database, schema } from '../db/client';
 
 // ============ Resource Definitions ============
@@ -33,6 +33,18 @@ export const resourceDefinitions: ResourceDefinition[] = [
     uri: 'hackertrip://stats',
     name: 'Platform Statistics',
     description: 'Overall HackerTrip platform statistics',
+    mimeType: 'application/json',
+  },
+  {
+    uri: 'hackertrip://agents/available',
+    name: 'Available Agents',
+    description: 'Public agent cards on HackerTrip available for team-up negotiations',
+    mimeType: 'application/json',
+  },
+  {
+    uri: 'hackertrip://teammates/looking',
+    name: 'Teammates Looking',
+    description: 'Users who have set lookingForTeam=true and are available for hackathon teams',
     mimeType: 'application/json',
   },
 ];
@@ -137,6 +149,61 @@ async function getPlatformStats(db: Database): Promise<ResourceResult> {
   };
 }
 
+async function getAvailableAgents(db: Database): Promise<ResourceResult> {
+  const data = await db
+    .select({
+      id: schema.agentCards.id,
+      name: schema.agentCards.name,
+      description: schema.agentCards.description,
+      capabilities: schema.agentCards.capabilities,
+      skills: schema.agentCards.skills,
+      interests: schema.agentCards.interests,
+      autoNegotiate: schema.agentCards.autoNegotiate,
+      userName: schema.users.name,
+      userUsername: schema.users.username,
+    })
+    .from(schema.agentCards)
+    .innerJoin(schema.users, eq(schema.users.id, schema.agentCards.userId))
+    .where(
+      and(
+        eq(schema.agentCards.isPublic, true),
+        eq(schema.agentCards.allowAgentContact, true)
+      )
+    )
+    .limit(50);
+
+  return {
+    contents: [{
+      uri: 'hackertrip://agents/available',
+      mimeType: 'application/json',
+      text: JSON.stringify({ agents: data, count: data.length }, null, 2),
+    }],
+  };
+}
+
+async function getTeammatesLooking(db: Database): Promise<ResourceResult> {
+  const data = await db
+    .select({
+      id: schema.users.id,
+      name: schema.users.name,
+      username: schema.users.username,
+      skills: schema.users.skills,
+      interests: schema.users.interests,
+      experienceLevel: schema.users.experienceLevel,
+    })
+    .from(schema.users)
+    .where(eq(schema.users.lookingForTeam, true))
+    .limit(50);
+
+  return {
+    contents: [{
+      uri: 'hackertrip://teammates/looking',
+      mimeType: 'application/json',
+      text: JSON.stringify({ teammates: data, count: data.length }, null, 2),
+    }],
+  };
+}
+
 // ============ Resource Dispatcher ============
 
 export async function readResource(
@@ -152,6 +219,10 @@ export async function readResource(
       return getRecentWorks(db);
     case 'hackertrip://stats':
       return getPlatformStats(db);
+    case 'hackertrip://agents/available':
+      return getAvailableAgents(db);
+    case 'hackertrip://teammates/looking':
+      return getTeammatesLooking(db);
     default:
       return null;
   }

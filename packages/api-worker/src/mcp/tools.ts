@@ -90,6 +90,58 @@ export const toolDefinitions: ToolDefinition[] = [
       required: ['id'],
     },
   },
+  {
+    name: 'search_teammates',
+    description:
+      'Search for users looking to join a hackathon team. Filter by skills, interests, and experience level.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        skills: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Filter by skills (matches any)',
+        },
+        interests: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Filter by interests or preferred tracks',
+        },
+        experience_level: {
+          type: 'string',
+          enum: ['beginner', 'intermediate', 'advanced'],
+          description: 'Filter by experience level',
+        },
+        limit: {
+          type: 'number',
+          description: 'Max results (default 20, max 50)',
+        },
+      },
+    },
+  },
+  {
+    name: 'discover_agents',
+    description:
+      'Discover agent cards on HackerTrip. Find agents available for team-up negotiations.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        skills: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Filter agents by skills',
+        },
+        looking_for_team: {
+          type: 'boolean',
+          description: 'Only show agents whose users are looking for a team',
+        },
+        limit: {
+          type: 'number',
+          description: 'Max results (default 20, max 50)',
+        },
+      },
+    },
+  },
 ];
 
 // ============ Tool Handlers ============
@@ -273,6 +325,104 @@ async function getWorkDetail(
   return textResult({ work: { ...safe, teamMembers } });
 }
 
+// --- search_teammates ---
+
+async function searchTeammates(
+  db: Database,
+  params: {
+    skills?: string[];
+    interests?: string[];
+    experience_level?: string;
+    limit?: number;
+  }
+): Promise<ToolResult> {
+  const limit = Math.min(Math.max(params.limit || 20, 1), 50);
+
+  const conditions = [eq(schema.users.lookingForTeam, true)];
+
+  if (params.skills && params.skills.length > 0) {
+    for (const skill of params.skills) {
+      conditions.push(sql`${schema.users.skills}::text ILIKE ${'%' + skill + '%'}`);
+    }
+  }
+  if (params.interests && params.interests.length > 0) {
+    for (const interest of params.interests) {
+      conditions.push(
+        sql`(${schema.users.interests}::text ILIKE ${'%' + interest + '%'} OR ${schema.users.preferredTracks}::text ILIKE ${'%' + interest + '%'})`
+      );
+    }
+  }
+  if (params.experience_level) {
+    conditions.push(eq(schema.users.experienceLevel, params.experience_level));
+  }
+
+  const data = await db
+    .select({
+      id: schema.users.id,
+      name: schema.users.name,
+      username: schema.users.username,
+      bio: schema.users.bio,
+      skills: schema.users.skills,
+      interests: schema.users.interests,
+      experienceLevel: schema.users.experienceLevel,
+      github: schema.users.github,
+      linkedin: schema.users.linkedin,
+    })
+    .from(schema.users)
+    .where(and(...conditions))
+    .limit(limit);
+
+  return textResult({ teammates: data, total: data.length });
+}
+
+// --- discover_agents ---
+
+async function discoverAgents(
+  db: Database,
+  params: {
+    skills?: string[];
+    looking_for_team?: boolean;
+    limit?: number;
+  }
+): Promise<ToolResult> {
+  const limit = Math.min(Math.max(params.limit || 20, 1), 50);
+
+  const conditions = [
+    eq(schema.agentCards.isPublic, true),
+    eq(schema.agentCards.allowAgentContact, true),
+  ];
+
+  if (params.skills && params.skills.length > 0) {
+    for (const skill of params.skills) {
+      conditions.push(sql`${schema.agentCards.skills}::text ILIKE ${'%' + skill + '%'}`);
+    }
+  }
+  if (params.looking_for_team) {
+    conditions.push(eq(schema.users.lookingForTeam, true));
+  }
+
+  const query = db
+    .select({
+      id: schema.agentCards.id,
+      name: schema.agentCards.name,
+      description: schema.agentCards.description,
+      capabilities: schema.agentCards.capabilities,
+      skills: schema.agentCards.skills,
+      interests: schema.agentCards.interests,
+      autoNegotiate: schema.agentCards.autoNegotiate,
+      userName: schema.users.name,
+      userUsername: schema.users.username,
+    })
+    .from(schema.agentCards)
+    .innerJoin(schema.users, eq(schema.users.id, schema.agentCards.userId))
+    .where(and(...conditions))
+    .limit(limit);
+
+  const data = await query;
+
+  return textResult({ agents: data, total: data.length });
+}
+
 // ============ Tool Dispatcher ============
 
 export async function callTool(
@@ -289,6 +439,10 @@ export async function callTool(
       return searchVerifiedWorks(db, args as Parameters<typeof searchVerifiedWorks>[1]);
     case 'get_work_detail':
       return getWorkDetail(db, args as Parameters<typeof getWorkDetail>[1]);
+    case 'search_teammates':
+      return searchTeammates(db, args as Parameters<typeof searchTeammates>[1]);
+    case 'discover_agents':
+      return discoverAgents(db, args as Parameters<typeof discoverAgents>[1]);
     default:
       return errorResult(`Unknown tool: ${name}`);
   }

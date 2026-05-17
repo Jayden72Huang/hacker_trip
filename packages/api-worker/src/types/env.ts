@@ -5,3 +5,9 @@ export interface Env {
   CORS_ORIGIN: string;
   RATE_LIMIT_KV: KVNamespace;
 }
+
+declare module 'hono' {
+  interface ContextVariableMap {
+    userId: string;
+  }
+}

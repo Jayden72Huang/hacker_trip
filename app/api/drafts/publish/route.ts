@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { draftHackathons, hackathons } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { checkAdmin } from '@/lib/auth-helpers';
 
 function generateSlug(name: string): string {
   return name
@@ -13,6 +14,11 @@ function generateSlug(name: string): string {
 
 export async function POST(request: NextRequest) {
   try {
+    const authResult = await checkAdmin();
+    if (!authResult.authorized) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { draftId } = await request.json();
 
     if (!draftId) {

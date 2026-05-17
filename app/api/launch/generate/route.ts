@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { chatCompletion } from '@/lib/llm';
+import { auth } from '@/lib/auth';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 interface GitHubRepoInfo {
   description: string | null;
@@ -33,6 +35,22 @@ async function fetchGitHubRepo(url: string): Promise<GitHubRepoInfo | null> {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: '请先登录' }, { status: 401 });
+    }
+
+    const rateLimit = checkRateLimit(`launch-generate:${session.user.id}`, {
+      limit: 10,
+      windowMs: 60 * 60 * 1000,
+    });
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: '请求过于频繁，请稍后再试', retryAfter: rateLimit.retryAfter },
+        { status: 429 }
+      );
+    }
+
     const { projectName, description, githubUrl, targetAudience } = await request.json();
 
     if (!projectName || !description) {

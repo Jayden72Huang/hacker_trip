@@ -54,6 +54,7 @@ export const apiKeyAuth = (): MiddlewareHandler<{ Bindings: Env }> => {
 
     // Store key info in context for rate limiting and logging
     c.set('apiKey' as never, keyRecord);
+    c.set('userId', keyRecord.userId);
 
     await next();
   };

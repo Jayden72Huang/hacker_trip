@@ -44,18 +44,16 @@ export async function notifyNewHackathon(hackathonId: string, hackathonName: str
     if (!user.email) continue;
 
     try {
-      // 记录通知
-      await db.insert(notifications).values({
+      const [notif] = await db.insert(notifications).values({
         userId: user.id,
         type: 'hackathon_match',
         title: `新黑客松上线：${hackathonName}`,
         body: '快来查看详情，报名参赛吧！',
         linkUrl,
         relatedHackathonId: hackathonId,
-        emailSent: true,
-      });
+        emailSent: false,
+      }).returning({ id: notifications.id });
 
-      // 发送邮件
       await sendEmail({
         to: user.email,
         subject: `新黑客松上线：${hackathonName} - HackerTrip`,
@@ -65,6 +63,10 @@ export async function notifyNewHackathon(hackathonId: string, hackathonName: str
         linkUrl,
         buttonText: '查看黑客松',
       });
+
+      if (notif) {
+        await db.update(notifications).set({ emailSent: true }).where(eq(notifications.id, notif.id));
+      }
       sent++;
     } catch (error) {
       console.error(`[Notify] 发送失败 (user=${user.id}):`, error);
@@ -113,15 +115,15 @@ export async function notifyHackathonUpdate(
     if (!prefs.emailNotifications) continue;
 
     try {
-      await db.insert(notifications).values({
+      const [notif] = await db.insert(notifications).values({
         userId: p.userId,
         type: 'registration_deadline',
         title: updateTitle,
         body: updateBody,
         linkUrl,
         relatedHackathonId: hackathonId,
-        emailSent: true,
-      });
+        emailSent: false,
+      }).returning({ id: notifications.id });
 
       await sendEmail({
         to: p.email,
@@ -132,6 +134,10 @@ export async function notifyHackathonUpdate(
         linkUrl,
         buttonText: '查看详情',
       });
+
+      if (notif) {
+        await db.update(notifications).set({ emailSent: true }).where(eq(notifications.id, notif.id));
+      }
       sent++;
     } catch (error) {
       console.error(`[Notify] 发送失败 (user=${p.userId}):`, error);
@@ -140,6 +146,124 @@ export async function notifyHackathonUpdate(
 
   console.log(`[Notify] 活动更新通知: ${sent}/${participants.length} 封邮件已发送`);
   return { total: participants.length, sent };
+}
+
+/**
+ * 项目推荐通知 → 通知项目作者有匹配的黑客松
+ */
+export async function notifyProjectRecommendation(
+  userId: string,
+  projectName: string,
+  hackathonName: string,
+  hackathonId: string,
+  matchedTechStack: string[],
+) {
+  const [user] = await db
+    .select({ email: users.email, notificationPrefs: users.notificationPrefs })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!user) return;
+
+  const prefs = (user.notificationPrefs || {}) as NotificationPrefs;
+  const shouldSendEmail = Boolean(prefs.emailNotifications && user.email);
+  const linkUrl = `/hackathon/${hackathonId}`;
+  const matchText = matchedTechStack.length > 0
+    ? `技术栈匹配：${matchedTechStack.join(', ')}`
+    : '赛道和方向高度匹配';
+
+  const [notif] = await db.insert(notifications).values({
+    userId,
+    type: 'project_recommendation',
+    title: `你的项目「${projectName}」适合参加 ${hackathonName}`,
+    body: matchText,
+    linkUrl,
+    relatedHackathonId: hackathonId,
+    emailSent: false,
+  }).returning({ id: notifications.id });
+
+  if (shouldSendEmail) {
+    await sendEmail({
+      to: user.email!,
+      subject: `你的项目「${projectName}」适合参加 ${hackathonName} - HackerTrip`,
+      title: '项目推荐',
+      heading: hackathonName,
+      body: `基于「${projectName}」的${matchText}，我们推荐你参加这个比赛！`,
+      linkUrl,
+      buttonText: '查看比赛',
+    });
+
+    if (notif) {
+      await db.update(notifications).set({ emailSent: true }).where(eq(notifications.id, notif.id));
+    }
+  }
+}
+
+/**
+ * 新私信通知 → 通知收件人
+ */
+export async function notifyNewMessage(
+  recipientId: string,
+  senderName: string,
+  messagePreview: string,
+  conversationId: string,
+) {
+  const [user] = await db
+    .select({ email: users.email, notificationPrefs: users.notificationPrefs })
+    .from(users)
+    .where(eq(users.id, recipientId))
+    .limit(1);
+
+  if (!user) return;
+
+  const prefs = (user.notificationPrefs || {}) as NotificationPrefs;
+  const shouldSendEmail = Boolean(prefs.emailNotifications && user.email);
+  const linkUrl = `/messages?conversation=${conversationId}`;
+
+  await db.insert(notifications).values({
+    userId: recipientId,
+    type: 'direct_message',
+    title: `${senderName} 给你发了一条消息`,
+    body: messagePreview.slice(0, 100),
+    linkUrl,
+    emailSent: shouldSendEmail,
+  });
+
+  if (shouldSendEmail) {
+    await sendEmail({
+      to: user.email!,
+      subject: `${senderName} 给你发了一条消息 - HackerTrip`,
+      title: '新消息',
+      heading: `来自 ${senderName}`,
+      body: messagePreview.slice(0, 200),
+      linkUrl,
+      buttonText: '查看消息',
+    });
+  }
+}
+
+/**
+ * A2A 协商通知 → 通知被协商方
+ */
+export async function notifyNegotiation(
+  recipientId: string,
+  initiatorName: string,
+  hackathonName: string | null,
+  negotiationId: string,
+) {
+  const linkUrl = `/messages?negotiation=${negotiationId}`;
+  const title = hackathonName
+    ? `${initiatorName} 邀请你一起参加 ${hackathonName}`
+    : `${initiatorName} 想和你组队`;
+
+  await db.insert(notifications).values({
+    userId: recipientId,
+    type: 'agent_negotiation',
+    title,
+    body: '查看详情并回复组队邀请',
+    linkUrl,
+  });
 }
 
 /**
@@ -156,6 +280,12 @@ async function sendEmail(params: {
 }) {
   const { to, subject, title, heading, body, linkUrl, buttonText } = params;
   const actionUrl = linkUrl.startsWith('http') ? linkUrl : `${BASE_URL}${linkUrl}`;
+  const safeTitle = escapeHtml(title);
+  const safeHeading = escapeHtml(heading);
+  const safeBody = escapeHtml(body);
+  const safeButtonText = escapeHtml(buttonText);
+  const safeActionUrl = escapeHtml(actionUrl);
+  const safeBaseUrl = escapeHtml(BASE_URL);
 
   return resend.emails.send({
     from: FROM,
@@ -166,27 +296,46 @@ async function sendEmail(params: {
         <h1 style="color: #7c5dff; font-size: 24px; margin-bottom: 8px;">HackerTrip</h1>
         <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 16px 0 24px;" />
 
-        <p style="font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 4px;">${title}</p>
+        <p style="font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 4px;">${safeTitle}</p>
         <p style="font-size: 20px; font-weight: 600; line-height: 1.4; margin-bottom: 16px; color: #4de1ff;">
-          ${heading}
+          ${safeHeading}
         </p>
 
         <p style="font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.7);">
-          ${body}
+          ${safeBody}
         </p>
 
         <div style="text-align: center; margin: 32px 0;">
-          <a href="${actionUrl}" style="display: inline-block; background: linear-gradient(135deg, #7c5dff, #c759ff); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 600;">
-            ${buttonText}
+          <a href="${safeActionUrl}" style="display: inline-block; background: linear-gradient(135deg, #7c5dff, #c759ff); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 600;">
+            ${safeButtonText}
           </a>
         </div>
 
         <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 24px 0 16px;" />
         <p style="font-size: 12px; color: rgba(255,255,255,0.3);">
           此邮件由 HackerTrip 自动发送，如需关闭邮件通知请前往
-          <a href="${BASE_URL}/settings" style="color: #7c5dff;">个人设置</a>。
+          <a href="${safeBaseUrl}/settings" style="color: #7c5dff;">个人设置</a>。
         </p>
       </div>
     `,
+  });
+}
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (char) => {
+    switch (char) {
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '"':
+        return '&quot;';
+      case "'":
+        return '&#39;';
+      default:
+        return char;
+    }
   });
 }

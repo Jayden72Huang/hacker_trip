@@ -35,6 +35,16 @@ export const articleType = pgEnum('article_type', [
   'experience', 'interview', 'guest_post',
 ]);
 
+// ============ 私信 & A2A 枚举 ============
+
+export const messageStatus = pgEnum('message_status', ['sent', 'delivered', 'read']);
+export const messageType = pgEnum('message_type', [
+  'text', 'team_invite', 'team_request', 'agent_negotiation', 'system',
+]);
+export const negotiationStatus = pgEnum('negotiation_status', [
+  'proposed', 'counter_proposed', 'accepted', 'rejected', 'expired',
+]);
+
 // ============ NextAuth 必需表 ============
 
 export const users = pgTable('user', {
@@ -60,6 +70,8 @@ export const users = pgTable('user', {
   experienceLevel: text('experience_level').default('beginner'),
   lookingForTeam: boolean('looking_for_team').default(false),
   notificationPrefs: jsonb('notification_prefs').default(sql`'{"hackathonAlerts":true,"registrationReminders":true,"teamInvites":true,"systemAnnouncements":true,"emailNotifications":false}'::jsonb`),
+  agentModeEnabled: boolean('agent_mode_enabled').default(false),
+  agentVisibility: jsonb('agent_visibility').default(sql`'{"skills":true,"interests":true,"lookingForTeam":true,"experienceLevel":true,"projects":false,"participations":false}'::jsonb`),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
 });
@@ -720,5 +732,133 @@ export const articles = pgTable(
   },
   (table) => ({
     slugUnique: uniqueIndex('article_slug_unique').on(table.slug),
+  })
+);
+
+// ============ 私信会话 ============
+
+export const conversations = pgTable(
+  'conversation',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    participantA: text('participant_a')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    participantB: text('participant_b')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    lastMessageAt: timestamp('last_message_at', { mode: 'date' }).defaultNow(),
+    lastMessagePreview: text('last_message_preview'),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+  },
+  (table) => ({
+    participantsUnique: uniqueIndex('conversation_participants_unique').on(
+      table.participantA,
+      table.participantB
+    ),
+  })
+);
+
+// ============ 私信消息 ============
+
+export const directMessages = pgTable('direct_message', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  conversationId: text('conversation_id')
+    .notNull()
+    .references(() => conversations.id, { onDelete: 'cascade' }),
+  senderId: text('sender_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  content: text('content').notNull(),
+  type: messageType('type').default('text'),
+  metadata: jsonb('metadata').default(sql`'{}'::jsonb`),
+  status: messageStatus('status').default('sent'),
+  isFromAgent: boolean('is_from_agent').default(false),
+  agentId: text('agent_id'),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
+});
+
+// ============ Agent Card ============
+
+export const agentCards = pgTable('agent_card', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id')
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  description: text('description'),
+  url: text('url'),
+  version: text('version').default('1.0.0'),
+  capabilities: jsonb('capabilities').default(sql`'[]'::jsonb`),
+  skills: jsonb('skills').default(sql`'[]'::jsonb`),
+  interests: jsonb('interests').default(sql`'[]'::jsonb`),
+  preferredTracks: jsonb('preferred_tracks').default(sql`'[]'::jsonb`),
+  isPublic: boolean('is_public').default(true),
+  allowAgentContact: boolean('allow_agent_contact').default(true),
+  autoNegotiate: boolean('auto_negotiate').default(false),
+  negotiationRules: jsonb('negotiation_rules').default(sql`'{}'::jsonb`),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
+});
+
+// ============ A2A 协商 ============
+
+export const a2aNegotiations = pgTable('a2a_negotiation', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  initiatorAgentId: text('initiator_agent_id')
+    .notNull()
+    .references(() => agentCards.id, { onDelete: 'cascade' }),
+  responderAgentId: text('responder_agent_id')
+    .notNull()
+    .references(() => agentCards.id, { onDelete: 'cascade' }),
+  hackathonId: text('hackathon_id')
+    .references(() => hackathons.id, { onDelete: 'set null' }),
+  status: negotiationStatus('status').default('proposed'),
+  rounds: jsonb('rounds').default(sql`'[]'::jsonb`),
+  finalProposal: jsonb('final_proposal'),
+  resultTeamId: text('result_team_id')
+    .references(() => agentTeams.id, { onDelete: 'set null' }),
+  expiresAt: timestamp('expires_at', { mode: 'date' }),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
+});
+
+// ============ 项目推荐 ============
+
+export const projectRecommendations = pgTable(
+  'project_recommendation',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    projectId: text('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    hackathonId: text('hackathon_id')
+      .notNull()
+      .references(() => hackathons.id, { onDelete: 'cascade' }),
+    score: integer('score').default(0),
+    reasons: jsonb('reasons').default(sql`'[]'::jsonb`),
+    matchedTechStack: jsonb('matched_tech_stack').default(sql`'[]'::jsonb`),
+    matchedTracks: jsonb('matched_tracks').default(sql`'[]'::jsonb`),
+    isViewed: boolean('is_viewed').default(false),
+    emailSent: boolean('email_sent').default(false),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+  },
+  (table) => ({
+    projectHackathonUnique: uniqueIndex('project_recommendation_project_hackathon_unique').on(
+      table.projectId,
+      table.hackathonId
+    ),
   })
 );

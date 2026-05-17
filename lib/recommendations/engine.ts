@@ -46,7 +46,7 @@ interface ScoredHackathon {
 // ─── Scoring helpers ───
 
 /** Jaccard similarity: |A ∩ B| / |A ∪ B| */
-function jaccardSimilarity(a: string[], b: string[]): number {
+export function jaccardSimilarity(a: string[], b: string[]): number {
   if (a.length === 0 && b.length === 0) return 0;
   const setA = new Set(a.map((s) => s.toLowerCase()));
   const setB = new Set(b.map((s) => s.toLowerCase()));
@@ -56,13 +56,13 @@ function jaccardSimilarity(a: string[], b: string[]): number {
 }
 
 /** Overlap items between two arrays (case-insensitive) */
-function findOverlap(a: string[], b: string[]): string[] {
+export function findOverlap(a: string[], b: string[]): string[] {
   const setB = new Set(b.map((s) => s.toLowerCase()));
   return a.filter((item) => setB.has(item.toLowerCase()));
 }
 
 /** Safely cast jsonb to string[] */
-function toStringArray(val: unknown): string[] {
+export function toStringArray(val: unknown): string[] {
   if (Array.isArray(val)) return val.filter((v) => typeof v === 'string');
   return [];
 }
