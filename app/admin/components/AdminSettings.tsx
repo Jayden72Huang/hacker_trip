@@ -17,6 +17,7 @@ import {
   ChevronRight,
   X,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 type ApiConfig = {
   googleCseApiKey: string;
@@ -29,7 +30,7 @@ type UserRole = 'super_admin' | 'admin' | 'organizer' | 'user';
 type RolePermission = {
   role: UserRole;
   label: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   color: string;
   permissions: string[];
 };

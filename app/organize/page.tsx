@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { SignInModal } from '@/components/SignInModal';
@@ -34,6 +35,7 @@ type OrganizerProfile = {
 type PageState = 'loading' | 'intro' | 'register' | 'pending' | 'approved' | 'rejected';
 
 export default function OrganizePage() {
+  const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
   const [pageState, setPageState] = useState<PageState>('loading');
   const [profile, setProfile] = useState<OrganizerProfile | null>(null);
@@ -71,8 +73,8 @@ export default function OrganizePage() {
             setPageState('pending');
             break;
           case 'approved':
-            setPageState('approved');
-            break;
+            router.push('/organizer');
+            return;
           case 'rejected':
             setPageState('rejected');
             break;

@@ -14,6 +14,7 @@ import {
   UserCheck,
   Inbox,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { TextUploader } from './components/TextUploader';
 import { DraftList } from './components/DraftList';
 import { GoogleSearch } from './components/GoogleSearch';
@@ -28,7 +29,7 @@ import { SmartImporter } from './components/SmartImporter';
 type MenuItem = {
   id: string;
   label: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   children?: { id: string; label: string }[];
 };
 

@@ -4,11 +4,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Menu, X, LogOut, Bot, Sparkles, Trophy, Users, BookOpen, Swords, Rocket, FileText } from 'lucide-react';
+import { Menu, X, LogOut } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { UserMenu } from './UserMenu';
 import { SignInModal } from './SignInModal';
-import { NavDropdown } from './NavDropdown';
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -60,73 +59,6 @@ export function Navbar() {
                 className="font-space-mono text-sm text-gray-400 hover:text-white transition-colors"
               >
                 黑客松
-              </Link>
-
-              <NavDropdown
-                label="Agent"
-                items={[
-                  {
-                    title: 'Agent 空间',
-                    href: '/agent-studio',
-                    description: 'AI 黑客松全能助手',
-                    icon: <Sparkles size={16} />
-                  },
-                  {
-                    title: 'Haki',
-                    href: '/haki',
-                    description: '智能参赛伙伴',
-                    icon: <Bot size={16} />
-                  },
-                ]}
-              />
-
-              <NavDropdown
-                label="工具"
-                items={[
-                  {
-                    title: '技术栈选择',
-                    href: '/arsenal',
-                    description: 'AI 推荐技术方案 · 选型 · 模板',
-                    icon: <Swords size={16} />
-                  },
-                  {
-                    title: 'AI 赛后推广',
-                    href: '/launch',
-                    description: '一键生成推广素材 · 曝光加速',
-                    icon: <Rocket size={16} />
-                  },
-                ]}
-              />
-
-              <NavDropdown
-                label="社区"
-                items={[
-                  {
-                    title: '作品展示',
-                    href: '/works',
-                    description: '黑客松作品曝光与推广',
-                    icon: <Trophy size={16} />
-                  },
-                  {
-                    title: '专栏文章',
-                    href: '/community/articles',
-                    description: '参赛经验 · 获奖访谈',
-                    icon: <FileText size={16} />
-                  },
-                  {
-                    title: '社区广场',
-                    href: '/community',
-                    description: '组队 · 复盘 · 资源',
-                    icon: <Users size={16} />
-                  },
-                ]}
-              />
-
-              <Link
-                href="/docs"
-                className="font-space-mono text-sm text-gray-400 hover:text-white transition-colors"
-              >
-                帮助中心
               </Link>
             </div>
 
@@ -182,68 +114,6 @@ export function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   黑客松
-                </Link>
-                <Link
-                  href="/agent-studio"
-                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors flex items-center gap-1"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Sparkles size={14} />
-                  Agent 空间
-                </Link>
-                <Link
-                  href="/haki"
-                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors flex items-center gap-1"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Bot size={14} />
-                  Haki
-                </Link>
-                <Link
-                  href="/arsenal"
-                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors flex items-center gap-1"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Swords size={14} />
-                  技术栈选择
-                </Link>
-                <Link
-                  href="/launch"
-                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors flex items-center gap-1"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Rocket size={14} />
-                  AI 赛后推广
-                </Link>
-                <Link
-                  href="/works"
-                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  作品展示
-                </Link>
-                <Link
-                  href="/community/articles"
-                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors flex items-center gap-1"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <FileText size={14} />
-                  专栏文章
-                </Link>
-                <Link
-                  href="/community"
-                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  社区
-                </Link>
-                <Link
-                  href="/docs"
-                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors flex items-center gap-1"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <BookOpen size={14} />
-                  帮助中心
                 </Link>
                 <div className="w-full h-px bg-white/10 my-2" />
                 <Link

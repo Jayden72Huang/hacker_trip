@@ -47,17 +47,14 @@ export function Footer() {
               </div>
 
               <div className="flex flex-wrap items-center gap-3 text-sm text-gray-400">
-                <Link href="/docs" className="transition-colors hover:text-white">
-                  帮助中心
-                </Link>
-                <Link href="/community" className="transition-colors hover:text-white">
-                  社区
-                </Link>
-                <Link href="/products" className="transition-colors hover:text-white">
-                  作品榜
+                <Link href="/explore" className="transition-colors hover:text-white">
+                  浏览黑客松
                 </Link>
                 <Link href="/organize" className="transition-colors hover:text-white">
                   发起黑客松
+                </Link>
+                <Link href="/docs" className="transition-colors hover:text-white">
+                  帮助中心
                 </Link>
               </div>
             </div>

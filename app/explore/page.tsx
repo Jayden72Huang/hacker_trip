@@ -8,66 +8,16 @@ import {
   Search,
   ChevronDown,
   Calendar,
-  MapPin,
   Filter,
   Rocket,
   History,
-  Trophy,
-  Users,
-  ArrowUpRight,
   Loader2,
 } from 'lucide-react';
+import { HackathonDBCard, isPast, modeLabel, type DBHackathon, type HackathonMode } from '@/components/HackathonDBCard';
 
-type HackathonMode = 'online' | 'offline' | 'hybrid';
 type FilterType = 'all' | HackathonMode;
 type SortType = 'date' | 'prize' | 'name';
 type TabType = 'upcoming' | 'past';
-
-interface DBHackathon {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  logo: string | null;
-  coverImage: string | null;
-  website: string | null;
-  startDate: string;
-  endDate: string;
-  registrationDeadline: string | null;
-  mode: HackathonMode;
-  location: string | null;
-  prizePool: string | null;
-  organizer: string | null;
-  tracks: string[];
-  tags: string[];
-  status: 'upcoming' | 'ongoing' | 'ended';
-  participantCount: number;
-  isFeatured: boolean;
-  isVerified: boolean;
-}
-
-function formatDateRange(start: string, end: string): string {
-  const s = new Date(start);
-  const e = new Date(end);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  if (s.getMonth() === e.getMonth()) {
-    return `${months[s.getMonth()]} ${s.getDate()}–${e.getDate()}, ${s.getFullYear()}`;
-  }
-  return `${months[s.getMonth()]} ${s.getDate()} – ${months[e.getMonth()]} ${e.getDate()}, ${s.getFullYear()}`;
-}
-
-function isPast(endDate: string): boolean {
-  return new Date(endDate) < new Date();
-}
-
-function daysUntil(startDate: string): number | null {
-  const diff = Math.ceil((new Date(startDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  return diff > 0 ? diff : null;
-}
-
-function modeLabel(mode: HackathonMode): string {
-  return mode === 'online' ? '线上' : mode === 'offline' ? '线下' : '混合';
-}
 
 export default function ExplorePage() {
   const [hackathons, setHackathons] = useState<DBHackathon[]>([]);
@@ -312,92 +262,6 @@ export default function ExplorePage() {
       </main>
       <Footer />
     </div>
-  );
-}
-
-function HackathonDBCard({ hackathon: h, showCountdown = true }: { hackathon: DBHackathon; showCountdown?: boolean }) {
-  const dateRange = formatDateRange(h.startDate, h.endDate);
-  const countdown = showCountdown ? daysUntil(h.startDate) : null;
-
-  return (
-    <Link
-      href={`/hackathon/${h.id}`}
-      className="block glass rounded-2xl p-6 border border-white/5 hover:border-white/15 transition-all group"
-    >
-      <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
-        {/* 左侧信息 */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 mb-2">
-            <h3 className="font-sora text-lg font-semibold text-white truncate group-hover:text-indigo-300 transition-colors">
-              {h.name}
-            </h3>
-            {h.isVerified && (
-              <span className="shrink-0 px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs font-space-mono">
-                已认证
-              </span>
-            )}
-            {h.isFeatured && (
-              <span className="shrink-0 px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 text-xs font-space-mono">
-                精选
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-space-mono text-gray-400">
-            <span className="flex items-center gap-1.5">
-              <Calendar size={14} />
-              {dateRange}
-            </span>
-            {h.location && (
-              <span className="flex items-center gap-1.5">
-                <MapPin size={14} />
-                {h.location}
-              </span>
-            )}
-            <span className={`px-2 py-0.5 rounded-full text-xs ${
-              h.mode === 'online' ? 'bg-cyan-500/20 text-cyan-400' :
-              h.mode === 'offline' ? 'bg-orange-500/20 text-orange-400' :
-              'bg-purple-500/20 text-purple-400'
-            }`}>
-              {modeLabel(h.mode)}
-            </span>
-          </div>
-
-          {h.description && (
-            <p className="mt-2 text-sm text-gray-500 line-clamp-1">{h.description}</p>
-          )}
-        </div>
-
-        {/* 右侧数据 */}
-        <div className="flex items-center gap-4 md:gap-6 shrink-0">
-          {h.prizePool && (
-            <div className="text-center">
-              <div className="flex items-center gap-1 text-yellow-400">
-                <Trophy size={14} />
-                <span className="font-sora text-sm font-semibold">{h.prizePool}</span>
-              </div>
-              <span className="text-xs text-gray-500 font-space-mono">奖金</span>
-            </div>
-          )}
-          {h.participantCount > 0 && (
-            <div className="text-center">
-              <div className="flex items-center gap-1 text-cyan-400">
-                <Users size={14} />
-                <span className="font-sora text-sm font-semibold">{h.participantCount}</span>
-              </div>
-              <span className="text-xs text-gray-500 font-space-mono">参与</span>
-            </div>
-          )}
-          {countdown && (
-            <div className="text-center px-3 py-1.5 rounded-lg bg-indigo-500/15">
-              <span className="font-sora text-lg font-bold text-indigo-400">{countdown}</span>
-              <span className="text-xs text-gray-500 font-space-mono block">天后开始</span>
-            </div>
-          )}
-          <ArrowUpRight size={20} className="text-gray-600 group-hover:text-indigo-400 transition-colors" />
-        </div>
-      </div>
-    </Link>
   );
 }
 

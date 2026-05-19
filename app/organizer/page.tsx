@@ -8,17 +8,20 @@ import {
   Inbox,
   LayoutDashboard,
   Loader2,
+  Plus,
   Shield,
   Sparkles,
+  Zap,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { DraftList } from '@/app/admin/components/DraftList';
 import { HackathonManager } from '@/app/admin/components/HackathonManager';
-import { SmartImporter } from '@/app/admin/components/SmartImporter';
+import { CreateHackathonWizard } from './components/CreateHackathonWizard';
 
 type MenuItem = {
   id: 'my-hackathons' | 'create' | 'drafts';
   label: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
 };
 
 type OrganizerProfile = {
@@ -53,6 +56,7 @@ export default function OrganizerPage() {
   const [profile, setProfile] = useState<OrganizerProfile>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [hasEvents, setHasEvents] = useState<boolean | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -67,6 +71,19 @@ export default function OrganizerPage() {
         }
 
         if (mounted) setProfile(data.profile || null);
+
+        if (data.profile?.status === 'approved') {
+          try {
+            const hRes = await fetch('/api/organizer/hackathons');
+            const hData = await hRes.json();
+            if (mounted) {
+              const list = Array.isArray(hData) ? hData : hData.hackathons || [];
+              setHasEvents(list.length > 0);
+            }
+          } catch {
+            if (mounted) setHasEvents(false);
+          }
+        }
       } catch (err) {
         if (mounted) {
           setError(err instanceof Error ? err.message : '无法获取组织者状态');
@@ -132,6 +149,29 @@ export default function OrganizerPage() {
       );
     }
 
+    if (hasEvents === false && activeTab === 'my-hackathons') {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 border border-white/10">
+            <Zap size={32} className="text-indigo-400" />
+          </div>
+          <h2 className="font-sora text-2xl font-bold text-white mb-3">
+            创建你的第一场黑客松
+          </h2>
+          <p className="font-space-mono text-sm text-gray-400 max-w-md mb-8 leading-relaxed">
+            粘贴活动链接即可 AI 自动填充信息，或从零开始手动创建。只需几分钟，你的活动就能上线。
+          </p>
+          <button
+            onClick={() => setActiveTab('create')}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-space-mono text-sm font-medium transition-all hover:scale-[1.02] shadow-lg shadow-indigo-500/20"
+          >
+            <Plus size={16} />
+            创建活动
+          </button>
+        </div>
+      );
+    }
+
     return (
       <>
         {activeTab === 'my-hackathons' && (
@@ -143,7 +183,7 @@ export default function OrganizerPage() {
           />
         )}
         {activeTab === 'create' && (
-          <SmartImporter apiBase="/api/organizer" onSuccess={handleDataAdded} />
+          <CreateHackathonWizard apiBase="/api/organizer" onSuccess={handleDataAdded} />
         )}
         {activeTab === 'drafts' && <DraftList key={refreshKey} apiBase="/api/organizer" />}
       </>
