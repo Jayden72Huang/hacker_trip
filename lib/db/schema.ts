@@ -833,6 +833,18 @@ export const a2aNegotiations = pgTable('a2a_negotiation', {
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
 });
 
+// ============ 邮箱订阅 ============
+
+export const subscribers = pgTable('subscriber', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  email: text('email').notNull().unique(),
+  source: text('source').default('homepage'),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+  unsubscribedAt: timestamp('unsubscribed_at', { mode: 'date' }),
+});
+
 // ============ 项目推荐 ============
 
 export const projectRecommendations = pgTable(
