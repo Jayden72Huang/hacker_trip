@@ -1,9 +1,8 @@
 /**
- * 通知系统 - 事件驱动的邮件推送
+ * 通知系统
  *
- * 触发场景：
- * 1. 新黑客松上线 → 通知所有开启订阅的用户
- * 2. 用户订阅的活动状态更新 → 通知该用户
+ * 邮件发送：仅「新黑客松上线」（用户已开启订阅的前提下）
+ * 站内通知：活动更新、项目推荐、私信、组队邀请
  */
 
 import { Resend } from 'resend';
@@ -14,13 +13,6 @@ import { eq, and, sql } from 'drizzle-orm';
 const resend = new Resend(process.env.AUTH_RESEND_KEY);
 const FROM = process.env.EMAIL_FROM || 'HackerTrip <noreply@hackertrip.space>';
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://hackertrip.space';
-
-interface NotificationPrefs {
-  emailNotifications?: boolean;
-  hackathonAlerts?: boolean;
-  registrationReminders?: boolean;
-  [key: string]: boolean | undefined;
-}
 
 /**
  * 新黑客松上线 → 通知所有开启 hackathonAlerts 的用户
@@ -85,7 +77,6 @@ export async function notifyHackathonUpdate(
   updateTitle: string,
   updateBody: string,
 ) {
-  // 查询该黑客松名称
   const [hackathon] = await db
     .select({ name: hackathons.name })
     .from(hackathons)
@@ -94,58 +85,29 @@ export async function notifyHackathonUpdate(
 
   if (!hackathon) return { total: 0, sent: 0 };
 
-  // 查询参与该活动且开启邮件订阅的用户
   const participants = await db
-    .select({
-      userId: participations.userId,
-      email: users.email,
-      notificationPrefs: users.notificationPrefs,
-    })
+    .select({ userId: participations.userId })
     .from(participations)
-    .innerJoin(users, eq(users.id, participations.userId))
     .where(eq(participations.hackathonId, hackathonId));
 
   const linkUrl = `/hackathon/${hackathonId}`;
-  let sent = 0;
 
   for (const p of participants) {
-    if (!p.email) continue;
-
-    const prefs = (p.notificationPrefs || {}) as NotificationPrefs;
-    if (!prefs.emailNotifications) continue;
-
     try {
-      const [notif] = await db.insert(notifications).values({
+      await db.insert(notifications).values({
         userId: p.userId,
         type: 'registration_deadline',
         title: updateTitle,
         body: updateBody,
         linkUrl,
         relatedHackathonId: hackathonId,
-        emailSent: false,
-      }).returning({ id: notifications.id });
-
-      await sendEmail({
-        to: p.email,
-        subject: `${hackathon.name} - ${updateTitle} - HackerTrip`,
-        title: updateTitle,
-        heading: hackathon.name,
-        body: updateBody,
-        linkUrl,
-        buttonText: '查看详情',
       });
-
-      if (notif) {
-        await db.update(notifications).set({ emailSent: true }).where(eq(notifications.id, notif.id));
-      }
-      sent++;
     } catch (error) {
-      console.error(`[Notify] 发送失败 (user=${p.userId}):`, error);
+      console.error(`[Notify] 站内通知创建失败 (user=${p.userId}):`, error);
     }
   }
 
-  console.log(`[Notify] 活动更新通知: ${sent}/${participants.length} 封邮件已发送`);
-  return { total: participants.length, sent };
+  return { total: participants.length, sent: 0 };
 }
 
 /**
@@ -158,46 +120,19 @@ export async function notifyProjectRecommendation(
   hackathonId: string,
   matchedTechStack: string[],
 ) {
-  const [user] = await db
-    .select({ email: users.email, notificationPrefs: users.notificationPrefs })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
-
-  if (!user) return;
-
-  const prefs = (user.notificationPrefs || {}) as NotificationPrefs;
-  const shouldSendEmail = Boolean(prefs.emailNotifications && user.email);
   const linkUrl = `/hackathon/${hackathonId}`;
   const matchText = matchedTechStack.length > 0
     ? `技术栈匹配：${matchedTechStack.join(', ')}`
     : '赛道和方向高度匹配';
 
-  const [notif] = await db.insert(notifications).values({
+  await db.insert(notifications).values({
     userId,
     type: 'project_recommendation',
     title: `你的项目「${projectName}」适合参加 ${hackathonName}`,
     body: matchText,
     linkUrl,
     relatedHackathonId: hackathonId,
-    emailSent: false,
-  }).returning({ id: notifications.id });
-
-  if (shouldSendEmail) {
-    await sendEmail({
-      to: user.email!,
-      subject: `你的项目「${projectName}」适合参加 ${hackathonName} - HackerTrip`,
-      title: '项目推荐',
-      heading: hackathonName,
-      body: `基于「${projectName}」的${matchText}，我们推荐你参加这个比赛！`,
-      linkUrl,
-      buttonText: '查看比赛',
-    });
-
-    if (notif) {
-      await db.update(notifications).set({ emailSent: true }).where(eq(notifications.id, notif.id));
-    }
-  }
+  });
 }
 
 /**
@@ -209,16 +144,6 @@ export async function notifyNewMessage(
   messagePreview: string,
   conversationId: string,
 ) {
-  const [user] = await db
-    .select({ email: users.email, notificationPrefs: users.notificationPrefs })
-    .from(users)
-    .where(eq(users.id, recipientId))
-    .limit(1);
-
-  if (!user) return;
-
-  const prefs = (user.notificationPrefs || {}) as NotificationPrefs;
-  const shouldSendEmail = Boolean(prefs.emailNotifications && user.email);
   const linkUrl = `/messages?conversation=${conversationId}`;
 
   await db.insert(notifications).values({
@@ -227,20 +152,7 @@ export async function notifyNewMessage(
     title: `${senderName} 给你发了一条消息`,
     body: messagePreview.slice(0, 100),
     linkUrl,
-    emailSent: shouldSendEmail,
   });
-
-  if (shouldSendEmail) {
-    await sendEmail({
-      to: user.email!,
-      subject: `${senderName} 给你发了一条消息 - HackerTrip`,
-      title: '新消息',
-      heading: `来自 ${senderName}`,
-      body: messagePreview.slice(0, 200),
-      linkUrl,
-      buttonText: '查看消息',
-    });
-  }
 }
 
 /**
