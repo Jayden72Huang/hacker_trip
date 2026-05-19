@@ -205,7 +205,10 @@ async function sendEmail(params: {
     subject,
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #0a0a0a; color: #ededed; padding: 40px 32px; border-radius: 12px;">
-        <h1 style="color: #7c5dff; font-size: 24px; margin-bottom: 8px;">HackerTrip</h1>
+        <div style="margin-bottom: 8px;">
+          <img src="${safeBaseUrl}/logo.png" alt="HackerTrip" width="32" height="32" style="display:inline-block;vertical-align:middle;border-radius:6px;" />
+          <span style="margin-left:10px;font-size:24px;font-weight:700;color:#7c5dff;vertical-align:middle;">HackerTrip</span>
+        </div>
         <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 16px 0 24px;" />
 
         <p style="font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 4px;">${safeTitle}</p>
