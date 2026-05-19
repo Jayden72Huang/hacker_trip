@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-const resendApiKey = process.env.AUTH_RESEND_KEY || process.env.RESEND_API_KEY;
-const fromEmail = 'Jayden <Jayden@hackertrip.space>';
+const resendApiKey = process.env.AUTH_RESEND_KEY;
+const fromEmail = process.env.EMAIL_FROM || 'HackerTrip <noreply@hackertrip.space>';
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 const isValidEmail = (value: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value);
