@@ -544,7 +544,7 @@ const hackathonData: HackathonDraft[] = [
 
   // ============ 杭州 (6) ============
   {
-    sourceUrl: "https://adventure-x.org/en",
+    sourceUrl: "https://adventure-x.org/",
     platform: "web",
     name: "AdventureX 2026",
     shortName: "AdventureX",

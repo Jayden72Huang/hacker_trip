@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { LogoMarquee } from '@/components/LogoMarquee';
+import { Testimonials } from '@/components/Testimonials';
 import { Footer } from '@/components/Footer';
 import { SubscribeForm } from '@/components/SubscribeForm';
 import { HackathonListSection } from '@/components/HackathonListSection';
-import { ArrowRight } from 'lucide-react';
-import { OrganizerIllustration } from '@/components/OrganizerIllustration';
+import { OrganizerCTA } from '@/components/OrganizerCTA';
 
 export default function Home() {
   return (
@@ -71,30 +71,12 @@ export default function Home() {
         {/* Logo Marquee */}
         <LogoMarquee />
 
+        {/* 评论走马灯 */}
+        <Testimonials />
+
         {/* 组织者 CTA */}
         <section className="w-full max-w-[1440px] mx-auto px-6 lg:px-10 py-16 md:py-24">
-          <div className="glass rounded-3xl p-8 md:p-12 border border-white/5 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-transparent" />
-            <div className="relative flex flex-col md:flex-row items-center gap-8 md:gap-12">
-              <div className="flex-1">
-                <h2 className="font-sora text-2xl md:text-3xl font-bold text-white mb-4">
-                  你是黑客松主办方？
-                </h2>
-                <p className="font-space-mono text-sm md:text-base text-gray-400 leading-relaxed mb-6">
-                  在 HackerTrip 发布你的黑客松活动，触达全球开发者社区。
-                  我们提供智能导入工具，3 分钟即可完成活动上架。
-                </p>
-                <Link
-                  href="/organize"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-space-mono text-sm font-medium transition-all hover:scale-[1.02] shadow-lg shadow-indigo-500/20"
-                >
-                  立即入驻
-                  <ArrowRight size={14} />
-                </Link>
-              </div>
-              <OrganizerIllustration />
-            </div>
-          </div>
+          <OrganizerCTA />
         </section>
 
         {/* 邮箱订阅 */}
