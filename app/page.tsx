@@ -4,7 +4,8 @@ import { LogoMarquee } from '@/components/LogoMarquee';
 import { Footer } from '@/components/Footer';
 import { SubscribeForm } from '@/components/SubscribeForm';
 import { HackathonListSection } from '@/components/HackathonListSection';
-import { ArrowRight, Zap } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { OrganizerIllustration } from '@/components/OrganizerIllustration';
 
 export default function Home() {
   return (
@@ -91,9 +92,7 @@ export default function Home() {
                   <ArrowRight size={14} />
                 </Link>
               </div>
-              <div className="shrink-0 w-48 h-48 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 border border-white/10 flex items-center justify-center">
-                <Zap size={48} className="text-indigo-400/60" />
-              </div>
+              <OrganizerIllustration />
             </div>
           </div>
         </section>
