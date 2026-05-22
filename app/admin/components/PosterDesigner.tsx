@@ -142,7 +142,7 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
       .catch(() => {});
   }, [tpl.qrUrl]);
 
-  const displayName = truncate(hackathon.shortName || hackathon.name || '未命名黑客松', tpl.titleMaxChars);
+  const displayName = truncate(hackathon.name || hackathon.shortName || '未命名黑客松', tpl.titleMaxChars);
   const titleSize = displayName.length <= 8 ? 76 : displayName.length <= 12 ? 62 : 50;
 
   const summaryLines = useMemo(
@@ -155,23 +155,27 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
     if (editorCards && editorCards.length >= 4) {
       return editorCards.slice(0, 4).map((c) => ({
         label: truncate(c.label, 6),
-        value: truncate(c.value, 12),
+        value: c.value || '—',
       }));
     }
     return [
-      { label: '奖金池', value: truncate(hackathon.prizePool || '—', 12) },
-      { label: '规模', value: truncate(hackathon.teams || '—', 12) },
-      { label: '主题', value: truncate(hackathon.theme || '—', 12) },
-      { label: '地点', value: truncate(hackathon.venue || hackathon.city || '—', 12) },
+      { label: '奖金池', value: hackathon.prizePool || '—' },
+      { label: '规模', value: hackathon.teams || '—' },
+      { label: '主题', value: hackathon.theme || '—' },
+      { label: '地点', value: hackathon.venue || hackathon.city || '—' },
     ];
   }, [hackathon]);
 
   const tracks = useMemo(() => {
     const t = hackathon.tracks || [];
-    return t.slice(0, 5).map((tr) => {
-      const desc = tr.description ? ` — ${tr.description}` : '';
-      return truncate(`${tr.title}${desc}`, 36);
-    });
+    return t.slice(0, 5).map((tr: unknown) => {
+      if (typeof tr === 'string') return truncate(tr, 36);
+      const obj = tr as Record<string, string>;
+      const title = obj.title || obj.name || '';
+      if (!title) return null;
+      const desc = obj.description ? ` — ${obj.description}` : '';
+      return truncate(`${title}${desc}`, 36);
+    }).filter(Boolean) as string[];
   }, [hackathon.tracks]);
 
   const organizers = useMemo(() => {
@@ -310,13 +314,15 @@ export function PosterDesigner({ hackathon }: { hackathon: DraftHackathon }) {
               const row = Math.floor(i / 2);
               const x = PAD + col * (cardW + 20);
               const y = cardsY + row * (cardH + 16);
+              const charLen = Array.from(card.value).reduce((sum, c) => sum + (c.charCodeAt(0) > 255 ? 2 : 1), 0);
+              const valueFontSize = charLen <= 10 ? 26 : charLen <= 16 ? 22 : charLen <= 22 ? 18 : 15;
               return (
                 <g key={i}>
                   <rect x={x} y={y} width={cardW} height={cardH} rx="16" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" />
                   <text x={x + 24} y={y + 36} fill={theme.accent} fontSize="20" fontFamily="Sora, sans-serif" opacity="0.9">
                     {card.label}
                   </text>
-                  <text x={x + 24} y={y + 68} fill="#FFFFFF" fontSize="26" fontWeight="600" fontFamily="Sora, sans-serif">
+                  <text x={x + 24} y={y + 68} fill="#FFFFFF" fontSize={valueFontSize} fontWeight="600" fontFamily="Sora, sans-serif">
                     {card.value}
                   </text>
                 </g>
