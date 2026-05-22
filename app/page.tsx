@@ -6,6 +6,7 @@ import { Footer } from '@/components/Footer';
 import { SubscribeForm } from '@/components/SubscribeForm';
 import { HackathonListSection } from '@/components/HackathonListSection';
 import { OrganizerCTA } from '@/components/OrganizerCTA';
+import { HeroRotatingText } from '@/components/HeroRotatingText';
 
 export default function Home() {
   return (
@@ -36,8 +37,8 @@ export default function Home() {
                   发现全球黑客松
                 </span>
                 <br />
-                <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                  开启你的下一场比赛
+                <span className="inline-flex items-center bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mt-2">
+                  <HeroRotatingText />
                 </span>
               </h1>
 
