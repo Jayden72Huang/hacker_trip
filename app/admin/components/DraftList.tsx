@@ -8,12 +8,16 @@ interface DraftListProps {
   apiBase?: string;
 }
 
+type SortKey = 'confidence' | 'createdAt' | 'name';
+
 export function DraftList({ apiBase }: DraftListProps) {
   const base = apiBase ?? '/api';
   const [drafts, setDrafts] = useState<DraftHackathon[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDraft, setSelectedDraft] = useState<DraftHackathon | null>(null);
   const [publishing, setPublishing] = useState(false);
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState<SortKey>('confidence');
 
   const loadDrafts = useCallback(async () => {
     try {
@@ -135,11 +139,28 @@ export function DraftList({ apiBase }: DraftListProps) {
     );
   }
 
+  const filtered = drafts
+    .filter((d) => {
+      if (!search) return true;
+      const q = search.toLowerCase();
+      return (
+        d.name?.toLowerCase().includes(q) ||
+        d.city?.toLowerCase().includes(q) ||
+        d.source?.toLowerCase().includes(q) ||
+        d.shortName?.toLowerCase().includes(q)
+      );
+    })
+    .sort((a, b) => {
+      if (sortBy === 'confidence') return (b.confidence ?? 0) - (a.confidence ?? 0);
+      if (sortBy === 'name') return (a.name ?? '').localeCompare(b.name ?? '');
+      return new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime();
+    });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="font-sora text-xl font-bold text-white">
-          草稿箱 ({drafts.length})
+          草稿箱 ({filtered.length}/{drafts.length})
         </h2>
         <button
           onClick={loadDrafts}
@@ -147,6 +168,25 @@ export function DraftList({ apiBase }: DraftListProps) {
         >
           🔄 刷新
         </button>
+      </div>
+
+      <div className="flex gap-3">
+        <input
+          type="text"
+          placeholder="搜索名称、城市、来源..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 font-space-mono text-sm focus:outline-none focus:border-indigo-500/50"
+        />
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as SortKey)}
+          className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 font-space-mono text-sm focus:outline-none focus:border-indigo-500/50 appearance-none cursor-pointer"
+        >
+          <option value="confidence">置信度排序</option>
+          <option value="createdAt">时间排序</option>
+          <option value="name">名称排序</option>
+        </select>
       </div>
 
       {selectedDraft ? (
@@ -167,7 +207,7 @@ export function DraftList({ apiBase }: DraftListProps) {
         </div>
       ) : (
         <div className="grid gap-4">
-          {drafts.map((draft) => (
+          {filtered.map((draft) => (
             <div
               key={draft.draftId}
               className="p-4 rounded-lg bg-white/5 border border-white/10 hover:border-indigo-500/30 transition-colors cursor-pointer"
