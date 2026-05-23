@@ -33,13 +33,11 @@ export default function Home() {
               </div>
 
               <h1 className="font-sora text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight">
-                <span className="bg-gradient-to-r from-white via-indigo-100 to-purple-100 bg-clip-text text-transparent">
-                  发现全球黑客松
+                <span className="text-gray-200">
+                  HackerTrip
                 </span>
-                <br />
-                <span className="inline-flex items-center mt-2">
-                  <HeroRotatingText />
-                </span>
+                {' '}
+                <HeroRotatingText />
               </h1>
 
               <p className="font-space-mono text-base md:text-lg text-gray-400 max-w-2xl">
