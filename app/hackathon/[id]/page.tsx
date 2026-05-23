@@ -19,6 +19,7 @@ import { hackathons } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { toHomepageHackathon, type HomepageHackathon } from '@/lib/types/hackathon';
 import { RegistrationForm } from './RegistrationForm';
+import { CountdownBadge } from './CountdownBadge';
 
 type Params = {
   params: Promise<{
@@ -39,7 +40,7 @@ function getRegistrationAction(hackathon: HomepageHackathon) {
 
   if (!reg) {
     return {
-      label: '官网报名',
+      label: '立即报名',
       href: withReferral(hackathon.website, campaignId),
       external: true,
       note: '将跳转至主办方官网',
@@ -49,7 +50,7 @@ function getRegistrationAction(hackathon: HomepageHackathon) {
 
   if (reg.mode === 'platform') {
     return {
-      label: '站内报名',
+      label: '立即报名',
       href: reg.platformPath || `/hackathon/${hackathon.id}#register`,
       external: false,
       note: reg.note || 'HackerTrip 提供的报名和后续流程',
@@ -57,21 +58,14 @@ function getRegistrationAction(hackathon: HomepageHackathon) {
     };
   }
 
-  const label = reg.mode === 'external-form' ? '填写报名表' : '官网报名';
   return {
-    label,
+    label: '立即报名',
     href: withReferral(reg.url, campaignId),
     external: true,
-    note: reg.siteName || '跳转至主办方站点',
+    note: reg.siteName || '将跳转至主办方官网',
     mode: reg.mode,
   };
 }
-
-const badgeStyles: Record<string, string> = {
-  'official-site': 'bg-indigo-500/15 text-indigo-200 border-indigo-500/30',
-  'external-form': 'bg-amber-500/15 text-amber-100 border-amber-500/30',
-  platform: 'bg-green-500/15 text-green-100 border-green-500/30',
-};
 
 export default async function HackathonDetailPage({ params }: Params) {
   const { id } = await params;
@@ -99,33 +93,28 @@ export default async function HackathonDetailPage({ params }: Params) {
             <ArrowLeft size={16} />
             返回首页
           </Link>
-          <div className={`px-3 py-1 rounded-full border text-xs font-semibold ${badgeStyles[registrationAction.mode]}`}>
-            {registrationAction.mode === 'platform'
-              ? 'HackerTrip 站内报名'
-              : registrationAction.mode === 'external-form'
-                ? '主办方报名表'
-                : '官方站点报名'}
-          </div>
+          <CountdownBadge
+            registrationDeadline={row.registrationDeadline ? row.registrationDeadline.toISOString() : null}
+            startDate={row.startDate instanceof Date ? row.startDate.toISOString() : String(row.startDate)}
+            endDate={row.endDate instanceof Date ? row.endDate.toISOString() : String(row.endDate)}
+          />
         </div>
 
         {/* Hero */}
         <header className="glass border border-white/5 rounded-3xl p-8 space-y-6">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div className="space-y-3">
-              <p className="text-sm text-gray-400 uppercase tracking-[0.2em]">Hackathon • 2026</p>
-              <h1 className="text-3xl md:text-4xl font-bold leading-tight">
-                {hackathon.name}
-              </h1>
-              <div className="flex items-center gap-4 text-gray-300 font-mono text-sm flex-wrap">
-                <span className="inline-flex items-center gap-2"><CalendarDays size={16} className="text-indigo-400" />{hackathon.dateRange}</span>
-                <span className="inline-flex items-center gap-2"><MapPin size={16} className="text-indigo-400" />{hackathon.city} · {hackathon.venue}</span>
-                {hackathon.hostOrganizer && (
-                  <span className="inline-flex items-center gap-2"><Building2 size={16} className="text-indigo-400" />{hackathon.hostOrganizer}</span>
-                )}
-              </div>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-400 uppercase tracking-[0.2em]">Hackathon • 2026</p>
+            <h1 className="text-3xl md:text-4xl font-bold leading-tight">
+              {hackathon.name}
+            </h1>
+            <div className="flex items-center gap-4 text-gray-300 font-mono text-sm flex-wrap">
+              <span className="inline-flex items-center gap-2"><CalendarDays size={16} className="text-indigo-400" />{hackathon.dateRange}</span>
+              <span className="inline-flex items-center gap-2"><MapPin size={16} className="text-indigo-400" />{hackathon.city} · {hackathon.venue}</span>
+              {hackathon.hostOrganizer && (
+                <span className="inline-flex items-center gap-2"><Building2 size={16} className="text-indigo-400" />{hackathon.hostOrganizer}</span>
+              )}
             </div>
-
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex gap-3 pt-1">
               {registrationAction.external ? (
                 <a
                   href={registrationAction.href}
@@ -145,7 +134,7 @@ export default async function HackathonDetailPage({ params }: Params) {
                 </Link>
               )}
               <Link
-                href="/explore"
+                href="/"
                 className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-white/10 text-white hover:bg-white/5 transition-colors"
               >
                 更多赛事

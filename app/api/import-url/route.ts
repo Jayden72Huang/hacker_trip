@@ -205,6 +205,9 @@ async function aiParseToStructured(
   "prizePool": "奖金池（保留货币符号）",
   "teams": "参赛规模",
   "hostOrganizer": "主办方",
+  "website": "官网或报名链接 URL",
+  "registrationUrl": "报名页面 URL（如果和官网不同）",
+  "coverImage": "活动海报/封面图片 URL",
   "tracks": [{"title": "赛道名", "description": "描述"}],
   "agenda": [{"title": "环节", "time": "时间", "detail": "详情"}],
   "organizers": [{"name": "组织方"}],
@@ -215,6 +218,9 @@ async function aiParseToStructured(
 - 图片文字和网页文字可能有重复，取更完整准确的版本
 - 日期转 YYYY-MM-DD，没有年份默认 2026
 - format: 线下=offline, 线上=online, 混合=hybrid
+- website: 提取官方网站链接或报名页面链接
+- registrationUrl: 如果有单独的报名链接（不同于官网），提取它
+- coverImage: 从图片URL中找到最可能是活动海报/封面的图片URL（通常是最大/最醒目的banner图）
 - 只返回 JSON`,
         },
         {

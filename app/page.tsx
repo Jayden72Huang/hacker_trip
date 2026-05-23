@@ -7,6 +7,7 @@ import { SubscribeForm } from '@/components/SubscribeForm';
 import { HackathonListSection } from '@/components/HackathonListSection';
 import { OrganizerCTA } from '@/components/OrganizerCTA';
 import { HeroRotatingText } from '@/components/HeroRotatingText';
+import { HyperspeedHero } from '@/components/HyperspeedHero';
 
 export default function Home() {
   return (
@@ -23,7 +24,8 @@ export default function Home() {
       <main className="pt-10">
         {/* Hero */}
         <section className="relative pt-36 md:pt-40 lg:pt-44 pb-8 md:pb-10 overflow-hidden">
-          <div className="relative w-full max-w-[1440px] mx-auto px-6 lg:px-10">
+          <HyperspeedHero />
+          <div className="relative z-10 w-full max-w-[1440px] mx-auto px-6 lg:px-10">
             <div className="w-full max-w-4xl mx-auto flex flex-col items-center gap-8 text-center">
               <div className="glass rounded-full px-5 py-2.5 flex items-center gap-3 glow">
                 <div className="w-2 h-2 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400 animate-pulse" />
@@ -32,7 +34,7 @@ export default function Home() {
                 </span>
               </div>
 
-              <h1 className="font-sora text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight">
+              <h1 className="font-sora text-3xl md:text-5xl lg:text-[3.25rem] font-extrabold leading-tight whitespace-nowrap">
                 <span className="text-gray-200">
                   HackerTrip
                 </span>

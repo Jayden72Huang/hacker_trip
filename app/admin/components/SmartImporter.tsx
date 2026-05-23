@@ -15,6 +15,9 @@ import {
   ChevronDown,
   ChevronUp,
   ImageIcon,
+  Copy,
+  ExternalLink,
+  Database,
 } from 'lucide-react';
 
 interface ParsedHackathon {
@@ -63,6 +66,15 @@ const FIELD_CONFIG: { key: keyof ParsedHackathon; label: string; type?: 'text' |
   { key: 'summary', label: '活动简介', type: 'textarea' },
 ];
 
+const HACKATHON_SOURCES = [
+  { name: 'CompeteHub', url: 'https://www.competehub.dev/en?category=5', desc: '黑客松赛事聚合', tag: '国际' },
+  { name: 'DoraHacks', url: 'https://dorahacks.io/hackathon', desc: '全球黑客松 & BUIDLs', tag: '国际' },
+  { name: 'Devpost', url: 'https://devpost.com/hackathons', desc: '国际黑客松平台', tag: '国际' },
+  { name: 'HackQuest', url: 'https://www.hackquest.io/hackathon', desc: 'Web3 & AI 黑客松', tag: '国际' },
+  { name: '链扑 LianPu', url: 'https://lianpu.com', desc: '国内活动聚合平台', tag: '国内' },
+  { name: '活动行', url: 'https://huodongxing.com', desc: '国内活动报名平台', tag: '国内' },
+];
+
 interface Props {
   onSuccess: () => void;
   apiBase?: string;
@@ -86,6 +98,8 @@ export function SmartImporter({ onSuccess, apiBase }: Props) {
   const draftsBase = apiBase ?? '/api';
   const [url, setUrl] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showSources, setShowSources] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
 
   // 一键导入状态
   const [importStep, setImportStep] = useState<ImportStep>('idle');
@@ -336,6 +350,69 @@ export function SmartImporter({ onSuccess, apiBase }: Props) {
           <p className="text-xs text-gray-500 font-space-mono">粘贴链接，一键导入到草稿箱</p>
         </div>
       </div>
+
+      {/* ========== 常用信息源 ========== */}
+      <button
+        onClick={() => setShowSources(!showSources)}
+        className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-200 transition-colors w-full"
+      >
+        <Database size={14} className="text-indigo-400" />
+        <span className="font-medium">常用信息源</span>
+        <span className="text-xs text-gray-600">（点击展开，复制链接到采集栏）</span>
+        <div className="flex-1" />
+        {showSources ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+      </button>
+
+      {showSources && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {HACKATHON_SOURCES.map((source) => (
+            <div
+              key={source.name}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:border-white/15 transition-colors group"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-white">{source.name}</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-indigo-500/15 text-indigo-300">{source.tag}</span>
+                </div>
+                <p className="text-xs text-gray-500 truncate mt-0.5">{source.desc}</p>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => {
+                    setUrl(source.url);
+                    setShowSources(false);
+                  }}
+                  className="px-2.5 py-1.5 rounded-md bg-indigo-500/15 text-indigo-300 text-xs hover:bg-indigo-500/25 transition-colors"
+                  title="填入采集栏"
+                >
+                  使用
+                </button>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(source.url);
+                    setCopiedUrl(source.url);
+                    setTimeout(() => setCopiedUrl(null), 1500);
+                  }}
+                  className="p-1.5 rounded-md text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-colors"
+                  title="复制链接"
+                >
+                  {copiedUrl === source.url ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+                </button>
+                <a
+                  href={source.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="p-1.5 rounded-md text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-colors"
+                  title="打开网站"
+                >
+                  <ExternalLink size={12} />
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ========== 一键导入区域 ========== */}
       <div className="glass rounded-xl border border-white/10 p-5 space-y-4">
