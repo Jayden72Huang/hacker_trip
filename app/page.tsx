@@ -37,7 +37,7 @@ export default function Home() {
                   发现全球黑客松
                 </span>
                 <br />
-                <span className="inline-flex items-center bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mt-2">
+                <span className="inline-flex items-center mt-2">
                   <HeroRotatingText />
                 </span>
               </h1>
