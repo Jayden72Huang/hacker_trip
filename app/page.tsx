@@ -23,7 +23,7 @@ export default function Home() {
 
       <main className="pt-10">
         {/* Hero */}
-        <section className="relative pt-36 md:pt-40 lg:pt-44 pb-0 overflow-visible">
+        <section className="relative pt-36 md:pt-40 lg:pt-44 pb-96 overflow-hidden">
           <HyperspeedHero />
           <div className="relative z-10 w-full max-w-[1440px] mx-auto px-6 lg:px-10">
             <div className="w-full max-w-4xl mx-auto flex flex-col items-center gap-8 text-center">

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Menu, X, LogOut } from 'lucide-react';
+import { Menu, X, LogOut, Users } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { UserMenu } from './UserMenu';
 import { SignInModal } from './SignInModal';
@@ -12,6 +12,7 @@ import { SignInModal } from './SignInModal';
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [signInModalOpen, setSignInModalOpen] = useState(false);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { data: session, status } = useSession();
   const isLoading = status === 'loading';
@@ -60,6 +61,13 @@ export function Navbar() {
               >
                 黑客松
               </Link>
+              <button
+                onClick={() => setQrModalOpen(true)}
+                className="font-space-mono text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1.5"
+              >
+                <Users size={14} />
+                社群
+              </button>
             </div>
 
             {/* Right Side Buttons */}
@@ -115,6 +123,13 @@ export function Navbar() {
                 >
                   黑客松
                 </Link>
+                <button
+                  onClick={() => { setMobileMenuOpen(false); setQrModalOpen(true); }}
+                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors text-left flex items-center gap-2"
+                >
+                  <Users size={14} />
+                  社群
+                </button>
                 <div className="w-full h-px bg-white/10 my-2" />
                 <Link
                   href="/organize"
@@ -179,6 +194,41 @@ export function Navbar() {
 
       {/* Sign In Modal */}
       <SignInModal isOpen={signInModalOpen} onClose={() => setSignInModalOpen(false)} />
+
+      {/* QR Code Modal */}
+      {qrModalOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          onClick={() => setQrModalOpen(false)}
+        >
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+          <div
+            className="relative glass rounded-2xl p-6 border border-white/10 max-w-sm w-full text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setQrModalOpen(false)}
+              className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+            >
+              <X size={18} className="text-gray-400" />
+            </button>
+            <h3 className="font-sora text-lg font-bold text-white mb-1">加入社群</h3>
+            <p className="font-space-mono text-xs text-gray-400 mb-4">
+              扫码加入 HackerTrip 微信社群
+            </p>
+            <Image
+              src="/images/wechat-community-qr.jpg"
+              alt="HackerTrip 微信社群二维码"
+              width={280}
+              height={380}
+              className="rounded-xl mx-auto"
+            />
+            <p className="font-space-mono text-xs text-gray-500 mt-4">
+              微信扫一扫，加入种子用户群
+            </p>
+          </div>
+        </div>
+      )}
     </>
   );
 }
