@@ -1,0 +1,10 @@
+{
+  "totalTokens": 1085466,
+  "totalMessages": 9273,
+  "sessionsAnalyzed": 174,
+  "activeDays": 31,
+  "sources": {
+    "claude-code": 166,
+    "gemini": 8
+  }
+}
