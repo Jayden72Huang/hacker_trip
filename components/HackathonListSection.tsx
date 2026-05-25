@@ -69,27 +69,50 @@ export function HackathonListSection() {
   const displayList = activeTab === 'upcoming' ? upcoming : past;
 
   return (
-    <section id="hackathons" className="w-full max-w-[1440px] mx-auto px-6 lg:px-10 py-16 md:py-24">
-      {/* Tab 切换 */}
-      <div className="relative rounded-2xl overflow-hidden mb-8">
+    <section id="hackathons" className="w-full -mt-8">
+      {/* 全景背景 Tab 头部 */}
+      <div className="relative overflow-hidden mb-0">
+        {/* 左侧图片 - Upcoming */}
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-40 transition-opacity duration-500"
-          style={{ backgroundImage: "url('/images/events-banner.png')" }}
-        />
-        <div
-          className="absolute inset-0 transition-all duration-500"
+          className="absolute inset-0 bg-cover bg-center transition-opacity duration-700"
           style={{
-            background: activeTab === 'upcoming'
-              ? 'linear-gradient(to right, rgba(5,6,10,0.15) 0%, rgba(5,6,10,0.4) 50%, rgba(5,6,10,0.75) 100%)'
-              : 'linear-gradient(to right, rgba(5,6,10,0.75) 0%, rgba(5,6,10,0.4) 50%, rgba(5,6,10,0.15) 100%)'
+            backgroundImage: "url('/images/events-banner.png')",
+            backgroundPosition: 'left center',
+            opacity: activeTab === 'upcoming' ? 0.5 : 0.25,
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#05060a]/80" />
+        {/* 右侧图片 - Past（同图不同位置+色调） */}
+        <div
+          className="absolute inset-0 bg-cover bg-center transition-opacity duration-700"
+          style={{
+            backgroundImage: "url('/images/events-banner.png')",
+            backgroundPosition: 'right center',
+            opacity: activeTab === 'past' ? 0.5 : 0.25,
+            maskImage: 'linear-gradient(to right, transparent 20%, black 60%)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent 20%, black 60%)',
+          }}
+        />
+        {/* 中间渐变融合 */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(to right,
+              rgba(124,93,255,${activeTab === 'upcoming' ? '0.15' : '0.05'}) 0%,
+              rgba(5,6,10,0.6) 45%,
+              rgba(5,6,10,0.6) 55%,
+              rgba(77,225,255,${activeTab === 'past' ? '0.15' : '0.05'}) 100%
+            )`,
+          }}
+        />
+        {/* 顶部淡入（与 hero 衔接） */}
+        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#05060a] to-transparent" />
+        {/* 底部淡出 */}
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#05060a] to-transparent" />
 
-        <div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-6 px-8 py-8">
+        <div className="relative max-w-[1440px] mx-auto px-6 lg:px-10 flex flex-col md:flex-row md:items-end md:justify-between gap-6 py-16 md:py-20">
           <button
             onClick={() => setActiveTab('upcoming')}
-            className={`text-left transition-all ${activeTab === 'upcoming' ? 'opacity-100' : 'opacity-50 hover:opacity-75'}`}
+            className={`text-left transition-all duration-500 ${activeTab === 'upcoming' ? 'opacity-100 scale-100' : 'opacity-40 hover:opacity-60 scale-95'}`}
           >
             <div className="flex items-center gap-3 mb-2">
               <h2 className={`font-sora text-2xl md:text-3xl font-bold transition-colors ${
@@ -112,7 +135,7 @@ export function HackathonListSection() {
 
           <button
             onClick={() => setActiveTab('past')}
-            className={`text-left md:text-right transition-all ${activeTab === 'past' ? 'opacity-100' : 'opacity-50 hover:opacity-75'}`}
+            className={`text-left md:text-right transition-all duration-500 ${activeTab === 'past' ? 'opacity-100 scale-100' : 'opacity-40 hover:opacity-60 scale-95'}`}
           >
             <div className="flex items-center gap-3 mb-2 md:flex-row-reverse">
               <span className={`px-2.5 py-1 rounded-full font-space-mono text-sm transition-all ${
@@ -136,6 +159,7 @@ export function HackathonListSection() {
       </div>
 
       {/* 搜索和筛选栏 */}
+      <div className="max-w-[1440px] mx-auto px-6 lg:px-10">
       <div className="glass rounded-2xl p-4 mb-8 border border-white/5 relative z-20">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
@@ -217,9 +241,10 @@ export function HackathonListSection() {
           </div>
         </div>
       </div>
+      </div>
 
       {/* 黑客松卡片列表 */}
-      <div className="relative z-10">
+      <div className="relative z-10 max-w-[1440px] mx-auto px-6 lg:px-10">
         {loading ? (
           <div className="text-center py-20">
             <Loader2 size={32} className="text-indigo-400 animate-spin mx-auto mb-4" />
@@ -249,7 +274,7 @@ export function HackathonListSection() {
       </div>
 
       {/* 查看全部入口 */}
-      <div className="mt-10 text-center">
+      <div className="mt-10 text-center max-w-[1440px] mx-auto px-6 lg:px-10 pb-16 md:pb-24">
         <Link
           href="/explore"
           className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all font-space-mono text-sm text-gray-400 hover:text-white"

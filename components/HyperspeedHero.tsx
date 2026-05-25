@@ -43,10 +43,11 @@ const heroOptions = {
 export function HyperspeedHero() {
   return (
     <div
-      className="absolute inset-0 z-0 opacity-40"
+      className="absolute inset-x-0 top-0 z-0 opacity-65"
       style={{
-        maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0) 75%)',
-        WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0) 75%)',
+        bottom: '-120px',
+        maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0) 80%)',
+        WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0) 80%)',
       }}
       aria-hidden
     >

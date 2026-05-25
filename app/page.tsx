@@ -14,16 +14,16 @@ export default function Home() {
     <div className="relative min-h-screen pb-12">
       <div className="fixed inset-0 -z-10 grid-bg opacity-50" aria-hidden />
       <div className="fixed inset-0 z-[-5] overflow-hidden pointer-events-none" aria-hidden>
-        <div className="absolute top-20 left-1/5 w-[500px] h-[500px] bg-indigo-500/15 rounded-full blur-[150px]" />
-        <div className="absolute top-40 right-1/5 w-[500px] h-[500px] bg-purple-500/15 rounded-full blur-[150px]" />
-        <div className="absolute top-[600px] left-1/3 w-[400px] h-[400px] bg-pink-500/10 rounded-full blur-[120px]" />
+        <div className="absolute top-20 left-1/5 w-[500px] h-[500px] bg-indigo-500/25 rounded-full blur-[150px]" />
+        <div className="absolute top-40 right-1/5 w-[500px] h-[500px] bg-purple-500/25 rounded-full blur-[150px]" />
+        <div className="absolute top-[600px] left-1/3 w-[400px] h-[400px] bg-pink-500/15 rounded-full blur-[120px]" />
       </div>
 
       <Navbar />
 
       <main className="pt-10">
         {/* Hero */}
-        <section className="relative pt-36 md:pt-40 lg:pt-44 pb-8 md:pb-10 overflow-hidden">
+        <section className="relative pt-36 md:pt-40 lg:pt-44 pb-0 overflow-visible">
           <HyperspeedHero />
           <div className="relative z-10 w-full max-w-[1440px] mx-auto px-6 lg:px-10">
             <div className="w-full max-w-4xl mx-auto flex flex-col items-center gap-8 text-center">
