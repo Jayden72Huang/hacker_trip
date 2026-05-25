@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { Menu, X, LogOut } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Menu, X, LogOut, ChevronDown } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { UserMenu } from './UserMenu';
 import { SignInModal } from './SignInModal';
@@ -13,6 +13,9 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [signInModalOpen, setSignInModalOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [communityOpen, setCommunityOpen] = useState(false);
+  const [mobileCommunityOpen, setMobileCommunityOpen] = useState(false);
+  const communityRef = useRef<HTMLDivElement>(null);
   const { data: session, status } = useSession();
   const isLoading = status === 'loading';
 
@@ -24,6 +27,18 @@ export function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // 点击外部关闭社群面板
+  useEffect(() => {
+    if (!communityOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (communityRef.current && !communityRef.current.contains(e.target as Node)) {
+        setCommunityOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [communityOpen]);
 
   return (
     <>
@@ -60,6 +75,52 @@ export function Navbar() {
               >
                 黑客松
               </Link>
+
+              {/* 黑客松社群 Toggle */}
+              <div ref={communityRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setCommunityOpen((v) => !v)}
+                  aria-expanded={communityOpen}
+                  className="flex items-center gap-1 font-space-mono text-sm text-gray-400 hover:text-white transition-colors"
+                >
+                  黑客松社群
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform ${communityOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                <AnimatePresence>
+                  {communityOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                      transition={{ duration: 0.18 }}
+                      className="absolute left-1/2 -translate-x-1/2 top-full mt-4 z-50"
+                    >
+                      <div className="glass glow rounded-2xl border border-white/10 p-5 w-[280px] flex flex-col items-center gap-3">
+                        <p className="font-sora text-sm font-medium text-white text-center">
+                          扫码加入 HackerTrip 社群
+                        </p>
+                        <div className="rounded-xl overflow-hidden bg-black/40 border border-white/5">
+                          <Image
+                            src="/images/community-qr.jpg"
+                            alt="黑客松社群微信群二维码"
+                            width={240}
+                            height={366}
+                            className="block w-full h-auto"
+                          />
+                        </div>
+                        <p className="font-space-mono text-[11px] text-gray-500 text-center leading-relaxed">
+                          微信扫码加入 · 二维码定期更新
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
             {/* Right Side Buttons */}
@@ -115,6 +176,50 @@ export function Navbar() {
                 >
                   黑客松
                 </Link>
+
+                {/* 移动端黑客松社群 Toggle */}
+                <button
+                  type="button"
+                  onClick={() => setMobileCommunityOpen((v) => !v)}
+                  aria-expanded={mobileCommunityOpen}
+                  className="px-4 py-3 rounded-xl hover:bg-white/5 font-space-mono text-sm text-gray-400 transition-colors flex items-center justify-between"
+                >
+                  黑客松社群
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform ${mobileCommunityOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+                <AnimatePresence initial={false}>
+                  {mobileCommunityOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mx-4 mb-2 rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col items-center gap-2">
+                        <p className="font-sora text-sm font-medium text-white text-center">
+                          扫码加入 HackerTrip 社群
+                        </p>
+                        <div className="rounded-lg overflow-hidden bg-black/40 border border-white/5">
+                          <Image
+                            src="/images/community-qr.jpg"
+                            alt="黑客松社群微信群二维码"
+                            width={220}
+                            height={336}
+                            className="block w-full h-auto"
+                          />
+                        </div>
+                        <p className="font-space-mono text-[11px] text-gray-500 text-center">
+                          微信扫码加入 · 二维码定期更新
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 <div className="w-full h-px bg-white/10 my-2" />
                 <Link
                   href="/organize"
