@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import {
   ArrowLeft,
@@ -26,6 +27,47 @@ type Params = {
     id: string;
   }>;
 };
+
+const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hackertrip.space';
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const { id } = await params;
+  const [row] = await db.select().from(hackathons).where(eq(hackathons.id, id)).limit(1);
+
+  if (!row) {
+    return { title: '黑客松未找到' };
+  }
+
+  const name = row.name;
+  const summary = (row.summary || row.description || '').slice(0, 155);
+  const city = row.city || '';
+  const mode = row.mode || 'hybrid';
+  const modeLabel = mode === 'online' ? '线上' : mode === 'offline' ? '线下' : '混合';
+  const description = summary || `${name} — ${city ? city + ' · ' : ''}${modeLabel}黑客松比赛，在 HackerTrip 查看赛道、奖金和报名信息。`;
+
+  return {
+    title: name,
+    description,
+    alternates: {
+      canonical: `${siteUrl}/hackathon/${id}`,
+    },
+    openGraph: {
+      title: `${name} | HackerTrip`,
+      description,
+      url: `${siteUrl}/hackathon/${id}`,
+      siteName: 'HackerTrip',
+      type: 'website',
+      images: [{ url: '/og-image.png', width: 1200, height: 630, alt: name }],
+      locale: 'zh_CN',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${name} | HackerTrip`,
+      description,
+      images: ['/og-image.png'],
+    },
+  };
+}
 
 function withReferral(url: string, campaign: string) {
   if (!url) return url;
@@ -82,7 +124,39 @@ export default async function HackathonDetailPage({ params }: Params) {
   const hackathon = toHomepageHackathon(row);
   const registrationAction = getRegistrationAction(hackathon);
 
+  const eventJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    name: hackathon.name,
+    description: hackathon.summary || hackathon.description || '',
+    startDate: hackathon.startDate,
+    endDate: hackathon.endDate,
+    eventStatus: 'https://schema.org/EventScheduled',
+    eventAttendanceMode:
+      hackathon.mode === 'online'
+        ? 'https://schema.org/OnlineEventAttendanceMode'
+        : hackathon.mode === 'offline'
+          ? 'https://schema.org/OfflineEventAttendanceMode'
+          : 'https://schema.org/MixedEventAttendanceMode',
+    location: hackathon.mode === 'online'
+      ? { '@type': 'VirtualLocation', url: hackathon.website || `${siteUrl}/hackathon/${hackathon.id}` }
+      : { '@type': 'Place', name: hackathon.venue || hackathon.city, address: { '@type': 'PostalAddress', addressLocality: hackathon.city, addressCountry: hackathon.country } },
+    url: `${siteUrl}/hackathon/${hackathon.id}`,
+    organizer: hackathon.hostOrganizer
+      ? { '@type': 'Organization', name: hackathon.hostOrganizer }
+      : { '@type': 'Organization', name: 'HackerTrip', url: siteUrl },
+    image: hackathon.coverImage || `${siteUrl}/og-image.png`,
+    offers: hackathon.prizePool
+      ? { '@type': 'Offer', description: `奖金池: ${hackathon.prizePool}`, price: '0', priceCurrency: 'CNY', availability: 'https://schema.org/InStock' }
+      : undefined,
+  };
+
   return (
+    <>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
+    />
     <main className="min-h-screen bg-[#0a0a0f] text-white pb-16">
       <div className="max-w-5xl mx-auto px-6 pt-10 space-y-10">
         <div className="flex items-center justify-between gap-3">
@@ -235,6 +309,7 @@ export default async function HackathonDetailPage({ params }: Params) {
         )}
       </div>
     </main>
+    </>
   );
 }
 

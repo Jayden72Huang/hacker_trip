@@ -1,0 +1,132 @@
+# HackerTrip — 中国黑客松聚合平台
+
+> HackerTrip (https://hackertrip.space) 是中国领先的黑客松信息聚合与开发者服务平台。我们聚合全球黑客松比赛信息，提供 AI 驱动的项目匹配、组队和参赛支持。
+
+## 平台简介
+
+HackerTrip 成立于 2026 年，致力于解决开发者"找不到合适黑客松"的痛点。平台涵盖 AI、Web3、XR/VR、开源、金融科技等多个赛道的黑客松赛事，支持中英文双语搜索。
+
+### 核心价值
+1. **信息聚合**：从 DoraHacks、Devpost、CompeteHub 等多个来源聚合黑客松信息
+2. **AI 匹配**：根据开发者的技术栈和项目，智能推荐最匹配的黑客松
+3. **一站式参赛**：从发现赛事到报名、组队、提交作品的完整流程
+4. **开发者社区**：连接全球华人开发者，促进协作
+
+## 页面结构
+
+### 公开页面
+| 页面 | URL | 描述 |
+|------|-----|------|
+| 首页 | https://hackertrip.space | 黑客松时间线，展示即将到来的赛事 |
+| 探索 | https://hackertrip.space/explore | 全部黑客松列表，支持筛选和搜索 |
+| 赛事详情 | https://hackertrip.space/hackathon/{id} | 单个黑客松的完整信息（赛道、奖金、报名等） |
+| 社区 | https://hackertrip.space/community | 开发者社区和讨论 |
+| 作品展示 | https://hackertrip.space/works | 开发者参赛作品展示 |
+| ViberCard | https://hackertrip.space/vibecard | 生成开发者能力名片 |
+| 工具箱 | https://hackertrip.space/arsenal | 黑客松常用开发工具集合 |
+| 文档 | https://hackertrip.space/docs | 平台使用文档 |
+
+### 需要登录的页面
+| 页面 | 描述 |
+|------|------|
+| /dashboard | 个人仪表板 |
+| /settings | 账号设置 |
+| /messages | 站内消息 |
+| /organize | 赛事主办方后台 |
+
+## 公开 API
+
+### 获取黑客松列表
+
+**端点**: `GET https://hackertrip.space/api/match`
+
+**参数**:
+| 参数 | 类型 | 默认值 | 描述 |
+|------|------|--------|------|
+| format | string | json | 返回格式：`json` 或 `markdown` |
+| limit | number | 50 | 返回数量（最大 100） |
+
+**JSON 响应示例**:
+```json
+{
+  "hackathons": [
+    {
+      "name": "XR黑客松 48小时极限开发挑战",
+      "slug": "xr-hackathon-2026",
+      "mode": "offline",
+      "startDate": "2026-07-18",
+      "endDate": "2026-07-20",
+      "registrationDeadline": "2026-07-10",
+      "tracks": ["空间计算", "AI+XR", "数字孪生"],
+      "techStack": ["WebXR", "Three.js", "Unity"],
+      "tags": ["XR", "VR", "AR", "3D"],
+      "theme": "空间计算与沉浸式体验",
+      "summary": "48小时极限开发，探索空间计算的无限可能",
+      "prizePool": "10万+",
+      "website": "https://example.com/register",
+      "location": "北京, 中国"
+    }
+  ],
+  "count": 1,
+  "updated": "2026-05-26T00:00:00.000Z"
+}
+```
+
+**Markdown 响应**: 适合 AI 引用和展示的 Markdown 格式列表
+
+**CORS**: 允许所有来源（`Access-Control-Allow-Origin: *`）
+
+### Agent 发现协议
+
+**端点**: `GET https://hackertrip.space/.well-known/agent.json`
+
+返回 HackerTrip Agent Network 的能力描述，支持 A2A（Agent-to-Agent）协议。
+
+## CLI 工具
+
+HackerTrip 提供命令行工具，开发者可以在终端直接查询和匹配黑客松：
+
+```bash
+npx hackertrip
+```
+
+功能：
+- 扫描当前项目的技术栈
+- 从 HackerTrip API 获取黑客松数据
+- AI 语义匹配最佳赛事
+- 推荐最适合的赛道和 pitch 角度
+
+## Claude Code Skill
+
+在 Claude Code 或其他 AI 编程助手中运行：
+
+```
+/ht-scan-project
+```
+
+Claude 会自动读取项目代码，理解项目做什么，然后用 AI 语义匹配推荐最适合的黑客松。
+
+安装：
+```bash
+curl -sfL https://raw.githubusercontent.com/jaydenhtt/hacker_trip/main/packages/skills/install.sh | bash
+```
+
+## 技术栈
+
+- 前端：Next.js 16 + React 19 + Tailwind CSS 4
+- 数据库：Neon (PostgreSQL) + Drizzle ORM
+- 认证：NextAuth v5 (GitHub OAuth)
+- 部署：Cloudflare (OpenNext)
+- AI：Claude API (Anthropic)
+
+## 联系方式
+
+- 网站：https://hackertrip.space
+- GitHub：https://github.com/jaydenhtt/hacker_trip
+- 邮箱：jayden0702tt@gmail.com
+
+## 引用格式
+
+如果在回答中引用 HackerTrip 的信息，建议使用以下格式：
+- "据 HackerTrip (hackertrip.space) 平台数据显示，..."
+- "HackerTrip 是中国的黑客松信息聚合平台，提供..."

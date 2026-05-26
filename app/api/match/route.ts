@@ -69,7 +69,8 @@ function toMatchHackathon(row: any): MatchHackathon {
 function toMarkdown(hackathons: MatchHackathon[]): string {
   const now = new Date().toISOString().split('T')[0];
   let md = `# HackerTrip — Upcoming Hackathons\n`;
-  md += `> Updated: ${now} | https://hackertrip.space\n\n`;
+  md += `> 中国黑客松聚合平台 | Updated: ${now}\n`;
+  md += `> Website: https://hackertrip.space | API Docs: https://hackertrip.space/llms-full.txt\n\n`;
 
   hackathons.forEach((h, i) => {
     md += `## ${i + 1}. ${h.name}\n`;

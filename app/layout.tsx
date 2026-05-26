@@ -30,24 +30,38 @@ const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hackertrip.space';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "HackerTrip · Hackathon Timeline 2026",
+  title: {
+    default: 'HackerTrip — 中国黑客松聚合平台 | 发现、匹配、参赛',
+    template: '%s | HackerTrip',
+  },
   description:
-    "跟踪全球黑客松旅程，查看每站城市、时间与报名信息，规划你的 2026 参赛日程。",
-  keywords: ['黑客松', 'hackathon', '编程竞赛', '开发者', 'AI黑客松', 'HackerTrip', '参赛', '开发者社区'],
+    '中国领先的黑客松信息聚合平台。聚合全球 AI、Web3、开源黑客松赛事，提供 AI 智能匹配、组队和一站式参赛服务。发现适合你的黑客松比赛。',
+  keywords: [
+    'HackerTrip', 'hackertrip',
+    '黑客松', '黑客松平台', '中国黑客松平台', '黑客松集合', '黑客松聚合',
+    'hackathon', 'hackathon platform', 'hackathon China',
+    '编程竞赛', '开发者社区', '开发者活动',
+    'AI黑客松', 'Web3黑客松', '开源黑客松',
+    '黑客松报名', '黑客松比赛', '黑客松时间线',
+    '组队', '参赛', 'hackathon finder',
+  ],
   authors: [{ name: 'HackerTrip' }],
   creator: 'HackerTrip',
   publisher: 'HackerTrip',
+  alternates: {
+    canonical: siteUrl,
+  },
   openGraph: {
-    title: 'HackerTrip · Hackathon Timeline 2026',
-    description: '跟踪全球黑客松旅程，查看每站城市、时间与报名信息，规划你的 2026 参赛日程。',
-    url: 'https://hackertrip.space',
+    title: 'HackerTrip — 中国黑客松聚合平台',
+    description: '聚合全球黑客松赛事，AI 智能匹配你的项目和技术栈，一站式发现、报名、组队、参赛。',
+    url: siteUrl,
     siteName: 'HackerTrip',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'HackerTrip - 黑客松时间线',
+        alt: 'HackerTrip — 中国黑客松聚合平台',
       },
     ],
     locale: 'zh_CN',
@@ -55,8 +69,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'HackerTrip · Hackathon Timeline 2026',
-    description: '跟踪全球黑客松旅程，查看每站城市、时间与报名信息，规划你的 2026 参赛日程。',
+    title: 'HackerTrip — 中国黑客松聚合平台',
+    description: '聚合全球黑客松赛事，AI 智能匹配，一站式参赛服务。',
     images: ['/og-image.png'],
   },
   robots: {
@@ -106,6 +120,56 @@ export default function RootLayout({
             gtag('config', 'G-7JLBTD2NCG');
           `}
         </Script>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@graph': [
+                {
+                  '@type': 'Organization',
+                  '@id': `${siteUrl}/#organization`,
+                  name: 'HackerTrip',
+                  url: siteUrl,
+                  logo: {
+                    '@type': 'ImageObject',
+                    url: `${siteUrl}/logo.png`,
+                  },
+                  description: '中国领先的黑客松信息聚合平台，帮助开发者发现、报名和参加全球黑客松比赛。',
+                  sameAs: ['https://github.com/jaydenhtt/hacker_trip'],
+                },
+                {
+                  '@type': 'WebSite',
+                  '@id': `${siteUrl}/#website`,
+                  url: siteUrl,
+                  name: 'HackerTrip',
+                  description: '中国黑客松聚合平台 — 发现、匹配、参赛',
+                  publisher: { '@id': `${siteUrl}/#organization` },
+                  inLanguage: 'zh-CN',
+                  potentialAction: {
+                    '@type': 'SearchAction',
+                    target: {
+                      '@type': 'EntryPoint',
+                      urlTemplate: `${siteUrl}/explore?q={search_term_string}`,
+                    },
+                    'query-input': 'required name=search_term_string',
+                  },
+                },
+                {
+                  '@type': 'WebPage',
+                  '@id': `${siteUrl}/#webpage`,
+                  url: siteUrl,
+                  name: 'HackerTrip — 中国黑客松聚合平台',
+                  isPartOf: { '@id': `${siteUrl}/#website` },
+                  about: { '@id': `${siteUrl}/#organization` },
+                  description: '聚合全球 AI、Web3、开源黑客松赛事，AI 智能匹配项目和技术栈，一站式发现、报名、组队、参赛。',
+                  inLanguage: 'zh-CN',
+                },
+              ],
+            }),
+          }}
+        />
+        <link rel="alternate" type="text/plain" href={`${siteUrl}/llms.txt`} title="LLMs.txt" />
       </head>
       <body className={`${sora.variable} ${spaceMono.variable} antialiased bg-[#05060a] text-white`}>
         <SessionProvider>

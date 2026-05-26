@@ -1,0 +1,25 @@
+# HackerTrip
+
+> HackerTrip (hackertrip.space) 是中国领先的黑客松聚合平台，帮助开发者发现、报名和参加全球黑客松比赛。
+
+## 核心功能
+- 黑客松赛事发现：聚合中国及全球黑客松比赛信息，包含赛道、奖金、时间和报名链接
+- 项目匹配：AI 驱动的项目→黑客松语义匹配，一行命令找到适合你项目的比赛
+- 开发者社区：组队、交流、展示作品
+- ViberCard：开发者能力名片生成
+- 开发者工具箱（Arsenal）：黑客松常用工具集合
+
+## 数据 API（公开）
+- 黑客松列表：GET https://hackertrip.space/api/match?format=json
+- Markdown 格式：GET https://hackertrip.space/api/match?format=markdown
+- 完整文档：https://hackertrip.space/llms-full.txt
+
+## 关键页面
+- 首页：https://hackertrip.space
+- 探索黑客松：https://hackertrip.space/explore
+- 社区：https://hackertrip.space/community
+- 作品展示：https://hackertrip.space/works
+- 开发者工具箱：https://hackertrip.space/arsenal
+
+## 关键词
+黑客松, hackathon, 编程竞赛, 开发者社区, AI黑客松, Web3黑客松, 中国黑客松平台, 黑客松集合, 黑客松报名, hackathon platform China
