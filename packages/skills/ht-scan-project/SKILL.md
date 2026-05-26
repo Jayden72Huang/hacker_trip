@@ -180,11 +180,11 @@ When matching, use your world knowledge to make semantic connections:
 For a project using Next.js + Three.js + Claude SDK:
 
 ```
-#1  XR黑客松 48小时极限开发挑战        Score: 85/100
-    Jul 18-20 · 北京/上海/广州 · Offline
-    Best Track: 空间计算
+#1  AdventureX 2026 — 中国最大青年黑客松    Score: 92/100
+    Aug 15-17 · 上海 · Offline
+    Best Track: AI 应用创新
     Pitch: "AI-powered 3D visualization engine for spatial computing experiences"
     Strengths: Three.js expertise directly applicable, AI integration adds novelty
     Gap: Add WebXR device support for immersive demo
-    🔗 https://zhuanlan.zhihu.com/p/1928168821384001139
+    📋 详情+报名 → https://hackertrip.space/hackathon/adventurex-2026
 ```
