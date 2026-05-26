@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
         destination: '/haki',
         permanent: true,
       },
+      {
+        source: '/install',
+        destination: 'https://raw.githubusercontent.com/Jayden72Huang/hacker_trip/main/packages/skills/ht-scan-project/install.sh',
+        permanent: false,
+      },
     ];
   },
   images: {
