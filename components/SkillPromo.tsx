@@ -52,28 +52,28 @@ export function SkillPromo() {
                 <div className="shrink-0 w-8 h-8 rounded-full bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-sm font-bold">1</div>
                 <div>
                   <p className="text-white font-medium text-sm">终端运行安装命令</p>
-                  <p className="text-gray-500 text-xs mt-0.5">打开终端，粘贴右侧命令，10 秒自动安装到你的 AI 编程助手</p>
+                  <p className="text-gray-500 text-xs mt-0.5">打开终端，粘贴右侧命令，10 秒自动安装 Skill 到你的 AI 编程助手</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
                 <div className="shrink-0 w-8 h-8 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 text-sm font-bold">2</div>
                 <div>
-                  <p className="text-white font-medium text-sm">在项目目录输入 <code className="px-1.5 py-0.5 rounded bg-white/10 text-cyan-300 text-xs font-mono">/ht-scan-project</code></p>
-                  <p className="text-gray-500 text-xs mt-0.5">用 Claude Code / Cursor / Windsurf 打开你的项目，输入指令</p>
+                  <p className="text-white font-medium text-sm">打开 AI 编程助手，进入你的项目</p>
+                  <p className="text-gray-500 text-xs mt-0.5">用 Claude Code / Cursor / Windsurf 等打开你想参赛的项目目录</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
                 <div className="shrink-0 w-8 h-8 rounded-full bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-pink-400 text-sm font-bold">3</div>
                 <div>
-                  <p className="text-white font-medium text-sm">AI 自动扫描 + 语义匹配</p>
-                  <p className="text-gray-500 text-xs mt-0.5">AI 读取 package.json、源码 imports、README 等，理解你的项目做什么</p>
+                  <p className="text-white font-medium text-sm">输入 <code className="px-1.5 py-0.5 rounded bg-white/10 text-cyan-300 text-xs font-mono">/ht-scan-project</code>，AI 自动扫描匹配</p>
+                  <p className="text-gray-500 text-xs mt-0.5">AI 读取 package.json、源码、README，理解项目做什么并匹配黑客松</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
                 <div className="shrink-0 w-8 h-8 rounded-full bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center text-yellow-400 text-sm font-bold">4</div>
                 <div>
-                  <p className="text-white font-medium text-sm">获得匹配结果，一键报名</p>
-                  <p className="text-gray-500 text-xs mt-0.5">Top 5 推荐 + 匹配分数 + 推荐赛道 + Pitch 角度，点击直达报名页</p>
+                  <p className="text-white font-medium text-sm">查看匹配结果，一键跳转报名</p>
+                  <p className="text-gray-500 text-xs mt-0.5">Top 5 推荐 + 匹配分数 + 推荐赛道 + Pitch 角度，点击直达详情页</p>
                 </div>
               </div>
             </div>
