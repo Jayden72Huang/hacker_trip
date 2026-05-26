@@ -91,3 +91,5 @@ echo "Run /ht-scan to analyze your AI conversations and build your DAMC profile.
 echo "Run /ht-scan-project to find matching hackathons for your project."
 echo "Run /ht-card to generate your ViberCard."
 echo ""
+printf "\033[36m🌐 登录 hackertrip.space 解锁 AI 个性化推荐 + 一键组队 + 每周赛事周报\033[0m\n"
+echo ""
