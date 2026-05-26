@@ -78,5 +78,6 @@ next-env.d.ts
 .windsurf/
 .zencoder/
 skills/
+!packages/skills/
 skills-lock.json
 .gstack/
