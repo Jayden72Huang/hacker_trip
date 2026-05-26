@@ -8,6 +8,7 @@ import { HackathonListSection } from '@/components/HackathonListSection';
 import { OrganizerCTA } from '@/components/OrganizerCTA';
 import { HeroRotatingText } from '@/components/HeroRotatingText';
 import { HyperspeedHero } from '@/components/HyperspeedHero';
+import { SkillPromo } from '@/components/SkillPromo';
 
 export default function Home() {
   return (
@@ -65,6 +66,9 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* AI Skill 推广 */}
+        <SkillPromo />
 
         {/* 黑客松列表（带 Tab + 搜索 + 筛选） */}
         <HackathonListSection />
