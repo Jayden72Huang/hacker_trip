@@ -108,7 +108,7 @@ Claude 会自动读取项目代码，理解项目做什么，然后用 AI 语义
 
 安装：
 ```bash
-curl -sfL https://raw.githubusercontent.com/jaydenhtt/hacker_trip/main/packages/skills/install.sh | bash
+curl -sfL https://raw.githubusercontent.com/Jayden72Huang/hacker_trip/main/packages/skills/install.sh | bash
 ```
 
 ## 技术栈
@@ -122,7 +122,7 @@ curl -sfL https://raw.githubusercontent.com/jaydenhtt/hacker_trip/main/packages/
 ## 联系方式
 
 - 网站：https://hackertrip.space
-- GitHub：https://github.com/jaydenhtt/hacker_trip
+- GitHub：https://github.com/Jayden72Huang/hacker_trip
 - 邮箱：jayden0702tt@gmail.com
 
 ## 引用格式

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_URL="https://raw.githubusercontent.com/jaydenhtt/hacker_trip/main/packages/skills"
+REPO_URL="https://raw.githubusercontent.com/Jayden72Huang/hacker_trip/main/packages/skills"
 INSTALL_DIR="$HOME/.hackertrip"
 VERSION="1"
 

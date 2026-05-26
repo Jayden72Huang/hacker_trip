@@ -7,7 +7,7 @@
 ## 安装（10 秒）
 
 ```bash
-curl -sfL https://raw.githubusercontent.com/jaydenhtt/hacker_trip/main/packages/skills/ht-scan-project/install.sh | bash
+curl -sfL https://raw.githubusercontent.com/Jayden72Huang/hacker_trip/main/packages/skills/ht-scan-project/install.sh | bash
 ```
 
 自动适配：Claude Code · Cursor · Codex · Windsurf · Trae · Gemini CLI

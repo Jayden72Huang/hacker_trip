@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_URL="https://raw.githubusercontent.com/jaydenhtt/hacker_trip/main/packages/skills/ht-scan-project"
+REPO_URL="https://raw.githubusercontent.com/Jayden72Huang/hacker_trip/main/packages/skills/ht-scan-project"
 INSTALL_DIR="$HOME/.hackertrip/skills/ht-scan-project"
 
 TARGETS=(
