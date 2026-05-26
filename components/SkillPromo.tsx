@@ -42,25 +42,47 @@ export function SkillPromo() {
               </span>
             </h2>
 
-            <p className="text-gray-400 text-base md:text-lg leading-relaxed">
-              在 AI 编程助手中输入 <code className="px-2 py-0.5 rounded bg-white/10 text-cyan-300 text-sm font-mono">/ht-scan-project</code>，自动扫描你的项目代码，语义匹配最适合参加的黑客松比赛。
+            <p className="text-gray-400 text-sm md:text-base leading-relaxed">
+              不知道自己的项目适合哪个黑客松？装上这个 AI Skill，让 Claude / Cursor / Windsurf 帮你扫描代码、智能匹配。
             </p>
 
-            <div className="grid grid-cols-2 gap-3 mt-2">
-              {[
-                { icon: Scan, label: '深度扫描', desc: '分析技术栈和项目领域' },
-                { icon: Zap, label: '语义匹配', desc: 'AI 理解项目做什么' },
-                { icon: Shield, label: '本地运行', desc: '代码不会上传' },
-                { icon: Terminal, label: '6款助手', desc: 'Claude · Cursor · Windsurf' },
-              ].map(({ icon: Icon, label, desc }) => (
-                <div key={label} className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                  <Icon size={18} className="text-purple-400 mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-white text-sm font-medium">{label}</p>
-                    <p className="text-gray-500 text-xs">{desc}</p>
-                  </div>
+            {/* Steps */}
+            <div className="flex flex-col gap-4 mt-1">
+              <div className="flex items-start gap-4">
+                <div className="shrink-0 w-8 h-8 rounded-full bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-sm font-bold">1</div>
+                <div>
+                  <p className="text-white font-medium text-sm">终端运行安装命令</p>
+                  <p className="text-gray-500 text-xs mt-0.5">打开终端，粘贴右侧命令，10 秒自动安装到你的 AI 编程助手</p>
                 </div>
-              ))}
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="shrink-0 w-8 h-8 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 text-sm font-bold">2</div>
+                <div>
+                  <p className="text-white font-medium text-sm">在项目目录输入 <code className="px-1.5 py-0.5 rounded bg-white/10 text-cyan-300 text-xs font-mono">/ht-scan-project</code></p>
+                  <p className="text-gray-500 text-xs mt-0.5">用 Claude Code / Cursor / Windsurf 打开你的项目，输入指令</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="shrink-0 w-8 h-8 rounded-full bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-pink-400 text-sm font-bold">3</div>
+                <div>
+                  <p className="text-white font-medium text-sm">AI 自动扫描 + 语义匹配</p>
+                  <p className="text-gray-500 text-xs mt-0.5">AI 读取 package.json、源码 imports、README 等，理解你的项目做什么</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="shrink-0 w-8 h-8 rounded-full bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center text-yellow-400 text-sm font-bold">4</div>
+                <div>
+                  <p className="text-white font-medium text-sm">获得匹配结果，一键报名</p>
+                  <p className="text-gray-500 text-xs mt-0.5">Top 5 推荐 + 匹配分数 + 推荐赛道 + Pitch 角度，点击直达报名页</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 mt-2 text-[11px] text-gray-500">
+              <Shield size={12} className="text-green-400" />
+              <span>100% 本地运行，代码不上传</span>
+              <span className="text-white/10">|</span>
+              <span>支持 JS/TS · Python · Rust · Go · Ruby · Flutter</span>
             </div>
           </div>
 
