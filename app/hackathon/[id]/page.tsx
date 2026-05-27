@@ -176,19 +176,21 @@ export default async function HackathonDetailPage({ params }: Params) {
 
         {/* Hero */}
         <header className="glass border border-white/5 rounded-3xl p-8 space-y-6">
-          <div className="space-y-4">
-            <p className="text-sm text-gray-400 uppercase tracking-[0.2em]">Hackathon • 2026</p>
-            <h1 className="text-3xl md:text-4xl font-bold leading-tight">
-              {hackathon.name}
-            </h1>
-            <div className="flex items-center gap-4 text-gray-300 font-mono text-sm flex-wrap">
-              <span className="inline-flex items-center gap-2"><CalendarDays size={16} className="text-indigo-400" />{hackathon.dateRange}</span>
-              <span className="inline-flex items-center gap-2"><MapPin size={16} className="text-indigo-400" />{hackathon.city} · {hackathon.venue}</span>
-              {hackathon.hostOrganizer && (
-                <span className="inline-flex items-center gap-2"><Building2 size={16} className="text-indigo-400" />{hackathon.hostOrganizer}</span>
-              )}
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+            <div className="space-y-4">
+              <p className="text-sm text-gray-400 uppercase tracking-[0.2em]">Hackathon • 2026</p>
+              <h1 className="text-3xl md:text-4xl font-bold leading-tight">
+                {hackathon.name}
+              </h1>
+              <div className="flex items-center gap-4 text-gray-300 font-mono text-sm flex-wrap">
+                <span className="inline-flex items-center gap-2"><CalendarDays size={16} className="text-indigo-400" />{hackathon.dateRange}</span>
+                <span className="inline-flex items-center gap-2"><MapPin size={16} className="text-indigo-400" />{hackathon.city} · {hackathon.venue}</span>
+                {hackathon.hostOrganizer && (
+                  <span className="inline-flex items-center gap-2"><Building2 size={16} className="text-indigo-400" />{hackathon.hostOrganizer}</span>
+                )}
+              </div>
             </div>
-            <div className="flex gap-3 pt-1">
+            <div className="flex gap-3 shrink-0">
               {registrationAction.external ? (
                 <a
                   href={registrationAction.href}
