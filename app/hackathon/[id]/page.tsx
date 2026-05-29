@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { db } from '@/lib/db';
 import { hackathons } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { toHomepageHackathon, type HomepageHackathon } from '@/lib/types/hackathon';
 import { RegistrationForm } from './RegistrationForm';
 import { CountdownBadge } from './CountdownBadge';
@@ -30,9 +30,18 @@ type Params = {
 
 const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hackertrip.space';
 
+async function findHackathonByIdOrSlug(idOrSlug: string) {
+  const [row] = await db
+    .select()
+    .from(hackathons)
+    .where(or(eq(hackathons.id, idOrSlug), eq(hackathons.slug, idOrSlug)))
+    .limit(1);
+  return row ?? null;
+}
+
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { id } = await params;
-  const [row] = await db.select().from(hackathons).where(eq(hackathons.id, id)).limit(1);
+  const row = await findHackathonByIdOrSlug(id);
 
   if (!row) {
     return { title: '黑客松未找到' };
@@ -111,11 +120,7 @@ function getRegistrationAction(hackathon: HomepageHackathon) {
 
 export default async function HackathonDetailPage({ params }: Params) {
   const { id } = await params;
-  const [row] = await db
-    .select()
-    .from(hackathons)
-    .where(eq(hackathons.id, id))
-    .limit(1);
+  const row = await findHackathonByIdOrSlug(id);
 
   if (!row) {
     notFound();

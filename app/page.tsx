@@ -85,7 +85,7 @@ export default function Home() {
         </section>
 
         {/* 邮箱订阅 */}
-        <section className="w-full max-w-[1440px] mx-auto px-6 lg:px-10 pb-16 md:pb-24">
+        <section id="subscribe" className="w-full max-w-[1440px] mx-auto px-6 lg:px-10 pb-16 md:pb-24">
           <SubscribeForm />
         </section>
       </main>
