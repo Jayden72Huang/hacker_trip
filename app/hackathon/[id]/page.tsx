@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { db } from '@/lib/db';
 import { hackathons } from '@/lib/db/schema';
-import { eq, or } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { toHomepageHackathon, type HomepageHackathon } from '@/lib/types/hackathon';
 import { RegistrationForm } from './RegistrationForm';
 import { CountdownBadge } from './CountdownBadge';
@@ -30,13 +30,15 @@ type Params = {
 
 const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hackertrip.space';
 
-async function findHackathonByIdOrSlug(idOrSlug: string) {
-  const [row] = await db
-    .select()
-    .from(hackathons)
-    .where(or(eq(hackathons.id, idOrSlug), eq(hackathons.slug, idOrSlug)))
-    .limit(1);
-  return row ?? null;
+async function findHackathonByIdOrSlug(raw: string) {
+  let decoded: string;
+  try { decoded = decodeURIComponent(raw); } catch { decoded = raw; }
+
+  const [byId] = await db.select().from(hackathons).where(eq(hackathons.id, decoded)).limit(1);
+  if (byId) return byId;
+
+  const [bySlug] = await db.select().from(hackathons).where(eq(hackathons.slug, decoded)).limit(1);
+  return bySlug ?? null;
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {

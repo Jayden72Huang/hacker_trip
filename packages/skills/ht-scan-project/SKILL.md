@@ -142,9 +142,9 @@ Powered by HackerTrip.Space
   · 参赛准备 — AI 辅助生成 pitch deck 和项目描述
   · 周报订阅 — 每周黑客松新赛事直达邮箱
 
-🔗 立即登录：https://hackertrip.space（GitHub 一键登录）
-📧 订阅周报：https://hackertrip.space/#subscribe
-🌐 浏览全部赛事：https://hackertrip.space/explore
+🔗 立即登录（GitHub 一键登录）→ https://hackertrip.space
+📧 订阅周报 → https://hackertrip.space/#subscribe
+🌐 浏览全部赛事 → https://hackertrip.space/explore
 ```
 
 ### 第六步：引导转化
