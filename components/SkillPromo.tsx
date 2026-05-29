@@ -14,16 +14,16 @@ export function SkillPromo() {
   };
 
   return (
-    <section className="w-full max-w-[1440px] mx-auto px-6 lg:px-10 py-16 md:py-24">
-      <div className="relative rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.04] to-white/[0.01] overflow-hidden">
+    <section className="w-full max-w-[1440px] mx-auto px-4 md:px-6 lg:px-10 py-10 md:py-24">
+      <div className="relative rounded-2xl md:rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.04] to-white/[0.01] overflow-hidden">
         <div className="absolute inset-0 pointer-events-none" aria-hidden>
           <div className="absolute -top-20 -right-20 w-[300px] h-[300px] bg-purple-500/10 rounded-full blur-[100px]" />
           <div className="absolute -bottom-20 -left-20 w-[300px] h-[300px] bg-cyan-500/10 rounded-full blur-[100px]" />
         </div>
 
-        <div className="relative grid md:grid-cols-2 gap-8 md:gap-12 p-8 md:p-12 lg:p-16">
+        <div className="relative grid md:grid-cols-2 gap-6 md:gap-12 p-5 md:p-12 lg:p-16">
           {/* Left - Info */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 md:gap-6">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20">
                 <Sparkles size={14} className="text-cyan-400" />
@@ -34,7 +34,7 @@ export function SkillPromo() {
               </div>
             </div>
 
-            <h2 className="font-sora text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight">
+            <h2 className="font-sora text-xl md:text-3xl lg:text-4xl font-bold text-white leading-tight">
               一行命令
               <br />
               <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
@@ -42,52 +42,70 @@ export function SkillPromo() {
               </span>
             </h2>
 
-            <p className="text-gray-400 text-sm md:text-base leading-relaxed">
+            <p className="text-gray-400 text-sm leading-relaxed">
               不知道自己的项目适合哪个黑客松？装上这个 AI Skill，让 Claude / Cursor / Windsurf 帮你扫描代码、智能匹配。
             </p>
 
-            {/* Steps */}
-            <div className="flex flex-col gap-4 mt-1">
-              <div className="flex items-start gap-4">
-                <div className="shrink-0 w-8 h-8 rounded-full bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-sm font-bold">1</div>
-                <div>
-                  <p className="text-white font-medium text-sm">终端运行安装命令</p>
-                  <p className="text-gray-500 text-xs mt-0.5">打开终端，粘贴右侧命令，10 秒自动安装 Skill 到你的 AI 编程助手</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="shrink-0 w-8 h-8 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 text-sm font-bold">2</div>
-                <div>
-                  <p className="text-white font-medium text-sm">打开 AI 编程助手，进入你的项目</p>
-                  <p className="text-gray-500 text-xs mt-0.5">用 Claude Code / Cursor / Windsurf 等打开你想参赛的项目目录</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="shrink-0 w-8 h-8 rounded-full bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-pink-400 text-sm font-bold">3</div>
-                <div>
-                  <p className="text-white font-medium text-sm">输入 <code className="px-1.5 py-0.5 rounded bg-white/10 text-cyan-300 text-xs font-mono">/ht-scan-project</code>，AI 自动扫描匹配</p>
-                  <p className="text-gray-500 text-xs mt-0.5">AI 读取 package.json、源码、README，理解项目做什么并匹配黑客松</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="shrink-0 w-8 h-8 rounded-full bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center text-yellow-400 text-sm font-bold">4</div>
-                <div>
-                  <p className="text-white font-medium text-sm">查看匹配结果，一键跳转报名</p>
-                  <p className="text-gray-500 text-xs mt-0.5">Top 5 推荐 + 匹配分数 + 推荐赛道 + Pitch 角度，点击直达详情页</p>
+            {/* Install command - mobile only (shown inline) */}
+            <div className="md:hidden rounded-xl bg-[#1a1a2e] border border-white/[0.08] overflow-hidden">
+              <div className="p-3">
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-cyan-300 text-xs font-mono break-all">
+                    <span className="text-gray-500">$ </span>{installCmd}
+                  </code>
+                  <button
+                    onClick={handleCopy}
+                    className="shrink-0 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+                    title="复制命令"
+                  >
+                    {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} className="text-gray-400" />}
+                  </button>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 mt-2 text-[11px] text-gray-500">
+            {/* Steps - compact on mobile */}
+            <div className="flex flex-col gap-3 md:gap-4 mt-1">
+              <div className="flex items-start gap-3 md:gap-4">
+                <div className="shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-xs md:text-sm font-bold">1</div>
+                <div>
+                  <p className="text-white font-medium text-sm">终端运行安装命令</p>
+                  <p className="text-gray-500 text-xs mt-0.5 hidden md:block">打开终端，粘贴右侧命令，10 秒自动安装 Skill 到你的 AI 编程助手</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 md:gap-4">
+                <div className="shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 text-xs md:text-sm font-bold">2</div>
+                <div>
+                  <p className="text-white font-medium text-sm">打开 AI 编程助手，进入你的项目</p>
+                  <p className="text-gray-500 text-xs mt-0.5 hidden md:block">用 Claude Code / Cursor / Windsurf 等打开你想参赛的项目目录</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 md:gap-4">
+                <div className="shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-pink-400 text-xs md:text-sm font-bold">3</div>
+                <div>
+                  <p className="text-white font-medium text-sm">输入 <code className="px-1.5 py-0.5 rounded bg-white/10 text-cyan-300 text-xs font-mono">/ht-scan-project</code></p>
+                  <p className="text-gray-500 text-xs mt-0.5 hidden md:block">AI 读取 package.json、源码、README，理解项目做什么并匹配黑客松</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 md:gap-4">
+                <div className="shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center text-yellow-400 text-xs md:text-sm font-bold">4</div>
+                <div>
+                  <p className="text-white font-medium text-sm">查看匹配结果，一键跳转报名</p>
+                  <p className="text-gray-500 text-xs mt-0.5 hidden md:block">Top 5 推荐 + 匹配分数 + 推荐赛道 + Pitch 角度，点击直达详情页</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 mt-1 md:mt-2 text-[11px] text-gray-500">
               <Shield size={12} className="text-green-400" />
               <span>100% 本地运行，代码不上传</span>
-              <span className="text-white/10">|</span>
-              <span>支持 JS/TS · Python · Rust · Go · Ruby · Flutter</span>
+              <span className="text-white/10 hidden md:inline">|</span>
+              <span className="hidden md:inline">支持 JS/TS · Python · Rust · Go · Ruby · Flutter</span>
             </div>
           </div>
 
-          {/* Right - Terminal */}
-          <div className="flex flex-col gap-4">
+          {/* Right - Terminal (desktop only) */}
+          <div className="hidden md:flex flex-col gap-4">
             {/* Install command */}
             <div className="rounded-2xl bg-[#1a1a2e] border border-white/[0.08] overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]">

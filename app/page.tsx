@@ -35,8 +35,8 @@ export default function Home() {
                 </span>
               </div>
 
-              <h1 className="font-sora text-3xl md:text-5xl lg:text-[3.25rem] font-extrabold leading-tight whitespace-nowrap">
-                <span className="text-gray-200">
+              <h1 className="font-sora text-3xl md:text-5xl lg:text-[3.25rem] font-extrabold leading-tight">
+                <span className="text-gray-200 block md:inline">
                   HackerTrip
                 </span>
                 {' '}
