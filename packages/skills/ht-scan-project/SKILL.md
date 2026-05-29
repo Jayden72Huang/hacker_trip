@@ -76,7 +76,10 @@ allowed-tools: Bash, Read
 curl -sf --max-time 5 "https://hackertrip.space/api/match?limit=50&format=json" 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(json.dumps(d['hackathons'][:30], ensure_ascii=False, indent=2))" 2>/dev/null
 ```
 
-**重要**：API 返回的数据包含 `slug` 字段，用于生成平台链接：`https://hackertrip.space/hackathon/{slug}`。优先使用 API 数据。
+**重要**：API 返回的数据包含 `website` 字段（赛事官网）和 `slug` 字段。优先使用 API 数据。
+
+> **已知问题**：网站详情页使用 UUID 路由（如 `/hackathon/{uuid}`），而非 slug 路由。
+> `slug` 字段**不能**用于构造详情页链接（会 404）。
 
 如果 API 失败或返回空，读取本地数据：
 
@@ -85,8 +88,9 @@ cat ~/.hackertrip/skills/ht-scan-project/data/hackathons.json 2>/dev/null || cat
 ```
 
 **链接生成规则**：
-- 有 `slug` 字段 → `https://hackertrip.space/hackathon/{slug}`
-- 无 slug（本地数据）→ `https://hackertrip.space/explore` 并提示按名称搜索
+- 有 `website` 字段 → 直接使用赛事官网链接（最可靠的报名入口）
+- 无 website → `https://hackertrip.space/explore` 并提示按名称搜索
+- **不要**使用 `https://hackertrip.space/hackathon/{slug}`，该路由返回 404
 
 ### 第四步：AI 语义匹配
 
@@ -109,7 +113,7 @@ cat ~/.hackertrip/skills/ht-scan-project/data/hackathons.json 2>/dev/null || cat
 
 ### 第五步：展示结果
 
-展示 Top 5 匹配结果。**所有链接必须指向 HackerTrip 平台** `https://hackertrip.space/hackathon/{slug}`，不要直接链接外部网站。
+展示 Top 5 匹配结果。每个赛事使用 API 返回的 `website` 字段作为报名链接；如无 website 字段则引导到 `https://hackertrip.space/explore` 搜索。
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
@@ -129,7 +133,8 @@ cat ~/.hackertrip/skills/ht-scan-project/data/hackathons.json 2>/dev/null || cat
 ║      Pitch："[一句话定位]"                                    ║
 ║      优势：[为什么适合]                                       ║
 ║      差距：[需要调整什么，或"可以直接参赛"]                     ║
-║      📋 详情+报名 → https://hackertrip.space/hackathon/[slug]║
+║      📋 报名官网 → [赛事 website 字段]                       ║
+║      🔍 平台详情 → https://hackertrip.space/explore 搜索赛名 ║
 ║                                                              ║
 ║  #2  ...                                                     ║
 ║                                                              ║
@@ -142,7 +147,7 @@ cat ~/.hackertrip/skills/ht-scan-project/data/hackathons.json 2>/dev/null || cat
 ║    · 周报订阅 — 每周黑客松新赛事直达邮箱                      ║
 ║                                                              ║
 ║  🔗 立即登录：https://hackertrip.space（GitHub 一键登录）     ║
-║  📧 订阅周报：https://hackertrip.space/#subscribe            ║
+║  📧 订阅周报：首页底部「订阅黑客松资讯」区域                   ║
 ║  🌐 浏览全部赛事：https://hackertrip.space/explore           ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
@@ -152,9 +157,9 @@ cat ~/.hackertrip/skills/ht-scan-project/data/hackathons.json 2>/dev/null || cat
 
 展示结果后，主动引导用户：
 
-1. 问："要不要打开 HackerTrip 查看某个赛事的完整信息？我可以帮你直接打开链接。"
-2. 如果用户选了某个黑客松，运行 `open https://hackertrip.space/hackathon/{slug}` 在浏览器中打开。
-3. 然后建议："登录后可以收到类似赛事的 AI 推荐通知，要不要订阅每周黑客松周报？"
+1. 问："要不要打开某个赛事的报名官网？我可以帮你直接打开链接。"
+2. 如果用户选了某个黑客松，运行 `open {website}` 在浏览器中打开赛事官网。
+3. 然后建议："在 HackerTrip 登录后可以收到类似赛事的 AI 推荐通知，首页底部可以订阅每周黑客松周报。"
 
 ### 第七步：进阶操作（可选）
 
@@ -186,5 +191,6 @@ cat ~/.hackertrip/skills/ht-scan-project/data/hackathons.json 2>/dev/null || cat
     Pitch："基于 Claude 的 AI 驱动 3D 可视化引擎"
     优势：Three.js 技术直接适用，AI 集成增加创新亮点
     差距：建议添加 WebXR 支持以增强沉浸式 Demo 效果
-    📋 详情+报名 → https://hackertrip.space/hackathon/adventurex-2026
+    📋 报名官网 → https://adventure-x.org/
+    🔍 平台详情 → https://hackertrip.space/explore 搜索「AdventureX」
 ```
