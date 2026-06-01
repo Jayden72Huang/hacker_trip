@@ -143,6 +143,8 @@ export const hackathons = pgTable(
     sourceUrl: text('source_url'),
     isVerified: boolean('is_verified').default(false),
     isFeatured: boolean('is_featured').default(false),
+    // 软下架开关：false = 已下架，公开列表/详情页/sitemap 不展示，数据仍保留可恢复
+    isPublished: boolean('is_published').default(true).notNull(),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
     updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
     createdBy: text('created_by').references(() => users.id, { onDelete: 'set null' }),

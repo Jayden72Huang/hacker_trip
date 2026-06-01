@@ -12,6 +12,40 @@ function generateSlug(name: string): string {
     .slice(0, 60) || `hackathon-${Date.now()}`;
 }
 
+// 资讯/门户类域名：这些不是报名入口，仅是新闻或机构首页，不应作为黑客松的报名链接
+const LOW_QUALITY_LINK_HOSTS = [
+  'segmentfault.com', 'coinworldnet.com', 'benzinga.com',
+  'people.com.cn', 'hf365.com', 'sohu.com', '163.com', 'sina.com.cn',
+  '36kr.com', 'xueqiu.com', 'jianshu.com', 'zhihu.com', 'baijiahao.baidu.com',
+];
+const LOW_QUALITY_LINK_PATTERNS = [/\.gov\.cn$/i];
+
+function isLowQualityLink(raw: string): boolean {
+  let host = '';
+  try { host = new URL(raw).hostname.toLowerCase(); } catch { return false; }
+  if (LOW_QUALITY_LINK_HOSTS.some((h) => host === h || host.endsWith(`.${h}`))) return true;
+  return LOW_QUALITY_LINK_PATTERNS.some((re) => re.test(host));
+}
+
+// 上架完整度校验：缺主题/赛道、或报名链接不是有效入口，都拦截。返回缺失项列表，空数组表示通过。
+function validateHackathonQuality(draft: {
+  theme?: string | null;
+  tracks?: unknown;
+  sourceUrl?: string | null;
+}): string[] {
+  const missing: string[] = [];
+  if (!draft.theme || !draft.theme.trim()) missing.push('主题（theme）');
+  const trackCount = Array.isArray(draft.tracks) ? draft.tracks.length : 0;
+  if (trackCount === 0) missing.push('至少一个赛道（tracks）');
+  const url = (draft.sourceUrl || '').trim();
+  if (!url) {
+    missing.push('报名/官网链接');
+  } else if (isLowQualityLink(url)) {
+    missing.push('有效报名链接（当前是资讯/政府门户页，不是报名入口）');
+  }
+  return missing;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const authResult = await checkAdmin();
@@ -39,6 +73,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: '缺少必要字段：名称、开始日期、结束日期' },
         { status: 400 }
+      );
+    }
+
+    // 完整度门槛：信息不全的草稿不允许上架，避免再次混入空数据
+    const missing = validateHackathonQuality(draft);
+    if (missing.length > 0) {
+      return NextResponse.json(
+        {
+          error: `信息不完整，无法上架，请先补全：${missing.join('、')}`,
+          code: 'incomplete',
+          missing,
+        },
+        { status: 422 }
       );
     }
 

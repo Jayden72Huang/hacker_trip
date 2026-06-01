@@ -5,7 +5,7 @@ import {
 import { db } from '@/lib/db';
 import { hackathons as hackathonsTable } from '@/lib/db/schema';
 import { toHomepageHackathon } from '@/lib/types/hackathon';
-import { desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_KEY;
 const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
@@ -73,6 +73,7 @@ export async function POST(request: NextRequest) {
     const dbRows = await db
       .select()
       .from(hackathonsTable)
+      .where(eq(hackathonsTable.isPublished, true))
       .orderBy(desc(hackathonsTable.startDate))
       .limit(80);
 

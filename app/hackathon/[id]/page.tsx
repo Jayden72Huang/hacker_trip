@@ -35,10 +35,11 @@ async function findHackathonByIdOrSlug(raw: string) {
   try { decoded = decodeURIComponent(raw); } catch { decoded = raw; }
 
   const [byId] = await db.select().from(hackathons).where(eq(hackathons.id, decoded)).limit(1);
-  if (byId) return byId;
+  if (byId) return byId.isPublished ? byId : null;
 
   const [bySlug] = await db.select().from(hackathons).where(eq(hackathons.slug, decoded)).limit(1);
-  return bySlug ?? null;
+  if (!bySlug) return null;
+  return bySlug.isPublished ? bySlug : null;
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {

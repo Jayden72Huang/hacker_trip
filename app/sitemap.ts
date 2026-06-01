@@ -1,13 +1,15 @@
 import type { MetadataRoute } from 'next';
 import { db } from '@/lib/db';
 import { hackathons } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hackertrip.space';
 
   const allHackathons = await db
     .select({ id: hackathons.id, updatedAt: hackathons.updatedAt })
-    .from(hackathons);
+    .from(hackathons)
+    .where(eq(hackathons.isPublished, true));
 
   const hackathonEntries: MetadataRoute.Sitemap = allHackathons.map((h) => ({
     url: `${siteUrl}/hackathon/${h.id}`,

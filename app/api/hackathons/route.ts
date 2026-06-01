@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { hackathons } from '@/lib/db/schema';
-import { eq, desc, asc, ilike, or, sql } from 'drizzle-orm';
+import { eq, desc, asc, ilike, or, sql, type SQL } from 'drizzle-orm';
 import { toHomepageHackathon } from '@/lib/types/hackathon';
 
 /**
@@ -17,16 +17,16 @@ export async function GET(request: NextRequest) {
   const sort = searchParams.get('sort') || 'date';
   const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
 
-  const conditions = [];
+  // 只返回已发布（未下架）的活动
+  const conditions: SQL[] = [eq(hackathons.isPublished, true)];
 
   if (q) {
-    conditions.push(
-      or(
-        ilike(hackathons.name, `%${q}%`),
-        ilike(hackathons.location, `%${q}%`),
-        ilike(hackathons.organizer, `%${q}%`),
-      )
+    const search = or(
+      ilike(hackathons.name, `%${q}%`),
+      ilike(hackathons.location, `%${q}%`),
+      ilike(hackathons.organizer, `%${q}%`),
     );
+    if (search) conditions.push(search);
   }
 
   if (mode && ['online', 'offline', 'hybrid'].includes(mode)) {
