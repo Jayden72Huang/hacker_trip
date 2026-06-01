@@ -74,45 +74,68 @@ export async function POST(request: NextRequest) {
       .select()
       .from(hackathonsTable)
       .orderBy(desc(hackathonsTable.startDate))
-      .limit(50);
+      .limit(80);
 
-    const liveHackathons = dbRows.map(toHomepageHackathon);
+    const allHackathons = dbRows.map(toHomepageHackathon);
 
-    const hackathonDigest = liveHackathons
-      .map((h) => {
-        const tracks = h.tracks.map((t) => t.title).join(' / ');
-        const registration =
-          h.registration?.mode === 'platform'
-            ? 'HackerTrip 站内报名'
-            : h.registration?.mode === 'external-form'
-              ? '主办方外部表单'
-              : h.registration?.siteName || '主办方官网';
-        return [
-          `- ${h.name}`,
-          `  城市: ${h.city}`,
-          `  时间: ${h.dateRange}`,
-          `  形式: ${h.format}`,
-          `  主题: ${h.theme}`,
-          `  奖金池: ${h.prizePool}`,
-          `  报名: ${registration}`,
-          tracks ? `  赛道: ${tracks}` : '',
-          h.hostOrganizer ? `  主办方: ${h.hostOrganizer}` : '',
-          h.isPast ? '  状态: 已结束' : '  状态: 进行中/即将开始',
-        ].filter(Boolean).join('\n');
-      })
-      .join('\n');
+    // 以服务端当前时间为锚点，结构化拆分"可报名"与"已结束"，不让模型自行从文本里判断时间
+    const now = new Date();
+    const todayISO = now.toISOString().slice(0, 10);
 
-    const upcoming = liveHackathons.filter((h) => !h.isPast);
-    const cities = [...new Set(liveHackathons.map((h) => h.city).filter(Boolean))];
+    const formatFullDate = (iso: string): string => {
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return iso;
+      return d.toISOString().slice(0, 10);
+    };
+
+    const renderHackathon = (h: (typeof allHackathons)[number]): string => {
+      const tracks = h.tracks.map((t) => t.title).join(' / ');
+      const registration =
+        h.registration?.mode === 'platform'
+          ? 'HackerTrip 站内报名'
+          : h.registration?.mode === 'external-form'
+            ? '主办方外部表单'
+            : h.registration?.siteName || '主办方官网';
+      const dateLine = `${formatFullDate(h.startDate)} ~ ${formatFullDate(h.endDate)}`;
+      return [
+        `- ${h.name}`,
+        `  城市: ${h.city || '未标注'}`,
+        `  日期: ${dateLine}（${h.isPast ? '已结束' : '未结束'}）`,
+        `  形式: ${h.format}`,
+        `  主题: ${h.theme}`,
+        `  奖金池: ${h.prizePool}`,
+        `  报名: ${registration}`,
+        tracks ? `  赛道: ${tracks}` : '',
+        h.hostOrganizer ? `  主办方: ${h.hostOrganizer}` : '',
+      ].filter(Boolean).join('\n');
+    };
+
+    const upcoming = allHackathons.filter((h) => !h.isPast);
+    const past = allHackathons.filter((h) => h.isPast);
+    const cities = [...new Set(upcoming.map((h) => h.city).filter(Boolean))];
+
+    const upcomingDigest = upcoming.length
+      ? upcoming.map(renderHackathon).join('\n')
+      : '（当前没有未结束的黑客松。）';
+
+    // 已结束活动只保留最近的少量，作为"历史参考"，并明确禁止当作可报名活动推荐
+    const pastDigest = past.length
+      ? past.slice(0, 15).map(renderHackathon).join('\n')
+      : '（暂无已结束活动记录。）';
 
     const systemPrompt = `${buildPlatformSupportPrompt()}
 
+【重要时间基准】今天是 ${todayISO}。推荐任何活动前，必须先核对它的结束日期：结束日期早于今天的活动已经结束，绝对不能作为"可以参加 / 适合报名"的推荐，除非用户明确要求了解历史活动。如果用户问的城市或方向下没有未结束的活动，就如实说明当前没有可报名的活动，并可以建议关注即将公布的场次，而不是推荐一个已经结束的活动。
+
 以下是可参考的平台知识摘要（实时从数据库获取）。仅使用这些公开信息回答，不要引用内部实现，不要编造不存在的功能或活动。
 
-平台概览: 当前收录 ${liveHackathons.length} 场黑客松，其中 ${upcoming.length} 场即将开始或进行中，覆盖 ${cities.length} 个城市。
+平台概览: 当前共 ${upcoming.length} 场未结束（可报名/进行中）黑客松，覆盖 ${cities.length} 个城市；另有若干已结束活动仅供历史参考。
 
-## 活动数据
-${hackathonDigest}`;
+## 可报名 / 进行中的黑客松（推荐只能从这里选）
+${upcomingDigest}
+
+## 已结束的黑客松（仅历史参考，禁止当作可报名活动推荐）
+${pastDigest}`;
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30000);
