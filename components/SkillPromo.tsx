@@ -113,6 +113,10 @@ export function SkillPromo() {
                 <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
                 <div className="w-3 h-3 rounded-full bg-green-500/80" />
                 <span className="ml-2 text-xs text-gray-500 font-mono">Terminal</span>
+                <span className="ml-auto flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/25">
+                  <span className="w-4 h-4 rounded-full bg-cyan-500/20 flex items-center justify-center text-[10px] font-bold text-cyan-400">1</span>
+                  <span className="text-[10px] font-semibold text-cyan-400 uppercase tracking-wider">Step 1</span>
+                </span>
               </div>
               <div className="p-4">
                 <p className="text-gray-500 text-xs font-mono mb-2">安装（10秒）</p>
@@ -141,13 +145,19 @@ export function SkillPromo() {
               </div>
               <div className="p-4 font-mono text-xs leading-relaxed space-y-3">
                 <div>
-                  <p className="text-white">📦 项目画像</p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-4 h-4 shrink-0 rounded-full bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-[10px] font-bold text-pink-400">3</span>
+                    <p className="text-white">📦 项目画像</p>
+                  </div>
                   <p className="text-gray-500 ml-3">名称：my-ai-app</p>
                   <p className="text-gray-500 ml-3">技术栈：Next.js, Claude SDK, Three.js</p>
                   <p className="text-gray-500 ml-3">领域：AI Application Platform</p>
                 </div>
                 <div className="border-t border-white/[0.06] pt-3">
-                  <p className="text-yellow-400">🎯 匹配结果</p>
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 shrink-0 rounded-full bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center text-[10px] font-bold text-yellow-400">4</span>
+                    <p className="text-yellow-400">🎯 匹配结果</p>
+                  </div>
                   <div className="mt-2 space-y-2">
                     <div className="flex justify-between">
                       <span className="text-cyan-300">#1 AdventureX 2026</span>
