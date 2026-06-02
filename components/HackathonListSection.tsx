@@ -18,9 +18,12 @@ type FilterType = 'all' | HackathonMode;
 type SortType = 'date' | 'prize' | 'name';
 type TabType = 'upcoming' | 'past';
 
+// 模块级缓存：SPA 内从子页返回首页时直接复用，避免重新请求 + loading 闪烁
+let cachedHackathons: DBHackathon[] | null = null;
+
 export function HackathonListSection() {
-  const [hackathons, setHackathons] = useState<DBHackathon[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [hackathons, setHackathons] = useState<DBHackathon[]>(cachedHackathons ?? []);
+  const [loading, setLoading] = useState(cachedHackathons === null);
   const [searchQuery, setSearchQuery] = useState('');
   const [formatFilter, setFormatFilter] = useState<FilterType>('all');
   const [sortBy, setSortBy] = useState<SortType>('date');
@@ -29,11 +32,19 @@ export function HackathonListSection() {
   const [activeTab, setActiveTab] = useState<TabType>('upcoming');
 
   useEffect(() => {
+    let cancelled = false;
+    // 有缓存时先用缓存渲染（不阻塞），后台仍请求一次以刷新数据（stale-while-revalidate）
     fetch('/api/hackathons')
       .then(res => res.json())
-      .then(data => setHackathons(Array.isArray(data) ? data : []))
-      .catch(() => setHackathons([]))
-      .finally(() => setLoading(false));
+      .then(data => {
+        if (cancelled) return;
+        const arr = Array.isArray(data) ? data : [];
+        cachedHackathons = arr;
+        setHackathons(arr);
+      })
+      .catch(() => { if (!cancelled) setHackathons([]); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
   const { upcoming, past } = useMemo(() => {
@@ -84,7 +95,7 @@ export function HackathonListSection() {
           <div
             className="absolute inset-0 bg-cover bg-center transition-all duration-700"
             style={{
-              backgroundImage: "url('/images/events-banner.png')",
+              backgroundImage: "url('/images/events-banner.webp')",
               backgroundPosition: 'left center',
               opacity: activeTab === 'upcoming' ? 0.45 : 0,
               filter: 'saturate(1.4) brightness(1.1)',
@@ -94,7 +105,7 @@ export function HackathonListSection() {
           <div
             className="absolute inset-0 bg-cover bg-center transition-all duration-700"
             style={{
-              backgroundImage: "url('/images/events-banner.png')",
+              backgroundImage: "url('/images/events-banner.webp')",
               backgroundPosition: 'right center',
               opacity: activeTab === 'past' ? 0.4 : 0,
               filter: 'saturate(0.3) brightness(0.7) hue-rotate(20deg)',

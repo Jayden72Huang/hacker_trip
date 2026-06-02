@@ -53,7 +53,7 @@ export function SubscribeForm() {
         <div className="relative md:w-[45%] min-h-[200px] md:min-h-0 overflow-hidden">
           <div
             className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: "url('/images/subscribe-banner.png')" }}
+            style={{ backgroundImage: "url('/images/subscribe-banner.webp')" }}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0a0a12]" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a12]/80 via-transparent to-transparent md:bg-none" />
