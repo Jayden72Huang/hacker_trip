@@ -156,6 +156,28 @@ export function DraftList({ apiBase }: DraftListProps) {
       return new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime();
     });
 
+  // 按每日批次分组（每天爬取的草稿归到当天一组；组内沿用上面的排序，组间按日期倒序）
+  const localDay = (d?: string | Date | null) => {
+    if (!d) return '未知日期';
+    const dt = new Date(d);
+    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+  };
+  const today = localDay(new Date());
+  const yesterday = localDay(new Date(Date.now() - 86400000));
+  const groupMap = new Map<string, typeof filtered>();
+  for (const d of filtered) {
+    const k = localDay(d.createdAt);
+    if (!groupMap.has(k)) groupMap.set(k, []);
+    groupMap.get(k)!.push(d);
+  }
+  const groups = Array.from(groupMap.entries())
+    .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+    .map(([key, items]) => ({
+      key,
+      items,
+      label: key === today ? `今天 · ${key}` : key === yesterday ? `昨天 · ${key}` : key,
+    }));
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -206,8 +228,16 @@ export function DraftList({ apiBase }: DraftListProps) {
           />
         </div>
       ) : (
-        <div className="grid gap-4">
-          {filtered.map((draft) => (
+        <div className="space-y-8">
+          {groups.map((group) => (
+            <div key={group.key}>
+              <div className="flex items-center gap-3 mb-4">
+                <h3 className="font-sora text-sm font-bold text-indigo-300">{group.label}</h3>
+                <span className="px-2 py-0.5 rounded-full bg-indigo-500/15 font-space-mono text-xs text-indigo-300">{group.items.length} 条</span>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
+              <div className="grid gap-4">
+                {group.items.map((draft) => (
             <div
               key={draft.draftId}
               className="p-4 rounded-lg bg-white/5 border border-white/10 hover:border-indigo-500/30 transition-colors cursor-pointer"
@@ -272,6 +302,9 @@ export function DraftList({ apiBase }: DraftListProps) {
                 <span className="font-space-mono text-xs text-indigo-400">
                   点击编辑 →
                 </span>
+              </div>
+            </div>
+                ))}
               </div>
             </div>
           ))}

@@ -242,60 +242,58 @@ export function Testimonials() {
 
   return (
     <section ref={ref} className="relative py-24 overflow-hidden">
-      <div className="w-full max-w-[1440px] mx-auto">
-        {/* Section Header */}
-        <div className="text-center mb-14 px-6 space-y-5">
-          <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/5 border border-white/10">
-            <Users size={18} className="text-emerald-400" />
-            <span className="text-sm font-medium text-gray-300">来自全球黑客松爱好者评价</span>
-          </div>
-
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white">
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent tabular-nums">
-              {count.toLocaleString()}+
-            </span>{' '}
-            人已经在 HackerTrip 受益
-          </h2>
-
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            开发者、设计师、产品经理、学生...不同背景的人都在这里找到了机会
-          </p>
+      {/* Section Header（居中） */}
+      <div className="w-full max-w-[1440px] mx-auto text-center mb-14 px-6 space-y-5">
+        <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/5 border border-white/10">
+          <Users size={18} className="text-emerald-400" />
+          <span className="text-sm font-medium text-gray-300">来自全球黑客松爱好者评价</span>
         </div>
 
-        {/* Marquee Container */}
-        <div className="relative">
-          {/* Gradient Masks */}
-          <div className="absolute left-0 top-0 bottom-0 w-24 md:w-40 bg-gradient-to-r from-[#05060a] to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-24 md:w-40 bg-gradient-to-l from-[#05060a] to-transparent z-10 pointer-events-none" />
+        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white">
+          <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent tabular-nums">
+            {count.toLocaleString()}+
+          </span>{' '}
+          人已经在 HackerTrip 受益
+        </h2>
 
-          {/* Row 1 - Scroll Left */}
-          <div className="mb-4">
-            <MarqueeRow items={testimonials} direction="left" baseSpeed={40} />
-          </div>
+        <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+          开发者、设计师、产品经理、学生...不同背景的人都在这里找到了机会
+        </p>
+      </div>
 
-          {/* Row 2 - Scroll Right (reversed order) */}
-          <div>
-            <MarqueeRow items={[...testimonials].reverse()} direction="right" baseSpeed={45} />
-          </div>
+      {/* Marquee Container（全宽贴边，遮罩落在视口左右边缘） */}
+      <div className="relative">
+        {/* Gradient Masks */}
+        <div className="absolute left-0 top-0 bottom-0 w-24 md:w-40 bg-gradient-to-r from-[#05060a] to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-24 md:w-40 bg-gradient-to-l from-[#05060a] to-transparent z-10 pointer-events-none" />
+
+        {/* Row 1 - Scroll Left */}
+        <div className="mb-4">
+          <MarqueeRow items={testimonials} direction="left" baseSpeed={40} />
         </div>
 
-        {/* Stats Bar */}
-        <div className="mt-16 px-6">
-          <div className="max-w-4xl mx-auto flex flex-wrap justify-center gap-8 md:gap-16">
-            {[
-              { value: '50+', label: '合作黑客松' },
-              { value: '30+', label: '覆盖国家' },
-              { value: '$2M+', label: '帮助获得奖金' },
-              { value: '98%', label: '用户满意度' },
-            ].map((stat, i) => (
-              <div key={i} className="text-center">
-                <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                  {stat.value}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">{stat.label}</p>
-              </div>
-            ))}
-          </div>
+        {/* Row 2 - Scroll Right (reversed order) */}
+        <div>
+          <MarqueeRow items={[...testimonials].reverse()} direction="right" baseSpeed={45} />
+        </div>
+      </div>
+
+      {/* Stats Bar（居中） */}
+      <div className="w-full max-w-[1440px] mx-auto mt-16 px-6">
+        <div className="max-w-4xl mx-auto flex flex-wrap justify-center gap-8 md:gap-16">
+          {[
+            { value: '50+', label: '合作黑客松' },
+            { value: '30+', label: '覆盖国家' },
+            { value: '$2M+', label: '帮助获得奖金' },
+            { value: '98%', label: '用户满意度' },
+          ].map((stat, i) => (
+            <div key={i} className="text-center">
+              <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                {stat.value}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">{stat.label}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
