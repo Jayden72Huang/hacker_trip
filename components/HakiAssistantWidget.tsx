@@ -276,10 +276,8 @@ export function HakiAssistantWidget() {
         ? 'inset-x-0 bottom-0 top-3 items-end px-0 sm:bottom-6 sm:top-6 sm:px-4'
         : 'inset-x-0 bottom-4 sm:bottom-6 px-4'
     }`}>
-      <motion.div
-        layout
-        transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-        className={`glass glow pointer-events-auto relative w-full overflow-hidden border border-white/10 bg-white/[0.12] shadow-[0_24px_72px_rgba(7,12,24,0.34)] ${
+      <div
+        className={`glass glow pointer-events-auto relative w-full overflow-hidden border border-white/10 bg-white/[0.12] shadow-[0_24px_72px_rgba(7,12,24,0.34)] transition-[border-radius,max-height] duration-200 ${
           open
             ? 'flex max-h-full max-w-[520px] flex-col rounded-t-[30px] sm:rounded-[30px]'
             : 'max-w-[520px] rounded-[30px]'
@@ -322,10 +320,10 @@ export function HakiAssistantWidget() {
           {open ? (
             <motion.div
               key="chat-content"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.22, ease: 'easeOut' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
               className="relative flex min-h-0 flex-1 flex-col border-t border-white/10 bg-white/[0.04]"
             >
               <div
@@ -439,7 +437,7 @@ export function HakiAssistantWidget() {
             </motion.div>
           ) : null}
         </AnimatePresence>
-      </motion.div>
+      </div>
     </div>
   );
 }
