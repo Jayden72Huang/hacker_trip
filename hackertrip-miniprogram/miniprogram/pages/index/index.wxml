@@ -90,7 +90,7 @@
 <view class="drawer {{drawerOpen?'open':''}}" style="padding-top:{{statusBarH + 20}}px">
   <view class="dw-head">
     <text class="dw-mark serif">HackerTrip</text>
-    <view class="dw-av" bindtap="goProfile">J</view>
+    <view class="dw-av" bindtap="goLogin">{{userName === '黑客松选手' ? '登' : 'J'}}</view>
   </view>
   <view class="dw-nav">
     <view class="dw-item" bindtap="closeDrawer"><text class="dw-ic">🔍</text>发现黑客松</view>

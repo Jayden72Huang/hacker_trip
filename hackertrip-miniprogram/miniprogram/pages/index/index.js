@@ -110,6 +110,7 @@ Page({
   goProfile() { this.closeDrawer(); wx.navigateTo({ url: '/pages/profile/profile' }); },
   goRecent() { this.closeDrawer(); wx.navigateTo({ url: '/pages/recent/recent' }); },
   goResult() { this.closeDrawer(); wx.navigateTo({ url: '/pages/result/result' }); },
+  goLogin() { this.closeDrawer(); wx.navigateTo({ url: '/pages/login/login' }); },
 
   onShareAppMessage() {
     return { title: 'HackerTrip · 你的一站式黑客松平台', path: '/pages/index/index' };

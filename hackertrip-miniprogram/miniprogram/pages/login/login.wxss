@@ -1,0 +1,152 @@
+.root {
+  min-height: 100vh;
+  padding: 0 56rpx;
+  position: relative;
+}
+.skip {
+  position: absolute;
+  right: 40rpx;
+  top: calc(20rpx + 40px);
+  font-size: 26rpx;
+  color: #94918a;
+  padding: 12rpx;
+}
+.brand {
+  text-align: center;
+  margin-top: 180rpx;
+}
+.spark {
+  font-size: 70rpx;
+  color: #c96442;
+  line-height: 1;
+}
+.title {
+  font-size: 52rpx;
+  font-weight: 700;
+  color: #1f1e1d;
+  margin-top: 24rpx;
+}
+.sub {
+  font-size: 26rpx;
+  color: #6b6862;
+  margin-top: 14rpx;
+}
+
+.card {
+  margin-top: 90rpx;
+  background: #fff;
+  border: 1rpx solid #ece9e0;
+  border-radius: 30rpx;
+  padding: 40rpx 36rpx;
+  box-shadow: 0 14rpx 38rpx rgba(60, 50, 40, 0.08);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+  padding-bottom: 32rpx;
+  border-bottom: 1rpx solid #f0ece3;
+}
+.avatar-btn {
+  width: 120rpx;
+  height: 120rpx;
+  padding: 0;
+  border-radius: 50%;
+  background: #f4f2ec;
+  border: 1rpx solid #ece9e0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.avatar-btn::after {
+  border: none;
+}
+.avatar-img {
+  width: 120rpx;
+  height: 120rpx;
+}
+.avatar-ph {
+  color: #c96442;
+  font-size: 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+.avatar-ph-t {
+  font-size: 20rpx;
+  color: #94918a;
+}
+.nick-wrap {
+  flex: 1;
+}
+.nick-label {
+  font-size: 22rpx;
+  color: #94918a;
+}
+.nick-input {
+  margin-top: 8rpx;
+  font-size: 32rpx;
+  color: #1f1e1d;
+  height: 56rpx;
+}
+.nick-ph {
+  color: #b3afa6;
+}
+
+.btn-phone {
+  margin-top: 34rpx;
+  height: 96rpx;
+  line-height: 96rpx;
+  border-radius: 28rpx;
+  background: #c96442;
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+.btn-phone::after {
+  border: none;
+}
+.btn-profile {
+  margin-top: 20rpx;
+  height: 92rpx;
+  line-height: 92rpx;
+  text-align: center;
+  border-radius: 28rpx;
+  background: #f4f2ec;
+  border: 1rpx solid #ece9e0;
+  color: #1f1e1d;
+  font-size: 29rpx;
+}
+
+.agree {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  margin-top: 40rpx;
+  padding: 0 6rpx;
+}
+.checkbox {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  border: 1rpx solid #d6d1c6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+  color: #fff;
+  flex-shrink: 0;
+}
+.checkbox.on {
+  background: #c96442;
+  border-color: #c96442;
+}
+.agree-text {
+  font-size: 23rpx;
+  color: #94918a;
+}
+.link {
+  color: #c96442;
+}

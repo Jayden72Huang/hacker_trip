@@ -1,0 +1,38 @@
+<view class="root" style="padding-top:{{statusBarH}}px">
+  <view class="skip" bindtap="skip">跳过</view>
+
+  <view class="brand">
+    <view class="spark">✳</view>
+    <view class="title serif">HackerTrip</view>
+    <view class="sub">你的一站式黑客松平台</view>
+  </view>
+
+  <view class="card">
+    <!-- 头像昵称 -->
+    <view class="row">
+      <button class="avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+        <image wx:if="{{avatarUrl}}" class="avatar-img" src="{{avatarUrl}}" mode="aspectFill" />
+        <view wx:else class="avatar-ph">＋<text class="avatar-ph-t">头像</text></view>
+      </button>
+      <view class="nick-wrap">
+        <view class="nick-label">昵称</view>
+        <input class="nick-input" type="nickname" placeholder="点击填写微信昵称" placeholder-class="nick-ph"
+          value="{{nickname}}" bindinput="onNickInput" />
+      </view>
+    </view>
+
+    <!-- 手机号快捷登录 -->
+    <button class="btn-phone" open-type="getPhoneNumber" bindgetphonenumber="onGetPhone">
+      📱 微信手机号一键登录
+    </button>
+    <!-- 仅头像昵称完成 -->
+    <view class="btn-profile" bindtap="finishProfile">仅用昵称进入</view>
+  </view>
+
+  <view class="agree" bindtap="toggleAgree">
+    <view class="checkbox {{agreed ? 'on' : ''}}">{{agreed ? '✓' : ''}}</view>
+    <view class="agree-text">
+      我已阅读并同意<text class="link" catchtap="openPrivacy">《用户隐私保护指引》</text>
+    </view>
+  </view>
+</view>
