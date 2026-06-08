@@ -1,0 +1,23 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/detail/detail",
+    "pages/card/card",
+    "pages/share/share",
+    "pages/sync/sync",
+    "pages/result/result",
+    "pages/profile/profile",
+    "pages/recent/recent"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#faf9f5",
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "HackerTrip",
+    "backgroundColor": "#faf9f5",
+    "backgroundTextStyle": "dark",
+    "enablePullDownRefresh": false
+  },
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json"
+}

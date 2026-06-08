@@ -1,0 +1,86 @@
+.hcard {
+  border-radius: 30rpx;
+  padding: 36rpx;
+  margin-bottom: 28rpx;
+  transition: transform 0.14s ease;
+}
+.hcard:active {
+  transform: scale(0.985);
+}
+.hcard-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.hcard-title {
+  flex: 1;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #1f1e1d;
+  line-height: 1.42;
+  margin-right: 18rpx;
+  letter-spacing: 0.3rpx;
+}
+.bookmark {
+  font-size: 44rpx;
+  color: #c9c4ba;
+  line-height: 1;
+  padding: 2rpx 6rpx;
+}
+.bookmark.active {
+  color: #e0a12b;
+}
+.hcard-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx;
+  margin-top: 20rpx;
+}
+.meta-item {
+  font-size: 24rpx;
+  color: #6b6862;
+}
+.meta-item.mode {
+  color: #c96442;
+}
+.hcard-summary {
+  margin-top: 20rpx;
+  font-size: 26rpx;
+  color: #6b6862;
+  line-height: 1.7;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.hcard-tracks {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 20rpx;
+}
+.hcard-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 28rpx;
+  padding-top: 28rpx;
+  border-top: 1rpx solid #ece9e0;
+}
+.prize {
+  font-size: 25rpx;
+  color: #c96442;
+  font-weight: 500;
+}
+.status-tag {
+  font-size: 22rpx;
+  padding: 7rpx 20rpx;
+  border-radius: 999rpx;
+}
+.status-tag.live {
+  color: #3f9c6a;
+  background: #e7efe8;
+}
+.status-tag.ended {
+  color: #94918a;
+  background: #f4f2ec;
+}

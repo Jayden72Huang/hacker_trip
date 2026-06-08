@@ -1,0 +1,37 @@
+// 云函数：查询黑客松列表（已发布）
+// 集合 hackathons 字段与 miniprogram/data/hackathons.js 一致
+const cloud = require('wx-server-sdk');
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
+const db = cloud.database();
+const _ = db.command;
+
+exports.main = async (event) => {
+  const { q, mode, status, sort, limit = 50 } = event || {};
+  const col = db.collection('hackathons');
+  let query = {};
+
+  if (mode && mode !== 'all') query.mode = mode;
+  if (status === 'upcoming') query.isPast = _.neq(true);
+  if (status === 'ended') query.isPast = true;
+
+  // 关键词：云数据库正则模糊匹配 name/city/theme
+  if (q && q.trim()) {
+    const reg = db.RegExp({ regexp: q.trim(), options: 'i' });
+    query = _.and([
+      query,
+      _.or([{ name: reg }, { city: reg }, { theme: reg }]),
+    ]);
+  }
+
+  try {
+    let ref = col.where(query);
+    const orderField = sort === 'name' ? 'name' : 'startDate';
+    const res = await ref
+      .orderBy(orderField, sort === 'name' ? 'asc' : 'desc')
+      .limit(Math.min(limit, 100))
+      .get();
+    return { ok: true, list: res.data || [] };
+  } catch (e) {
+    return { ok: false, list: [], error: String(e) };
+  }
+};

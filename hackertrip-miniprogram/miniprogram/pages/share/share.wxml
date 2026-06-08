@@ -1,0 +1,19 @@
+<view class="aurora" />
+<view class="page fade-up">
+  <view class="hook glass">
+    <text class="hook-emoji">{{roleMeta.emoji}}</text>
+    <view class="hook-text">TA 在黑客松里是「{{roleMeta.name}}」</view>
+    <view class="hook-q">那么 —— 你是什么角色？</view>
+  </view>
+
+  <view class="preview">
+    <canvas type="2d" id="shareCanvas" class="card-canvas" style="width: 600rpx; height: 800rpx;" />
+  </view>
+
+  <view class="cta-zone">
+    <button class="btn-primary" bindtap="makeMine">🎴 我也要一张身份卡</button>
+    <view class="btn-ghost" bindtap="goExplore">逛逛 HackerTrip 黑客松</view>
+  </view>
+
+  <view class="footnote">由 HackerTrip 小程序生成 · 一键扫描代码匹配黑客松</view>
+</view>

@@ -1,0 +1,107 @@
+<wxs src="../../utils/tools.wxs" module="tools" />
+
+<view class="root mode-{{mode}}">
+  <!-- 自定义导航：左 ☰，右侧留给微信胶囊 -->
+  <view class="nav" style="padding-top:{{statusBarH}}px">
+    <view class="nav-row" style="height:{{navH + (navTop - statusBarH) * 2}}px">
+      <view class="menu-btn" bindtap="openDrawer">
+        <view class="ml" /><view class="ml" /><view class="ml ml-s" />
+      </view>
+      <view wx:if="{{mode !== 'idle'}}" class="nav-title">发现黑客松</view>
+    </view>
+  </view>
+
+  <!-- 静默态：品牌问候 -->
+  <view wx:if="{{mode === 'idle'}}" class="greet fade-up">
+    <view class="spark">✳</view>
+    <view class="greet-title serif">{{greeting}}，{{userName}}</view>
+    <view class="greet-sub">今天想找什么黑客松？{{'\n'}}点击下方或上滑搜索</view>
+  </view>
+
+  <!-- 展开 / 搜索态 -->
+  <view wx:else class="content">
+    <!-- 顶部命令栏 -->
+    <view class="cmd cmd-top">
+      <view wx:if="{{mode === 'search'}}" class="cmd-input-row">
+        <text class="cmd-glass">🔍</text>
+        <input class="cmd-input" placeholder="搜黑客松 / 城市 / 赛道" placeholder-class="cmd-ph-cls"
+          value="{{keyword}}" focus="{{searchFocus}}" confirm-type="search"
+          bindinput="onInput" bindconfirm="onSearch" />
+        <text wx:if="{{keyword}}" class="cmd-clear" bindtap="onClearKeyword">✕</text>
+        <text class="cmd-cancel" bindtap="backToOpen">取消</text>
+      </view>
+      <block wx:else>
+        <view class="cmd-ph" bindtap="focusSearch">搜索黑客松 / 城市 / 赛道</view>
+        <view class="cmd-row">
+          <view class="cmd-ic">＋</view>
+          <view class="cmd-pill">{{status === 'ended' ? '已结束' : status === 'upcoming' ? '进行中' : '全部'}}</view>
+          <view class="cmd-send" bindtap="focusSearch">🔍</view>
+        </view>
+      </block>
+    </view>
+
+    <!-- 搜索态：最近 / 热门 -->
+    <view wx:if="{{mode === 'search'}}" class="suggest">
+      <view class="sug-h">最近搜索</view>
+      <view class="sug-row">
+        <text wx:for="{{recents}}" wx:key="*this" class="chip" data-k="{{item}}" bindtap="pickSuggest">{{item}}</text>
+      </view>
+      <view class="sug-h">热门赛道</view>
+      <view class="sug-row">
+        <text wx:for="{{hots}}" wx:key="*this" class="chip" data-k="{{item}}" bindtap="pickSuggest">{{item}}</text>
+      </view>
+    </view>
+
+    <!-- 列表 -->
+    <scroll-view wx:else scroll-y class="list" enhanced show-scrollbar="{{false}}">
+      <view class="grab" />
+      <!-- 状态筛选 -->
+      <scroll-view scroll-x class="tabs" enhanced show-scrollbar="{{false}}">
+        <view class="tab {{status==='all'?'on':''}}" data-key="all" bindtap="onStatusTab">全部</view>
+        <view class="tab {{status==='upcoming'?'on':''}}" data-key="upcoming" bindtap="onStatusTab">进行中/即将</view>
+        <view class="tab {{status==='ended'?'on':''}}" data-key="ended" bindtap="onStatusTab">已结束</view>
+      </scroll-view>
+      <view class="list-head">
+        <text class="lh-title">{{status==='ended'?'已结束':status==='upcoming'?'进行中/即将开始':'全部黑客松'}}</text>
+        <text class="lh-count">{{list.length}} 场</text>
+      </view>
+      <view wx:if="{{loading}}" class="state">加载中…</view>
+      <view wx:elif="{{list.length===0}}" class="state">没有符合条件的黑客松 🛰️</view>
+      <hackathon-card wx:for="{{list}}" wx:key="id" item="{{item}}"
+        bookmarked="{{tools.inArray(bookmarks, item.id)}}"
+        bind:tap="onCardTap" bind:bookmark="onBookmark" />
+      <view style="height:40rpx" />
+    </scroll-view>
+  </view>
+
+  <!-- 静默态底部命令栏 -->
+  <view wx:if="{{mode === 'idle'}}" class="cmd cmd-bottom" bindtap="expand">
+    <view class="cmd-ph">搜索黑客松 / 城市 / 赛道</view>
+    <view class="cmd-row">
+      <view class="cmd-ic">＋</view>
+      <view class="cmd-pill">全部 · 进行中</view>
+      <view class="cmd-send">🔍</view>
+    </view>
+  </view>
+</view>
+
+<!-- 更多抽屉 -->
+<view class="drawer-mask {{drawerOpen?'show':''}}" bindtap="closeDrawer" />
+<view class="drawer {{drawerOpen?'open':''}}" style="padding-top:{{statusBarH + 20}}px">
+  <view class="dw-head">
+    <text class="dw-mark serif">HackerTrip</text>
+    <view class="dw-av" bindtap="goProfile">J</view>
+  </view>
+  <view class="dw-nav">
+    <view class="dw-item" bindtap="closeDrawer"><text class="dw-ic">🔍</text>发现黑客松</view>
+    <view class="dw-item" bindtap="goCard"><text class="dw-ic">🎴</text>我的身份卡</view>
+    <view class="dw-item" bindtap="goCard"><text class="dw-ic">🧩</text>开发者配置卡</view>
+    <view class="dw-item" bindtap="goSync"><text class="dw-ic">⇆</text>Skills 同步</view>
+    <view class="dw-item" bindtap="goProfile"><text class="dw-ic">☆</text>我的收藏</view>
+    <view class="dw-item" bindtap="goRecent"><text class="dw-ic">🔔</text>消息中心</view>
+    <view wx:if="{{hasScan}}" class="dw-item" bindtap="goResult"><text class="dw-ic">🎯</text>匹配结果</view>
+  </view>
+  <view class="dw-recents">最近</view>
+  <view class="dw-rec" bindtap="goProfile">我的展示库 ›</view>
+  <view class="dw-new" bindtap="goCard">＋ 新建身份卡</view>
+</view>

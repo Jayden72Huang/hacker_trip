@@ -1,0 +1,51 @@
+<view class="aurora" />
+<view wx:if="{{!scan}}" class="empty">
+  <view class="empty-emoji">🛰️</view>
+  <view class="empty-text">还没有同步任何扫描结果</view>
+  <view class="btn-primary empty-btn" bindtap="goSync">去同步 Skills</view>
+</view>
+
+<view wx:else class="page fade-up">
+  <!-- 项目画像 -->
+  <view class="profile glass">
+    <view class="profile-label">📦 项目画像</view>
+    <view class="profile-name">{{scan.project.name}}</view>
+    <view class="profile-domain">{{scan.project.domain}}</view>
+    <view wx:if="{{scan.project.summary}}" class="profile-sum">{{scan.project.summary}}</view>
+    <view class="profile-stack">
+      <text wx:for="{{scan.project.techStack}}" wx:key="*this" class="chip chip-accent">{{item}}</text>
+    </view>
+  </view>
+
+  <view class="match-title">🎯 Top {{scan.matches.length}} 黑客松匹配</view>
+
+  <view
+    wx:for="{{scan.matches}}" wx:key="hackathonId"
+    class="match glass"
+    data-id="{{item.hackathonId}}"
+    bindtap="openDetail"
+  >
+    <view class="match-head">
+      <view class="match-rank">#{{index + 1}}</view>
+      <view class="match-name">{{item.name}}</view>
+      <view class="match-score">{{item.score}}</view>
+    </view>
+    <view class="match-bar">
+      <view class="match-bar-fill" style="width: {{item.score}}%;" />
+    </view>
+    <view class="match-track">推荐赛道 · {{item.track}}</view>
+    <view class="match-pitch">💡 {{item.pitch}}</view>
+    <view class="match-go">查看详情并报名 →</view>
+  </view>
+
+  <view class="cta glow" bindtap="makeCard">
+    <text class="cta-emoji">🎴</text>
+    <view class="cta-text">
+      <view class="cta-t">基于扫描结果生成身份卡</view>
+      <view class="cta-d">角色已判定为「炼丹师」，一键出卡分享</view>
+    </view>
+    <text class="cta-a">→</text>
+  </view>
+
+  <view style="height: 40rpx;" />
+</view>

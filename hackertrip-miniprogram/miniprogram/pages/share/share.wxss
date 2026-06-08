@@ -1,0 +1,43 @@
+.page {
+  padding: 40rpx 40rpx 72rpx;
+}
+.hook {
+  text-align: center;
+  padding: 32rpx;
+  border-radius: 24rpx;
+  margin-bottom: 28rpx;
+}
+.hook-emoji {
+  font-size: 64rpx;
+}
+.hook-text {
+  margin-top: 12rpx;
+  font-size: 30rpx;
+  color: #6b6862;
+}
+.hook-q {
+  margin-top: 8rpx;
+  font-size: 38rpx;
+  font-weight: 800;
+  color: #c96442;
+}
+.preview {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 36rpx;
+}
+.card-canvas {
+  border-radius: 28rpx;
+  box-shadow: 0 24rpx 70rpx rgba(201, 100, 66, 0.2);
+}
+.cta-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+.footnote {
+  text-align: center;
+  margin-top: 30rpx;
+  font-size: 21rpx;
+  color: #94918a;
+}

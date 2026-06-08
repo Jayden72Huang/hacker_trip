@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>HackerTrip 小程序 · 页面流程链路 & 规范</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Segoe UI",sans-serif;background:#faf9f5;color:#1f1e1d;padding:40px 36px 70px}
+h1{font-size:28px;font-weight:800}
+.sub{color:#6b6862;margin-top:8px;font-size:14px;max-width:900px;line-height:1.6}
+.mer{background:#fff;border:1px solid #ece9e0;border-radius:18px;padding:24px;margin:28px 0;box-shadow:0 10px 30px rgba(60,50,40,.06)}
+h2{font-size:20px;font-weight:800;margin:30px 0 6px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:16px}
+.card{background:#fff;border:1px solid #ece9e0;border-radius:16px;overflow:hidden}
+.card .h{background:#f4ede4;padding:12px 16px;font-weight:700;font-size:15px}
+.card .b{padding:14px 16px;font-size:12.8px;line-height:1.7;color:#3a3833}
+.card .b b{color:#c96442}
+.k{display:inline-block;min-width:42px;color:#94918a;font-weight:600}
+.tokens{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:16px}
+.tok{background:#fff;border:1px solid #ece9e0;border-radius:16px;padding:18px}
+.tok h3{font-size:15px;margin-bottom:10px}
+.sw{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:#6b6862;margin:0 14px 8px 0}
+.sw i{width:18px;height:18px;border-radius:5px;border:1px solid rgba(0,0,0,.1)}
+.row{font-size:12.8px;color:#3a3833;padding:3px 0;border-bottom:1px dashed #ece9e0;display:flex;justify-content:space-between}
+</style></head>
+<body>
+<h1>HackerTrip 小程序 · 页面流程链路 & 生产规范</h1>
+<div class="sub">Claude 暖调视觉 + 微信小程序交互规范（自定义导航避让胶囊、44pt 触控、安全区、page-container 抽屉/弹层）。缺标准处参照 Apple HIG。13 个页面均有对应设计稿（见 Figma）+ 下方链路与备注。</div>
+
+<h2>① 全站跳转流程图</h2>
+<div class="mer"><pre class="mermaid">
+flowchart TD
+  Start([小程序启动]):::st --> Idle["① 首页·静默态"]:::home
+  Idle -- "点命令栏×1 / 上滑" --> Open["② 首页·展开"]:::home
+  Open -- "下滑收起" --> Idle
+  Open -- "再点命令栏" --> Search["③ 搜索输入态"]:::home
+  Open -- "点卡片" --> Detail["⑦ 黑客松详情"]:::core
+  Idle -- "点 ☰ 更多" --> Drawer["④ 更多抽屉"]:::nav
+  Drawer -- "发现" --> Idle
+  Drawer -- "身份卡/配置卡/新建" --> Card["⑧ 身份卡工坊"]:::core
+  Drawer -- "Skills 同步" --> Sync["⑩ Skills 同步"]:::core
+  Drawer -- "收藏/报名" --> Fav["⑫ 收藏 / 报名清单"]:::core
+  Drawer -- "消息中心" --> Recent["⑤ Recent 消息"]:::core
+  Drawer -- "我的展示库" --> IP["⑥ 个人 IP 展示库"]:::core
+  Detail -- "加入报名" --> Fav
+  Detail -- "生成身份卡" --> Card
+  Sync -- "同步成功" --> Result["⑪ 匹配结果"]:::core
+  Result -- "点匹配项" --> Detail
+  Result -- "生成卡" --> Card
+  Card -- "分享" --> Share["⑨ 分享落地"]:::core
+  Share -- "我也要一张" --> Card
+  Share -- "逛逛黑客松" --> Idle
+  IP -- "分享" --> Share
+  Recent -- "推送/邀请" --> Detail
+  Fav -- "点项" --> Detail
+  Card -. "首次需昵称" .-> Login["⑬ 登录授权"]:::modal
+  Detail -. "首次需昵称" .-> Login
+  classDef st fill:#1f1e1d,color:#fff,stroke:#1f1e1d;
+  classDef home fill:#c96442,color:#fff,stroke:#9c4f30;
+  classDef nav fill:#efe7df,color:#1f1e1d,stroke:#d9cfc2;
+  classDef core fill:#fff,color:#1f1e1d,stroke:#e0c4b2;
+  classDef modal fill:#fbeee6,color:#9c4f30,stroke:#e0c4b2,stroke-dasharray:4 3;
+</pre></div>
+
+<h2>② 每页链路 & 规范备注</h2>
+<div class="grid" id="grid"></div>
+
+<h2>③ 设计 Token（生产级）</h2>
+<div class="tokens">
+  <div class="tok"><h3>配色</h3>
+    <span class="sw"><i style="background:#faf9f5"></i>奶油底 #FAF9F5</span>
+    <span class="sw"><i style="background:#ffffff"></i>卡片 #FFFFFF</span>
+    <span class="sw"><i style="background:#1f1e1d"></i>主文字 #1F1E1D</span>
+    <span class="sw"><i style="background:#6b6862"></i>次文字 #6B6862</span>
+    <span class="sw"><i style="background:#94918a"></i>弱文字 #94918A</span>
+    <span class="sw"><i style="background:#c96442"></i>主色黏土 #C96442</span>
+    <span class="sw"><i style="background:#f4ede4"></i>chip 底 #F4EDE4</span>
+    <span class="sw"><i style="background:#ece9e0"></i>边线 #ECE9E0</span>
+    <div style="font-size:12px;color:#94918a;margin-top:6px">深色模式：底 #262624 / 卡 #30302E / 主色 #D97757</div>
+  </div>
+  <div class="tok"><h3>字阶（pt，小程序换算 ×2=rpx）</h3>
+    <div class="row"><span>Display 问候/角色</span><b>27 / Bold</b></div>
+    <div class="row"><span>页面大标题</span><b>22 / Bold</b></div>
+    <div class="row"><span>卡片标题</span><b>16 / Semibold</b></div>
+    <div class="row"><span>正文</span><b>14.5 / Regular lh24</b></div>
+    <div class="row"><span>次要/元信息</span><b>12.5 / Regular</b></div>
+    <div class="row"><span>chip / 注释</span><b>11.5 / Medium</b></div>
+  </div>
+  <div class="tok"><h3>间距 & 圆角（pt）</h3>
+    <div class="row"><span>页边距</span><b>20</b></div>
+    <div class="row"><span>卡片内边距</span><b>16–20</b></div>
+    <div class="row"><span>卡片间距</span><b>12–14</b></div>
+    <div class="row"><span>区块间距</span><b>24</b></div>
+    <div class="row"><span>卡片圆角</span><b>18</b></div>
+    <div class="row"><span>按钮/输入圆角</span><b>14</b></div>
+    <div class="row"><span>chip 圆角</span><b>999（全圆）</b></div>
+  </div>
+  <div class="tok"><h3>微信小程序规范要点</h3>
+    <div class="row"><span>导航</span><b>custom，避让右上 88px 胶囊</b></div>
+    <div class="row"><span>触控区</span><b>≥ 44×44 pt（HIG/微信）</b></div>
+    <div class="row"><span>底部安全区</span><b>env(safe-area-inset-bottom)</b></div>
+    <div class="row"><span>抽屉/弹层</span><b>page-container（非真实跳转）</b></div>
+    <div class="row"><span>页面跳转</span><b>navigateTo / switchTab</b></div>
+    <div class="row"><span>消息推送</span><b>requestSubscribeMessage</b></div>
+    <div class="row"><span>登录</span><b>头像昵称填写 + 手机号快捷</b></div>
+  </div>
+</div>
+
+<script>
+const A=[
+['① 首页·静默态','pages/index（默认）',['入口','冷启动 / 抽屉「发现」'],['跳转','☰→④ ｜ 命令栏×1 / 上滑→②'],['排版','问候 Bold27 居中；命令栏 88h 圆角24 距底30+安全区'],['微信','右上留 88px 胶囊安全区，禁放按钮；navigationStyle=custom']],
+['② 首页·展开态','pages/index（展开）',['入口','静默点击命令栏 / 上滑'],['跳转','命令栏×2→③ ｜ 卡片→⑦ ｜ 下滑→①'],['排版','卡片 361w 圆角18 内距16 间距16；分组标题 13/600'],['微信','scroll-view 惯性 + grab 条提示可拖']],
+['③ 首页·搜索态','pages/index（输入）',['入口','展开态再点命令栏'],['跳转','回车→结果 ｜ 点 chip→填入搜索'],['排版','输入框 clay 2px 描边；最近/热门 chip；键盘 230h'],['微信','input focus 自动弹键盘 adjust-position；confirm-type=search']],
+['④ 更多抽屉','page-container 覆盖层',['入口','任意主页面点 ☰'],['跳转','身份卡/配置卡/新建→⑧ ｜ 同步→⑩ ｜ 收藏→⑫ ｜ 消息→⑤ ｜ 展示库→⑥'],['排版','导航行 54h（触控≥44）；wordmark 25Bold；底部新建胶囊'],['微信','page-container 抽屉，点遮罩/左滑关闭']],
+['⑤ Recent 消息中心','pages/recent',['入口','抽屉「消息中心」/ 角标'],['跳转','邀请→资料/私信 ｜ 推送→⑦ ｜ 更新→详情/H5'],['排版','消息行 92h；图标 50/圆角14；时间右对齐'],['微信','requestSubscribeMessage 一次性订阅；自定义角标红点']],
+['⑥ 个人 IP 展示库','pages/profile（或 u/[username]）',['入口','抽屉 / 分享回流 / 存卡后'],['跳转','分享→⑨ ｜ 编辑→⑧'],['排版','IP 卡 clay 渐变 圆角24 统计三栏；配置白卡'],['微信','onShareAppMessage + onShareTimeline；canvas 出图']],
+['⑦ 黑客松详情','pages/detail?id=',['入口','卡片 / 消息 / 收藏 / 结果'],['跳转','加入报名→⑫ ｜ 复制官网→剪贴板 ｜ 生成卡→⑧'],['排版','标题 24Bold lh32；细线分隔；底栏按钮 54h'],['微信','navigateTo 带 id；底栏吸底 + 安全区']],
+['⑧ 身份卡工坊','pages/card',['入口','抽屉 / 详情 / 结果 CTA'],['跳转','分享→⑨ ｜ 保存图片→相册'],['排版','分段 44h；canvas 201×268 居中；底栏双按钮'],['微信','canvas type=2d；canvasToTempFilePath + saveImageToPhotosAlbum（授权）']],
+['⑨ 卡片分享落地','pages/share?role=&variant=',['入口','他人分享卡片进入'],['跳转','我也要一张→⑧ ｜ 逛逛→①'],['排版','钩子文案居中；大卡居中；双 CTA'],['微信','被分享者先看内容不强登录；scene 统计裂变']],
+['⑩ Skills 同步','pages/sync',['入口','抽屉 / 首页 Skill banner'],['跳转','同步成功→⑪ ｜ 查看结果→⑪ ｜ 生成卡→⑧'],['排版','已同步卡 120h；配对码 52h；步骤卡 48h'],['微信','云函数 pairSync 凭码拉取，30 分钟有效']],
+['⑪ 黑客松匹配结果','pages/result',['入口','同步成功后'],['跳转','匹配项→⑦ ｜ 生成卡→⑧'],['排版','画像卡 120h；分数条 305w；匹配卡 100h'],['微信','数据来自云端 scan；空态引导去⑩']],
+['⑫ 收藏 / 报名清单','pages/profile（清单 tab）',['入口','抽屉 / 详情加入'],['跳转','点项→⑦ ｜ 报名→复制官网'],['排版','分段 收藏/报名；列表卡 104h；右上星标'],['微信','本地 storage + 云端双写']],
+['⑬ 登录 / 授权','授权弹层',['入口','需昵称/手机号的动作首次触发'],['跳转','成功→返回来源页继续'],['排版','居中 logo + 授权卡 + 主按钮 + 隐私协议'],['微信','头像昵称填写 + 手机号快捷；getUserProfile 已废弃；隐私协议必读']],
+];
+document.getElementById('grid').innerHTML=A.map(a=>`<div class="card"><div class="h">${a[0]}</div><div class="b"><div><b>路由</b> ${a[1]}</div>${a.slice(2).map(r=>`<div><span class="k">${r[0]}</span>${r[1]}</div>`).join('')}</div></div>`).join('');
+mermaid.initialize({startOnLoad:true,theme:'base',themeVariables:{fontFamily:'-apple-system,PingFang SC,sans-serif',fontSize:'15px'}});
+</script>
+</body></html>

@@ -1,0 +1,10 @@
+# 微信开发者工具
+project.private.config.json
+.DS_Store
+
+# 云函数依赖
+cloudfunctions/**/node_modules/
+miniprogram_npm/
+
+# 本地
+*.log

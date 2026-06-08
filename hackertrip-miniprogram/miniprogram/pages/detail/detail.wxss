@@ -1,0 +1,129 @@
+.page {
+  padding: 36rpx 40rpx 0;
+}
+.state {
+  text-align: center;
+  color: #94918a;
+  padding: 120rpx 0;
+}
+.title {
+  font-size: 42rpx;
+  font-weight: 800;
+  color: #1f1e1d;
+  line-height: 1.35;
+}
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  margin-top: 20rpx;
+}
+.meta {
+  font-size: 24rpx;
+  color: #6b6862;
+}
+.meta.accent {
+  color: #c96442;
+}
+.prize-banner {
+  margin-top: 24rpx;
+  padding: 22rpx 28rpx;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  color: #c96442;
+  font-weight: 600;
+}
+.block {
+  margin-top: 28rpx;
+  padding: 32rpx;
+  border-radius: 28rpx;
+}
+.block-title {
+  font-size: 24rpx;
+  color: #6b6862;
+  margin-bottom: 16rpx;
+  letter-spacing: 0.5rpx;
+}
+.block-text {
+  font-size: 28rpx;
+  color: #1f1e1d;
+  line-height: 1.7;
+}
+.block-text.link {
+  color: #c96442;
+  word-break: break-all;
+}
+.copy-hint {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #c96442;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+}
+.cta-card {
+  display: flex;
+  align-items: center;
+  margin-top: 32rpx;
+  padding: 28rpx;
+  border-radius: 24rpx;
+  background: #f4ede4;
+  border: 1rpx solid #ece9e0;
+}
+.cta-emoji {
+  font-size: 56rpx;
+  margin-right: 22rpx;
+}
+.cta-body {
+  flex: 1;
+}
+.cta-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1f1e1d;
+}
+.cta-desc {
+  font-size: 23rpx;
+  color: #6b6862;
+  margin-top: 6rpx;
+}
+.cta-arrow {
+  font-size: 40rpx;
+  color: #c96442;
+}
+
+.actionbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 20rpx 28rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: #ffffff;
+  border-top: 1rpx solid #ece9e0;
+}
+.act-bookmark {
+  flex-shrink: 0;
+  padding: 0 28rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  color: #6b6862;
+  background: #f4f2ec;
+  border: 1rpx solid #ece9e0;
+}
+.act-bookmark.on {
+  color: #c96442;
+  border-color: rgba(201, 100, 66, 0.4);
+}
+.act-main {
+  flex: 1;
+}
+.act-main[disabled] {
+  opacity: 0.6;
+  background: #f4f2ec !important;
+}

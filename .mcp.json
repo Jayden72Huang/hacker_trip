@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "cloudbase": {
+      "command": "npx",
+      "args": ["@cloudbase/cloudbase-mcp@latest"],
+      "env": {
+        "INTEGRATION_IDE": "ClaudeCode"
+      }
+    },
+    "wechat-devtools": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "wechat-devtools-mcp"
+      ],
+      "env": {
+        "WECHAT_DEVTOOLS_CLI": "/Applications/wechatwebdevtools.app/Contents/MacOS/cli",
+        "WECHAT_PROJECT_PATH": "/Users/jaydenworkplace/Desktop/hacker_trip/hackertrip-miniprogram",
+        "PYTHONIOENCODING": "utf-8"
+      }
+    }
+  }
+}

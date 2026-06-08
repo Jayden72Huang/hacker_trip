@@ -1,0 +1,26 @@
+<view class="hcard glass fade-up" bindtap="onTap">
+  <view class="hcard-top">
+    <view class="hcard-title">{{item.name}}</view>
+    <view class="bookmark {{bookmarked ? 'active' : ''}}" catchtap="onBookmark">
+      {{bookmarked ? '★' : '☆'}}
+    </view>
+  </view>
+
+  <view class="hcard-meta">
+    <text wx:if="{{item.startDate}}" class="meta-item">📅 {{item.startDate}}</text>
+    <text wx:if="{{item.city}}" class="meta-item">📍 {{item.city}}</text>
+    <text class="meta-item mode">{{modeLabel[item.mode] || item.mode}}</text>
+  </view>
+
+  <view wx:if="{{item.summary}}" class="hcard-summary">{{item.summary}}</view>
+
+  <view class="hcard-tracks">
+    <text wx:for="{{item.tracks}}" wx:key="*this" wx:if="{{index < 4}}" class="chip">{{item}}</text>
+  </view>
+
+  <view class="hcard-foot">
+    <text wx:if="{{item.prizePool}}" class="prize">🏆 {{item.prizePool}}</text>
+    <text wx:if="{{item.isPast}}" class="status-tag ended">已结束</text>
+    <text wx:else class="status-tag live">进行中 / 即将开始</text>
+  </view>
+</view>

@@ -1,0 +1,86 @@
+<view class="aurora" />
+<view class="page">
+  <!-- 头部 -->
+  <view class="header fade-up">
+    <view class="avatar">🦾</view>
+    <view class="hinfo">
+      <view class="hname">黑客松选手</view>
+      <view class="hsub">{{scanSynced ? '✅ Skills 已同步' : '未同步 Skills'}}</view>
+    </view>
+    <view class="hsync" bindtap="goSync">{{scanSynced ? '管理同步' : '去同步'}}</view>
+  </view>
+
+  <!-- 统计 -->
+  <view class="stats">
+    <view class="stat glass" data-tab="cards" bindtap="switchTab">
+      <view class="stat-n">{{cards.length}}</view>
+      <view class="stat-l">我的卡片</view>
+    </view>
+    <view class="stat glass" data-tab="bookmarks" bindtap="switchTab">
+      <view class="stat-n">{{bookmarks.length}}</view>
+      <view class="stat-l">收藏</view>
+    </view>
+    <view class="stat glass" data-tab="regs" bindtap="switchTab">
+      <view class="stat-n">{{regs.length}}</view>
+      <view class="stat-l">报名清单</view>
+    </view>
+  </view>
+
+  <!-- Tab 切换 -->
+  <view class="seg">
+    <view class="seg-item {{tab === 'cards' ? 'on' : ''}}" data-tab="cards" bindtap="switchTab">卡片</view>
+    <view class="seg-item {{tab === 'bookmarks' ? 'on' : ''}}" data-tab="bookmarks" bindtap="switchTab">收藏</view>
+    <view class="seg-item {{tab === 'regs' ? 'on' : ''}}" data-tab="regs" bindtap="switchTab">报名清单</view>
+  </view>
+
+  <!-- 卡片列表 -->
+  <block wx:if="{{tab === 'cards'}}">
+    <view wx:if="{{cards.length === 0}}" class="empty">
+      <view class="empty-text">还没有保存身份卡</view>
+      <view class="btn-primary empty-btn" bindtap="makeCard">去生成一张 →</view>
+    </view>
+    <view wx:else class="cards">
+      <view wx:for="{{cards}}" wx:key="id" class="mini-card glass" data-idx="{{index}}" bindtap="openCard">
+        <text class="mc-emoji">{{item.emoji}}</text>
+        <view class="mc-body">
+          <view class="mc-name">{{item.roleName}}</view>
+          <view class="mc-meta">{{item.variant === 'config' ? '配置卡' : '身份卡'}} · {{item.techStack[0]}} 等 {{item.techStack.length}} 项技术</view>
+        </view>
+        <text class="mc-go">分享 →</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- 收藏列表 -->
+  <block wx:if="{{tab === 'bookmarks'}}">
+    <view wx:if="{{bookmarks.length === 0}}" class="empty">
+      <view class="empty-text">还没有收藏黑客松</view>
+      <view class="btn-primary empty-btn" bindtap="goExplore">去发现 →</view>
+    </view>
+    <hackathon-card
+      wx:for="{{bookmarks}}" wx:key="id"
+      item="{{item}}" bookmarked="{{true}}"
+      bind:tap="openDetail" bind:bookmark="onBookmark"
+    />
+  </block>
+
+  <!-- 报名清单 -->
+  <block wx:if="{{tab === 'regs'}}">
+    <view wx:if="{{regs.length === 0}}" class="empty">
+      <view class="empty-text">报名清单为空</view>
+      <view class="empty-hint">在详情页点「加入报名清单」即可在此跟进</view>
+    </view>
+    <block wx:else>
+      <view class="reg glass" wx:for="{{regs}}" wx:key="id">
+        <view class="reg-top">
+          <view class="reg-name">{{item.name}}</view>
+          <view class="reg-todo">待报名</view>
+        </view>
+        <view class="reg-meta">📅 {{item.startDate}} · 📍 {{item.city}}</view>
+        <view wx:if="{{item.website}}" class="reg-link" data-url="{{item.website}}" catchtap="copyWebsite">复制官网链接报名 →</view>
+      </view>
+    </block>
+  </block>
+
+  <view class="footer-brand">HackerTrip 小程序 · v1.0</view>
+</view>

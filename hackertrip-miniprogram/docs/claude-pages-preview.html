@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>HackerTrip · Claude 风格 · 全页面设计</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Segoe UI",sans-serif;background:#17171a;color:#ece9e2;padding:44px 28px 80px}
+.head{max-width:1500px;margin:0 auto 30px}
+.head h1{font-size:27px;font-weight:800}
+.head p{color:#a8a49a;margin-top:9px;font-size:14px;max-width:980px;line-height:1.6}
+.grid{max-width:1500px;margin:0 auto;display:flex;flex-wrap:wrap;gap:40px 34px;justify-content:flex-start}
+.item{display:flex;flex-direction:column;align-items:center;width:312px}
+.cap{font-size:13px;color:#cfccc4;margin-bottom:12px;text-align:center;font-weight:600}
+.cap small{display:block;color:#85817a;font-weight:400;font-size:11.5px;margin-top:3px}
+
+/* iPhone 16 Pro 比例 393:852 → 312×677 */
+.device{position:relative;width:312px;height:677px;border-radius:50px;padding:11px;
+  background:linear-gradient(145deg,#3a3a3d,#1c1c1e 40%,#2a2a2c);
+  box-shadow:0 30px 64px rgba(0,0,0,.6),inset 0 0 0 2px rgba(255,255,255,.05)}
+.scr{position:relative;width:290px;height:655px;border-radius:40px;overflow:hidden;display:flex;flex-direction:column;background:#faf9f5;color:#1f1e1d}
+.island{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:92px;height:26px;background:#000;border-radius:16px;z-index:50}
+.sb{height:44px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 22px 5px;font-size:13px;font-weight:600}
+.home{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);width:106px;height:4px;border-radius:3px;background:#1f1e1d;opacity:.32;z-index:30}
+.serif{font-family:"Tiempos Text",Georgia,"Songti SC",serif}
+
+/* top nav circle buttons */
+.topnav{display:flex;justify-content:space-between;align-items:center;padding:6px 18px 0}
+.cbtn{width:38px;height:38px;border-radius:50%;background:#fff;border:1px solid #ece9e0;display:flex;align-items:center;justify-content:center;font-size:17px;color:#3a3833;position:relative}
+.cbtn .dot{position:absolute;top:7px;right:8px;width:8px;height:8px;border-radius:50%;background:#c96442;border:1.5px solid #fff}
+
+/* sparkle */
+.spark{color:#c96442;font-size:40px;text-align:center;line-height:1}
+
+/* command bar */
+.cmd{position:absolute;left:14px;right:14px;background:#fff;border:1px solid #e9e6dc;border-radius:22px;box-shadow:0 12px 30px rgba(60,50,40,.12);padding:14px 16px}
+.cmd .ph{font-size:15px;color:#9a978f}
+.cmd .ph .cur{color:#c96442;font-weight:300}
+.cmd .row{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
+.cmd .lft{display:flex;gap:10px;align-items:center}
+.cmd .ic{width:34px;height:34px;border-radius:50%;background:#f2efe7;display:flex;align-items:center;justify-content:center;font-size:16px;color:#6b6862}
+.cmd .send{width:38px;height:38px;border-radius:50%;background:#c96442;color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px}
+.pillmodel{font-size:12px;color:#6b6862;background:#f2efe7;border-radius:999px;padding:6px 12px}
+
+/* hackathon card (cream) */
+.hcard{background:#fff;border:1px solid #ece9e0;border-radius:18px;padding:16px;margin-bottom:12px}
+.hcard .t{font-size:16px;font-weight:600;line-height:1.4}
+.hcard .m{font-size:12.5px;color:#8a877f;margin-top:8px;display:flex;gap:12px}
+.pchip{display:inline-block;font-size:11.5px;padding:4px 10px;border-radius:999px;background:#f4ede4;color:#9c6a3f;margin:10px 6px 0 0}
+.ghead{font-size:13px;color:#94918a;font-weight:600;margin:2px 2px 12px}
+.grab{width:40px;height:5px;border-radius:3px;background:#dcd8cd;margin:8px auto 14px}
+
+/* drawer nav */
+.dwordmark{font-size:24px;font-weight:600;padding:6px 0 0}
+.av{width:36px;height:36px;border-radius:50%;background:#efe7df;color:#c96442;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:15px;border:1px solid #e6ddd3}
+.nav{margin-top:22px}
+.navi{display:flex;align-items:center;gap:14px;padding:13px 4px;font-size:17px;color:#2b2926}
+.navi .ni{width:24px;text-align:center;font-size:18px;color:#6b6862}
+.recents{font-size:13px;color:#94918a;margin:18px 4px 8px}
+.rec{font-size:14.5px;color:#3a3833;padding:9px 4px}
+.newpill{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);background:#1f1e1d;color:#faf9f5;font-size:14px;font-weight:600;padding:12px 22px;border-radius:999px;display:flex;gap:8px;align-items:center}
+
+/* recent messages */
+.msg{display:flex;gap:12px;padding:14px 2px;border-bottom:1px solid #efece3}
+.msg .mi{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.msg .mt{font-size:15px;font-weight:600;line-height:1.35}
+.msg .ms{font-size:12.5px;color:#8a877f;margin-top:4px;line-height:1.4}
+.msg .tm{font-size:11px;color:#aba79e;margin-left:auto;flex-shrink:0}
+
+/* IP showcase card */
+.ipcard{border-radius:22px;padding:20px;background:linear-gradient(150deg,#c96442,#9c4f30);color:#fff8f2;box-shadow:0 16px 40px rgba(201,100,66,.3)}
+.ipcard .role{font-size:21px;font-weight:700;margin-top:6px}
+.ipcard .tag{font-size:12px;opacity:.85;margin-top:6px;line-height:1.5}
+.ipstats{display:flex;justify-content:space-between;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.25)}
+.ipstats .n{font-size:22px;font-weight:800}.ipstats .l{font-size:11px;opacity:.85}
+.ipcfg{background:#fff;border:1px solid #ece9e0;border-radius:18px;padding:16px;margin-top:14px}
+
+h2.dt{font-size:23px;font-weight:500;line-height:1.25;padding:8px 20px 0}
+.rule{height:1px;background:#ece9e0;margin:16px 20px}
+.sect{padding:0 20px}.skh{font-size:12px;color:#94918a;font-weight:600;text-transform:uppercase}.sv{font-size:14.5px;color:#3a3833;margin-top:7px;line-height:1.6}
+.btn{height:50px;border-radius:14px;background:#c96442;color:#fff;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;margin:18px 20px 0}
+.body{flex:1;overflow:hidden;padding:0 18px}
+</style></head>
+<body>
+<div class="head"><h1>HackerTrip · Claude 风格 · 全页面设计</h1>
+<p>按你描述的交互重构：底部命令栏（搜索黑客松）+ 上滑展开卡片 + 二次点击进搜索态；左上「更多」抽屉对应我们的功能；Recents 消息中心；个人 IP 展示库。Claude 暖调 + iPhone 16 Pro 真实比例。</p></div>
+<div class="grid" id="g"></div>
+
+<script>
+const SB=`<div class="island"></div><div class="sb"><span>19:50</span><span>📶 🛜 🔋</span></div>`;
+const HOME=`<div class="home"></div>`;
+const TOP=`<div class="topnav"><div class="cbtn">☰</div><div class="cbtn">🔔<span class="dot"></span></div></div>`;
+
+// 1. Home idle
+const home=`${SB}${TOP}
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 30px">
+  <div class="spark">✳</div>
+  <div class="serif" style="font-size:25px;margin-top:16px">晚上好，Jayden</div>
+  <div style="font-size:13.5px;color:#8a877f;margin-top:10px;text-align:center">今天想找什么黑客松？上滑或点击下方搜索</div>
+</div>
+<div class="cmd" style="bottom:30px">
+  <div class="ph">搜索黑客松 / 城市 / 赛道</div>
+  <div class="row"><div class="lft"><div class="ic">＋</div><div class="pillmodel">全部 · 进行中</div></div><div class="send">🔍</div></div>
+</div>${HOME}`;
+
+// 2. Home search-open (tap1) — bar+cards lifted
+const open=`${SB}${TOP}
+<div style="padding:14px 22px 0"><div class="serif" style="font-size:19px">发现黑客松</div></div>
+<div style="position:relative;margin:14px 14px 0">
+  <div style="position:static" class="cmd">
+    <div class="ph">搜索黑客松 / 城市 / 赛道</div>
+    <div class="row"><div class="lft"><div class="ic">＋</div><div class="pillmodel">全部 · 进行中</div></div><div class="send">🔍</div></div>
+  </div>
+</div>
+<div class="body" style="margin-top:18px">
+  <div class="grab"></div>
+  <div class="ghead">进行中 · 12 场</div>
+  <div class="hcard"><div class="t serif">春潮 Spring｜深圳黑客松</div><div class="m"><span>4 月 23 日</span><span>深圳 · 线下</span></div><div><span class="pchip">软件社交</span><span class="pchip">硬件</span><span class="pchip" style="font-weight:600">🏆 15 万</span></div></div>
+  <div class="hcard"><div class="t serif">AdventureX 2026</div><div class="m"><span>7 月 15 日</span><span>杭州 · 线下</span></div><div><span class="pchip">AI Agent</span><span class="pchip">创新</span></div></div>
+</div>${HOME}`;
+
+// 3. Home search-input (tap2) — keyboard
+const input=`${SB}${TOP}
+<div style="padding:12px 18px 0">
+  <div class="cmd" style="position:static;box-shadow:0 0 0 2px #c96442 inset;border-color:#c96442">
+    <div class="ph">深圳<span class="cur">|</span></div>
+    <div class="row"><div class="lft"><div class="ic">＋</div></div><div class="send">🔍</div></div>
+  </div>
+  <div class="ghead" style="margin-top:18px">最近搜索</div>
+  <div><span class="pchip">AI Agent</span><span class="pchip">出海</span><span class="pchip">硬件</span><span class="pchip">深圳</span></div>
+  <div class="ghead" style="margin-top:16px">热门赛道</div>
+  <div><span class="pchip">大模型应用</span><span class="pchip">Web3</span><span class="pchip">创作工具</span></div>
+</div>
+<div style="margin-top:auto;height:230px;background:#cdd0d6;border-top:1px solid #b9bcc2;display:flex;align-items:center;justify-content:center;color:#7a7d84;font-size:12px">⌨ 键盘</div>${HOME}`;
+
+// 4. Drawer / more
+const drawer=`${SB}
+<div style="padding:8px 22px 0;display:flex;justify-content:space-between;align-items:center"><div class="dwordmark serif">HackerTrip</div><div class="av">J</div></div>
+<div class="body" style="padding:0 22px">
+  <div class="nav">
+    <div class="navi"><span class="ni">🔍</span>发现黑客松</div>
+    <div class="navi"><span class="ni">🎴</span>我的身份卡</div>
+    <div class="navi"><span class="ni">🧩</span>开发者配置卡</div>
+    <div class="navi"><span class="ni">⇆</span>Skills 同步</div>
+    <div class="navi"><span class="ni">☆</span>我的收藏</div>
+  </div>
+  <div class="recents">最近</div>
+  <div class="rec">春潮 Spring · 已加入报名清单</div>
+  <div class="rec">AdventureX · 匹配 92 分</div>
+  <div class="rec">炼丹师身份卡 · 已生成</div>
+  <div class="rec" style="color:#aba79e">全部记录 ›</div>
+</div>
+<div class="newpill">＋ 新建身份卡</div>${HOME}`;
+
+// 5. Recent messages
+const recent=`${SB}
+<div style="padding:10px 20px 0;display:flex;align-items:center;gap:10px"><span class="cbtn" style="width:32px;height:32px;font-size:15px">‹</span><div class="serif" style="font-size:22px">最近</div></div>
+<div class="body" style="margin-top:10px;padding:0 20px">
+  <div class="msg"><div class="mi" style="background:#efe7df;color:#c96442">🤝</div><div><div class="mt">@Alex 邀请你加入「春潮」战队</div><div class="ms">前端 + 设计已就位，想找一名后端</div></div><div class="tm">2 分钟</div></div>
+  <div class="msg"><div class="mi" style="background:#e7efe8;color:#3f9c6a">📡</div><div><div class="mt">深圳新增 3 场线下黑客松</div><div class="ms">你订阅的「深圳 · 线下」有更新</div></div><div class="tm">1 小时</div></div>
+  <div class="msg"><div class="mi" style="background:#f4ede4;color:#c96442">✳</div><div><div class="mt">HackerTrip 上线身份卡裂变</div><div class="ms">生成你的选手身份卡，分享找队友</div></div><div class="tm">昨天</div></div>
+  <div class="msg"><div class="mi" style="background:#e9e7f2;color:#6a5fc0">🏆</div><div><div class="mt">你收藏的 AdventureX 报名截止前 3 天</div><div class="ms">别错过，7 月 12 日截止</div></div><div class="tm">昨天</div></div>
+</div>${HOME}`;
+
+// 6. IP showcase
+const ip=`${SB}
+<div style="padding:10px 20px 0;display:flex;align-items:center;gap:10px"><span class="cbtn" style="width:32px;height:32px;font-size:15px">‹</span><div class="serif" style="font-size:22px">我的展示库</div></div>
+<div class="body" style="margin-top:14px;padding:0 20px">
+  <div class="ipcard">
+    <div style="font-size:30px">🧪</div>
+    <div class="role serif">深不见底炼丹师</div>
+    <div class="tag">调参、微调、RAG，把模型炼成想要的形状</div>
+    <div class="ipstats"><div><div class="n">6</div><div class="l">项目</div></div><div><div class="n">4</div><div class="l">比赛</div></div><div><div class="n">1</div><div class="l">获奖</div></div></div>
+  </div>
+  <div class="ipcfg"><div class="ghead" style="margin:0 0 10px">配置卡 · 技术栈</div><div><span class="pchip">Next.js</span><span class="pchip">Claude SDK</span><span class="pchip">PyTorch</span><span class="pchip">🤝 在找队友</span></div></div>
+</div>
+<div class="btn">分享我的身份卡</div>${HOME}`;
+
+// 7. Detail
+const detail=`${SB}
+<div style="padding:8px 20px 0"><span class="cbtn" style="width:32px;height:32px;font-size:15px">‹</span></div>
+<h2 class="dt serif">春潮 Spring｜深圳黑客松</h2>
+<div style="padding:14px 20px 0"><span class="pchip" style="font-size:13px;padding:6px 14px;font-weight:600">🏆 15 万 + 现金</span></div>
+<div class="rule"></div>
+<div class="sect"><div class="skh">简介</div><div class="sv">AttraX「春潮 Spring」4.23–4.26 在深圳雪花啤酒小镇举办，15w+ 现金奖金、1000 人规模。</div></div>
+<div class="rule"></div>
+<div class="sect"><div class="skh">赛道</div><div style="margin-top:8px"><span class="pchip">软件社交</span><span class="pchip">硬件</span><span class="pchip">出海</span><span class="pchip">创作</span></div></div>
+<div class="btn">加入报名清单</div>${HOME}`;
+
+const PAGES=[
+  {t:'① 首页 · 静默态',s:'品牌 + Slogan + 用户名，底部命令栏',h:home},
+  {t:'② 首页 · 展开态（点击 1 次）',s:'命令栏与卡片一起上移，露出黑客松',h:open},
+  {t:'③ 首页 · 搜索态（点击 2 次）',s:'进入输入 + 最近/热门，弹键盘',h:input},
+  {t:'④ 更多抽屉（左上 ☰）',s:'功能入口 + Recents + 新建',h:drawer},
+  {t:'⑤ Recent 消息中心（右上 🔔）',s:'组队邀请 / 订阅推送 / 产品更新',h:recent},
+  {t:'⑥ 个人 IP 展示库',s:'身份卡 + 配置卡，可分享',h:ip},
+  {t:'⑦ 黑客松详情',s:'点击卡片进入',h:detail},
+];
+document.getElementById('g').innerHTML = PAGES.map(p=>`
+<div class="item">
+  <div class="cap">${p.t}<small>${p.s}</small></div>
+  <div class="device"><div class="scr">${p.h}</div></div>
+</div>`).join('');
+</script>
+</body></html>
