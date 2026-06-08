@@ -11,11 +11,11 @@
       <text class="synced-badge">✅ 已同步</text>
       <text class="synced-src">{{scan.source}}</text>
     </view>
-    <view class="synced-proj">📦 {{scan.project.name}} · {{scan.project.domain}}</view>
+    <view class="synced-proj">📦 {{scan.project.name || '已同步项目'}}{{scan.project.domain ? ' · ' + scan.project.domain : ''}}</view>
     <view class="synced-stack">
       <text wx:for="{{scan.project.techStack}}" wx:key="*this" class="chip">{{item}}</text>
     </view>
-    <view class="synced-matches">🎯 已匹配 {{scan.matches.length}} 个黑客松，最高 {{scan.matches[0].score}} 分</view>
+    <view wx:if="{{scan.matches.length}}" class="synced-matches">🎯 已匹配 {{scan.matches.length}} 个黑客松，最高 {{scan.matches[0].score}} 分</view>
     <view class="synced-actions">
       <view class="btn-ghost" bindtap="viewResult">查看匹配结果</view>
       <view class="btn-primary" bindtap="makeCard">一键生成身份卡</view>

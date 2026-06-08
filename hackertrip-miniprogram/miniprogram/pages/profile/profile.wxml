@@ -10,6 +10,19 @@
     <view class="hsync" bindtap="goSync">{{scanSynced ? '管理同步' : '去同步'}}</view>
   </view>
 
+  <!-- IP 角色展示卡 -->
+  <view wx:if="{{hero}}" class="ip-hero fade-up" bindtap="shareHero">
+    <text class="ip-emoji">{{hero.emoji}}</text>
+    <view class="ip-role serif">{{hero.roleName}}</view>
+    <view class="ip-tag">{{hero.tagline}}</view>
+    <view class="ip-stats">
+      <view class="ip-s"><view class="ip-n">{{hero.projects}}</view><view class="ip-l">项目</view></view>
+      <view class="ip-s"><view class="ip-n">{{hero.hackathons}}</view><view class="ip-l">比赛</view></view>
+      <view class="ip-s"><view class="ip-n">{{hero.awards}}</view><view class="ip-l">获奖</view></view>
+    </view>
+    <view class="ip-share">分享我的身份卡 →</view>
+  </view>
+
   <!-- 统计 -->
   <view class="stats">
     <view class="stat glass" data-tab="cards" bindtap="switchTab">

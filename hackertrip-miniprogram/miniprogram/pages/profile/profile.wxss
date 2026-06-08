@@ -40,6 +40,55 @@
   border: 1rpx solid #ece9e0;
 }
 
+/* IP 角色展示卡 */
+.ip-hero {
+  margin-bottom: 28rpx;
+  padding: 36rpx;
+  border-radius: 30rpx;
+  background: linear-gradient(150deg, #c96442, #9c4f30);
+  box-shadow: 0 18rpx 44rpx rgba(201, 100, 66, 0.3);
+}
+.ip-emoji {
+  font-size: 56rpx;
+}
+.ip-role {
+  margin-top: 10rpx;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #fff8f2;
+}
+.ip-tag {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #fbe7dd;
+  line-height: 1.5;
+}
+.ip-stats {
+  display: flex;
+  margin-top: 28rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid rgba(255, 255, 255, 0.25);
+}
+.ip-s {
+  flex: 1;
+}
+.ip-n {
+  font-size: 40rpx;
+  font-weight: 800;
+  color: #fff;
+}
+.ip-l {
+  font-size: 20rpx;
+  color: #fbe7dd;
+  margin-top: 2rpx;
+}
+.ip-share {
+  margin-top: 24rpx;
+  font-size: 24rpx;
+  color: #fff;
+  opacity: 0.92;
+}
+
 .stats {
   display: flex;
   gap: 18rpx;

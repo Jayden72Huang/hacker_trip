@@ -184,6 +184,11 @@ Page({
   },
 
   async saveToAlbum() {
+    if (this.data.saving) return;
+    if (!this.data.canvasReady || !this.canvas) {
+      wx.showToast({ title: '卡片生成中，请稍候', icon: 'none' });
+      return;
+    }
     this.setData({ saving: true });
     try {
       const path = await this.exportImage();

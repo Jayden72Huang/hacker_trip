@@ -91,6 +91,6 @@
 
 <!-- 底部操作栏 -->
 <view class="actionbar glass-strong">
-  <view class="btn-ghost act-save" bindtap="saveToAlbum" loading="{{saving}}">保存图片</view>
+  <view class="btn-ghost act-save" bindtap="saveToAlbum">{{saving ? '保存中…' : '保存图片'}}</view>
   <button class="btn-primary act-share" open-type="share">分享 / 找队友</button>
 </view>

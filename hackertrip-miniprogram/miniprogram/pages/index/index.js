@@ -57,6 +57,19 @@ Page({
     this.setData({ list, bookmarks: api.getBookmarks(), loading: false });
   },
 
+  /* ---------- 上滑手势：静默 → 展开 ---------- */
+  onTouchStart(e) {
+    this._touchY = (e.touches && e.touches[0]) ? e.touches[0].clientY : 0;
+  },
+  onTouchMove(e) {
+    if (this.data.mode !== 'idle') return;
+    const y = (e.touches && e.touches[0]) ? e.touches[0].clientY : 0;
+    if (this._touchY - y > 50) {
+      this._touchY = y;
+      this.setData({ mode: 'open' });
+    }
+  },
+
   /* ---------- 三态切换 ---------- */
   // 第 1 下：静默 → 展开
   expand() {
@@ -89,7 +102,7 @@ Page({
   onBookmark(e) { api.toggleBookmark(e.detail.id); this.setData({ bookmarks: api.getBookmarks() }); },
 
   /* ---------- 抽屉 ---------- */
-  openDrawer() { this.setData({ drawerOpen: true }); },
+  openDrawer() { this.setData({ drawerOpen: true, searchFocus: false }); },
   closeDrawer() { this.setData({ drawerOpen: false }); },
   noop() {},
   goCard() { this.closeDrawer(); wx.navigateTo({ url: '/pages/card/card' }); },

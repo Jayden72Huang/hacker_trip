@@ -12,6 +12,10 @@ Page({
   async onLoad(query) {
     const id = query.id;
     const item = await api.getHackathonDetail(id);
+    if (item) {
+      item.tracks = Array.isArray(item.tracks) ? item.tracks : [];
+      item.techStack = Array.isArray(item.techStack) ? item.techStack : [];
+    }
     const regs = api.getRegistrations();
     this.setData({
       item,

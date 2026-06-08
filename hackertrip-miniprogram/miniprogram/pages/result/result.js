@@ -6,7 +6,9 @@ Page({
   },
 
   onLoad() {
-    this.setData({ scan: api.getScanResults() });
+    const scan = api.getScanResults();
+    // 数据不完整（无匹配项）时按空态处理，引导重新同步
+    this.setData({ scan: scan && scan.matches && scan.matches.length ? scan : null });
   },
 
   openDetail(e) {

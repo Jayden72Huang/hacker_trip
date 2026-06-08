@@ -29,13 +29,18 @@ Page({
       return;
     }
     this.setData({ syncing: true });
-    const res = await api.pullSyncByCode(code || 'DEMO');
-    this.setData({ syncing: false });
-    if (res && res.ok) {
-      this.setData({ scan: api.getScanResults() });
-      wx.showToast({ title: res.mock ? '已载入演示数据' : '同步成功', icon: 'success' });
-    } else {
-      wx.showToast({ title: (res && res.message) || '同步失败', icon: 'none' });
+    try {
+      const res = await api.pullSyncByCode(code || 'DEMO');
+      if (res && res.ok) {
+        this.setData({ scan: api.getScanResults() });
+        wx.showToast({ title: res.mock ? '已载入演示数据' : '同步成功', icon: 'success' });
+      } else {
+        wx.showToast({ title: (res && res.message) || '同步失败', icon: 'none' });
+      }
+    } catch (e) {
+      wx.showToast({ title: '同步异常，请重试', icon: 'none' });
+    } finally {
+      this.setData({ syncing: false });
     }
   },
 

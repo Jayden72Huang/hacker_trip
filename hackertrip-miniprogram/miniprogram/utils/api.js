@@ -97,7 +97,8 @@ async function getHackathonDetail(id) {
 /* ----------------------------- 收藏 / 报名 ----------------------------- */
 
 function getBookmarks() {
-  return getStorage(STORAGE.BOOKMARKS, []);
+  const v = getStorage(STORAGE.BOOKMARKS, []);
+  return Array.isArray(v) ? v : [];
 }
 function isBookmarked(id) {
   return getBookmarks().indexOf(id) !== -1;
@@ -117,7 +118,8 @@ async function getBookmarkedHackathons() {
 }
 
 function getRegistrations() {
-  return getStorage(STORAGE.REGISTRATIONS, []);
+  const v = getStorage(STORAGE.REGISTRATIONS, []);
+  return Array.isArray(v) ? v : [];
 }
 function addRegistration(item) {
   const list = getRegistrations();
@@ -132,7 +134,8 @@ function addRegistration(item) {
 /* ----------------------------- 卡片 ----------------------------- */
 
 function getCards() {
-  return getStorage(STORAGE.CARDS, []);
+  const v = getStorage(STORAGE.CARDS, []);
+  return Array.isArray(v) ? v : [];
 }
 function saveCard(card) {
   const list = getCards();
@@ -150,7 +153,16 @@ function getCardById(id) {
 /* ----------------------- Skills 同步（扫描结果） ----------------------- */
 
 function getScanResults() {
-  return getStorage(STORAGE.SCAN_RESULTS, null);
+  const v = getStorage(STORAGE.SCAN_RESULTS, null);
+  if (!v || typeof v !== 'object') return null;
+  // 归一化：保证 project / matches / identity 结构完整，避免页面空引用崩溃
+  return {
+    syncedAt: v.syncedAt || 0,
+    source: v.source || '',
+    project: v.project && typeof v.project === 'object' ? v.project : {},
+    identity: v.identity && typeof v.identity === 'object' ? v.identity : null,
+    matches: Array.isArray(v.matches) ? v.matches : [],
+  };
 }
 function setScanResults(data) {
   setStorage(STORAGE.SCAN_RESULTS, data);

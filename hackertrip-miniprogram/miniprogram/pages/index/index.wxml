@@ -1,13 +1,13 @@
 <wxs src="../../utils/tools.wxs" module="tools" />
 
-<view class="root mode-{{mode}}">
+<view class="root mode-{{mode}}" bindtouchstart="onTouchStart" bindtouchmove="onTouchMove">
   <!-- 自定义导航：左 ☰，右侧留给微信胶囊 -->
   <view class="nav" style="padding-top:{{statusBarH}}px">
     <view class="nav-row" style="height:{{navH + (navTop - statusBarH) * 2}}px">
       <view class="menu-btn" bindtap="openDrawer">
         <view class="ml" /><view class="ml" /><view class="ml ml-s" />
       </view>
-      <view wx:if="{{mode !== 'idle'}}" class="nav-title">发现黑客松</view>
+      <view wx:if="{{mode !== 'idle'}}" class="nav-title" bindtap="collapse">发现黑客松 ⌄</view>
     </view>
   </view>
 

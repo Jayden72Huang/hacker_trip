@@ -19,7 +19,21 @@ Page({
     const cards = api.getCards().map((c) => Object.assign({}, c, {
       roleName: (ROLE_MAP[c.role] || {}).name || c.role,
       emoji: (ROLE_MAP[c.role] || {}).emoji || '🎴',
+      techStack: Array.isArray(c.techStack) ? c.techStack : [],
     }));
+    // IP 展示卡：取首张身份卡作为角色 hero
+    const top = cards.find((c) => c.variant !== 'config') || cards[0] || null;
+    const hero = top ? {
+      emoji: top.emoji,
+      roleName: top.roleName,
+      tagline: (ROLE_MAP[top.role] || {}).tagline || '',
+      projects: top.projects || 0,
+      hackathons: top.hackathons || 0,
+      awards: top.awards || 0,
+      role: top.role,
+      variant: top.variant,
+    } : null;
+    this.setData({ hero });
     const bookmarks = await api.getBookmarkedHackathons();
     this.setData({
       cards,
@@ -39,6 +53,11 @@ Page({
   },
   makeCard() {
     wx.navigateTo({ url: '/pages/card/card' });
+  },
+  shareHero() {
+    const h = this.data.hero;
+    if (!h) return;
+    wx.navigateTo({ url: `/pages/share/share?role=${h.role}&variant=${h.variant || 'identity'}` });
   },
   openDetail(e) {
     wx.navigateTo({ url: `/pages/detail/detail?id=${e.detail.id}` });
