@@ -23,8 +23,16 @@ export async function GET(request: NextRequest) {
   if (q) {
     const search = or(
       ilike(hackathons.name, `%${q}%`),
+      ilike(hackathons.shortName, `%${q}%`),
       ilike(hackathons.location, `%${q}%`),
+      ilike(hackathons.city, `%${q}%`),
       ilike(hackathons.organizer, `%${q}%`),
+      ilike(hackathons.hostOrganizer, `%${q}%`),
+      ilike(hackathons.theme, `%${q}%`),
+      ilike(hackathons.summary, `%${q}%`),
+      // jsonb 数组里的主办方/赞助商名称（公司名搜索）
+      sql`${hackathons.organizers}::text ILIKE ${`%${q}%`}`,
+      sql`${hackathons.sponsors}::text ILIKE ${`%${q}%`}`,
     );
     if (search) conditions.push(search);
   }
