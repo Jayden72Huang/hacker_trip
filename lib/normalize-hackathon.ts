@@ -2,6 +2,8 @@
  * 统一字段映射：将任意来源的 hackathon 数据标准化为 draft DB schema
  */
 
+import type { Sponsor } from './types/hackathon';
+
 interface RawHackathonData {
   name?: string;
   shortName?: string;
@@ -22,8 +24,8 @@ interface RawHackathonData {
   hostOrganizer?: string;
   tracks?: { title: string; description?: string }[];
   agenda?: { title: string; time?: string; detail?: string }[];
-  organizers?: { name: string }[];
-  sponsors?: { name: string; tier?: string }[];
+  organizers?: { name: string; url?: string; logo?: string }[];
+  sponsors?: { name: string; url?: string; logo?: string; tier?: string }[];
   tags?: string[];
   [key: string]: unknown;
 }
@@ -52,11 +54,40 @@ export interface NormalizedDraft {
   teams: string | null;
   tracks: { title: string; description?: string }[];
   agenda: { title: string; time?: string; detail?: string }[];
-  organizers: { name: string }[];
-  sponsors: { name: string; tier?: string }[];
+  organizers: { name: string; url?: string; logo?: string }[];
+  sponsors: Sponsor[];
   confidence: number | null;
   rawData: unknown;
   status: string;
+}
+
+/** 清洗任意来源的 sponsors：丢弃无 name 项，tier 只保留四个合法级别 */
+const SPONSOR_TIERS = ['platinum', 'gold', 'silver', 'bronze'] as const;
+export function sanitizeSponsors(list: RawHackathonData['sponsors']): Sponsor[] {
+  return (list || [])
+    .filter((s) => s && s.name && s.name.trim().length > 0)
+    .map((s) => {
+      const tier = SPONSOR_TIERS.find((t) => t === s.tier?.toLowerCase());
+      return {
+        name: s.name.trim(),
+        ...(s.url ? { url: s.url } : {}),
+        ...(s.logo ? { logo: s.logo } : {}),
+        ...(tier ? { tier } : {}),
+      };
+    });
+}
+
+/** 清洗 organizers：丢弃无 name 项，url/logo 空字符串不入库 */
+export function sanitizeOrganizers(
+  list: RawHackathonData['organizers'],
+): { name: string; url?: string; logo?: string }[] {
+  return (list || [])
+    .filter((o) => o && o.name && o.name.trim().length > 0)
+    .map((o) => ({
+      name: o.name.trim(),
+      ...(o.url ? { url: o.url } : {}),
+      ...(o.logo ? { logo: o.logo } : {}),
+    }));
 }
 
 export function normalizeToDraftInsert(
@@ -66,7 +97,7 @@ export function normalizeToDraftInsert(
   const format = normalizeFormat(data.format || data.mode);
 
   // 合并 hostOrganizer 到 organizers
-  let organizers = Array.isArray(data.organizers) ? [...data.organizers] : [];
+  const organizers = sanitizeOrganizers(data.organizers);
   if (data.hostOrganizer && !organizers.some((o) => o.name === data.hostOrganizer)) {
     organizers.unshift({ name: data.hostOrganizer });
   }
@@ -110,7 +141,7 @@ export function normalizeToDraftInsert(
     tracks: Array.isArray(data.tracks) ? data.tracks : [],
     agenda: Array.isArray(data.agenda) ? data.agenda : [],
     organizers,
-    sponsors: Array.isArray(data.sponsors) ? data.sponsors : [],
+    sponsors: sanitizeSponsors(data.sponsors),
     confidence,
     rawData: data,
     status: 'pending',

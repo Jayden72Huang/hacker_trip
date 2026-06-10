@@ -5,15 +5,23 @@ export type UIHackathonStatus = 'upcoming' | 'live' | 'closed';
 
 export type HackathonMode = 'online' | 'offline' | 'hybrid';
 
+// hackathon.organizers / draft_hackathon.organizers jsonb 的规范结构
 export interface Organizer {
   name: string;
   logo?: string;
+  /** 官网/主页链接，detail 页 logo 可点击跳转 */
+  url?: string;
 }
 
+// hackathon.sponsors / draft_hackathon.sponsors jsonb 的规范结构
+// logo 墙玩法：详情页/赛事卡展示 logo，点击跳 url；公司页按 name 聚合「该公司赞助过的比赛」
 export interface Sponsor {
   name: string;
   logo?: string;
-  tier: 'platinum' | 'gold' | 'silver' | 'bronze';
+  /** 官网链接，logo 点击跳转目标 */
+  url?: string;
+  /** 赞助级别，爬虫数据常缺失故可选 */
+  tier?: 'platinum' | 'gold' | 'silver' | 'bronze';
 }
 
 export interface InfoCard {
