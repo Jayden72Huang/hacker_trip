@@ -24,6 +24,38 @@ export interface DBHackathon {
   participantCount: number;
   isFeatured: boolean;
   isVerified: boolean;
+  // /api/hackathons 实际返回的扩展字段（搜索匹配用）
+  shortName?: string | null;
+  city?: string | null;
+  theme?: string | null;
+  summary?: string | null;
+  hostOrganizer?: string | null;
+  organizers?: { name: string }[];
+  sponsors?: { name: string }[];
+}
+
+/**
+ * 搜索匹配：覆盖名称/城市/主题/简介/主办方/赞助商。
+ * 注意 organizer 是历史遗留空列，真实主办方在 hostOrganizer 和 organizers[]。
+ */
+export function matchesHackathonSearch(h: DBHackathon, query: string): boolean {
+  if (!query) return true;
+  const haystack = [
+    h.name,
+    h.shortName,
+    h.location,
+    h.city,
+    h.organizer,
+    h.hostOrganizer,
+    h.theme,
+    h.summary,
+    ...(h.organizers || []).map((o) => o.name),
+    ...(h.sponsors || []).map((s) => s.name),
+  ]
+    .filter(Boolean)
+    .join('\n')
+    .toLowerCase();
+  return haystack.includes(query.toLowerCase());
 }
 
 export function formatDateRange(start: string, end: string): string {

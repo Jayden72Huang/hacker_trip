@@ -13,7 +13,7 @@ import {
   History,
   Loader2,
 } from 'lucide-react';
-import { HackathonDBCard, isPast, modeLabel, type DBHackathon, type HackathonMode } from '@/components/HackathonDBCard';
+import { HackathonDBCard, isPast, matchesHackathonSearch, modeLabel, type DBHackathon, type HackathonMode } from '@/components/HackathonDBCard';
 
 type FilterType = 'all' | HackathonMode;
 type SortType = 'date' | 'prize' | 'name';
@@ -39,11 +39,7 @@ export default function ExplorePage() {
 
   const { upcoming, past } = useMemo(() => {
     let filtered = hackathons.filter((h) => {
-      const matchesSearch =
-        !searchQuery ||
-        h.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (h.location || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (h.organizer || '').toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = matchesHackathonSearch(h, searchQuery);
 
       const matchesFormat =
         formatFilter === 'all' || h.mode === formatFilter;
