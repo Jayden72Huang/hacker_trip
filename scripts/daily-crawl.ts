@@ -24,6 +24,7 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import { eq, and, or, ilike } from 'drizzle-orm';
 import FirecrawlApp from '@mendable/firecrawl-js';
 import * as schema from '../lib/db/schema';
+import { sanitizeOrganizers, sanitizeSponsors } from '../lib/normalize-hackathon';
 
 const { scrapeTargets, scrapeLogs, draftHackathons, hackathons } = schema;
 
@@ -66,7 +67,8 @@ interface ExtractedHackathon {
   summary?: string;
   detailUrl?: string;
   tracks?: { title: string; description?: string }[];
-  organizers?: { name: string }[];
+  organizers?: { name: string; url?: string; logo?: string }[];
+  sponsors?: { name: string; url?: string; logo?: string; tier?: string }[];
 }
 
 // ───────────────────────── 工具 ─────────────────────────
@@ -137,12 +139,14 @@ async function extractHackathons(markdown: string): Promise<ExtractedHackathon[]
     "summary": "一句话简介（50字内）",
     "detailUrl": "该赛事详情页链接（如页面中有）",
     "tracks": [{"title":"赛道名","description":"描述"}],
-    "organizers": [{"name":"主办方"}]
+    "organizers": [{"name":"主办方","url":"主办方官网链接（如有）"}],
+    "sponsors": [{"name":"赞助商名称","url":"赞助商官网链接（如有）","logo":"logo图片完整URL（如页面中有）","tier":"赞助级别 platinum/gold/silver/bronze（页面明确标注时才填）"}]
   }
 ]}
 
 规则：
 - 只提取真正的黑客松/赛事，忽略导航、广告、页脚等无关内容
+- sponsors 只提取明确标注为赞助商/合作伙伴/支持方的公司，logo 必须是页面中真实存在的图片 URL，不要猜测
 - 找不到的字段用空字符串或空数组，不要编造
 - 已结束很久的往届赛事可以跳过，优先未来/进行中的
 - 最多返回 20 个最相关（未来/近期）的赛事，避免输出过长
@@ -206,13 +210,15 @@ function confidenceOf(h: ExtractedHackathon): number {
   let total = 0;
   for (const f of req) {
     total += 3;
-    if ((h as Record<string, unknown>)[f]) score += 3;
+    if ((h as unknown as Record<string, unknown>)[f]) score += 3;
   }
   for (const f of opt) {
     total += 1;
-    if ((h as Record<string, unknown>)[f]) score += 1;
+    if ((h as unknown as Record<string, unknown>)[f]) score += 1;
   }
   if ((h.tracks?.length ?? 0) > 0) score += 1;
+  total += 1;
+  if ((h.sponsors?.length ?? 0) > 0) score += 1;
   total += 1;
   return Math.round((score / total) * 100);
 }
@@ -301,7 +307,8 @@ async function main() {
           prizePool: h.prizePool || null,
           teams: h.teams || null,
           tracks: h.tracks || [],
-          organizers: h.organizers || [],
+          organizers: sanitizeOrganizers(h.organizers),
+          sponsors: sanitizeSponsors(h.sponsors),
           confidence: confidenceOf(h),
           rawData: { ...h, batchDate, sourceTarget: target.name },
           status: 'pending',

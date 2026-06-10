@@ -12,6 +12,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import type { AdapterAccountType } from 'next-auth/adapters';
+import type { Organizer, Sponsor } from '../types/hackathon';
 
 // ============ 枚举 ============
 
@@ -23,6 +24,8 @@ export const participationRole = pgEnum('participation_role', [
   'organizer',
   'mentor',
   'judge',
+  // 观众：线下到场扫码领「观众卡」，不参赛
+  'audience',
 ]);
 export const organizerStatus = pgEnum('organizer_status', ['pending', 'approved', 'rejected']);
 export const verificationStatus = pgEnum('verification_status', [
@@ -122,7 +125,7 @@ export const hackathons = pgTable(
     prizePool: text('prize_pool'),
     prizes: jsonb('prizes').default(sql`'[]'::jsonb`),
     organizer: text('organizer'),
-    sponsors: jsonb('sponsors').default(sql`'[]'::jsonb`),
+    sponsors: jsonb('sponsors').$type<Sponsor[]>().default(sql`'[]'::jsonb`),
     // 首页展示所需字段
     shortName: text('short_name'),
     city: text('city'),
@@ -136,7 +139,7 @@ export const hackathons = pgTable(
     agenda: jsonb('agenda').default(sql`'[]'::jsonb`),
     registration: jsonb('registration'),
     infoCards: jsonb('info_cards'),
-    organizers: jsonb('organizers').default(sql`'[]'::jsonb`),
+    organizers: jsonb('organizers').$type<Organizer[]>().default(sql`'[]'::jsonb`),
     status: hackathonStatus('status').default('upcoming'),
     participantCount: integer('participant_count').default(0),
     projectCount: integer('project_count').default(0),
@@ -600,8 +603,8 @@ export const draftHackathons = pgTable('draft_hackathon', {
   teams: text('teams'),
   tracks: jsonb('tracks').default(sql`'[]'::jsonb`),
   agenda: jsonb('agenda').default(sql`'[]'::jsonb`),
-  organizers: jsonb('organizers').default(sql`'[]'::jsonb`),
-  sponsors: jsonb('sponsors').default(sql`'[]'::jsonb`),
+  organizers: jsonb('organizers').$type<Organizer[]>().default(sql`'[]'::jsonb`),
+  sponsors: jsonb('sponsors').$type<Sponsor[]>().default(sql`'[]'::jsonb`),
 
   // 元数据
   confidence: integer('confidence'), // 数据置信度（0-100）
