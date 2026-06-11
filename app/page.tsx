@@ -90,7 +90,7 @@ export default async function Home() {
     as: 'image',
     fetchPriority: 'high',
     imageSrcSet:
-      '/images/walk-loop-poster-640.webp 640w, /images/walk-loop-poster-960.webp 960w, /images/walk-loop-poster.webp 1280w',
+      '/images/walk-loop-poster-640.webp 640w, /images/walk-loop-poster-960.webp 960w, /images/walk-loop-poster-1080.webp 1080w, /images/walk-loop-poster.webp 1280w',
     imageSizes: '100vw',
   });
   const radarEvents = await getRadarEvents();
@@ -110,7 +110,7 @@ export default async function Home() {
               className="absolute inset-0 h-full w-full object-cover opacity-95 brightness-110 contrast-110 saturate-125"
               src="/videos/walk-loop.mp4"
               poster="/images/walk-loop-poster.webp"
-              posterSrcSet="/images/walk-loop-poster-640.webp 640w, /images/walk-loop-poster-960.webp 960w, /images/walk-loop-poster.webp 1280w"
+              posterSrcSet="/images/walk-loop-poster-640.webp 640w, /images/walk-loop-poster-960.webp 960w, /images/walk-loop-poster-1080.webp 1080w, /images/walk-loop-poster.webp 1280w"
             />
             {/* 压暗 + 底部融入页面背景，保证文字可读 */}
             <div
