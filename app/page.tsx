@@ -12,6 +12,7 @@ import { HackathonListSection } from '@/components/HackathonListSection';
 import { OrganizerCTA } from '@/components/OrganizerCTA';
 import { HeroRotatingText } from '@/components/HeroRotatingText';
 import { SkillPromo } from '@/components/SkillPromo';
+import { HeroVideo } from '@/components/HeroVideo';
 
 // Event Radar 每小时重新生成，自动同步报名截止倒计时
 export const revalidate = 3600;
@@ -85,7 +86,13 @@ async function getRadarEvents() {
 
 export default async function Home() {
   // Hero 首屏背景是 LCP 元素，提前以最高优先级加载，避免等 CSS/JS 解析后才发现
-  preload('/images/walk-loop-poster.webp', { as: 'image', fetchPriority: 'high' });
+  preload('/images/walk-loop-poster.webp', {
+    as: 'image',
+    fetchPriority: 'high',
+    imageSrcSet:
+      '/images/walk-loop-poster-640.webp 640w, /images/walk-loop-poster-960.webp 960w, /images/walk-loop-poster.webp 1280w',
+    imageSizes: '100vw',
+  });
   const radarEvents = await getRadarEvents();
   return (
     <div className="relative min-h-screen pb-12 overflow-hidden">
@@ -99,14 +106,11 @@ export default async function Home() {
         <section className="relative overflow-hidden pt-32 pb-20 md:pt-40 md:pb-24 lg:pt-44">
           {/* 背景视频：主角穿行赛博朋克 AI 街道 · 无缝循环 */}
           <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden>
-            <video
+            <HeroVideo
               className="absolute inset-0 h-full w-full object-cover opacity-95 brightness-110 contrast-110 saturate-125"
               src="/videos/walk-loop.mp4"
               poster="/images/walk-loop-poster.webp"
-              autoPlay
-              loop
-              muted
-              playsInline
+              posterSrcSet="/images/walk-loop-poster-640.webp 640w, /images/walk-loop-poster-960.webp 960w, /images/walk-loop-poster.webp 1280w"
             />
             {/* 压暗 + 底部融入页面背景，保证文字可读 */}
             <div
