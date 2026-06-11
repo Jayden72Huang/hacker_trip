@@ -174,15 +174,15 @@ function parseDate(val?: string): Date | null {
  * - "2026-05-10 ~ 2026-05-11"
  * - "2026/05/10-2026/05/12"
  */
-function parseDateRange(text: string): { start: Date | null; end: Date | null } {
+export function parseDateRange(text: string): { start: Date | null; end: Date | null } {
   const fallback = { start: null, end: null };
   if (!text) return fallback;
 
   const currentYear = new Date().getFullYear();
 
-  // ISO 格式: 2026-05-10 ~ 2026-05-11 or 2026-05-10 - 2026-05-11
+  // ISO/点分格式: 2026-05-10 ~ 2026-05-11 / 2026.04.17 - 2026.09.01（两端均带完整年份）
   const isoMatch = text.match(
-    /(\d{4})[/-](\d{1,2})[/-](\d{1,2})\s*[~\-–—至到]\s*(\d{4})[/-](\d{1,2})[/-](\d{1,2})/
+    /(\d{4})[/.\-](\d{1,2})[/.\-](\d{1,2})\s*[~\-–—至到]\s*(\d{4})[/.\-](\d{1,2})[/.\-](\d{1,2})/
   );
   if (isoMatch) {
     return {
@@ -191,19 +191,20 @@ function parseDateRange(text: string): { start: Date | null; end: Date | null } 
     };
   }
 
-  // 中文格式: 2026年5月10日-11日 or 2026年5月10日-5月11日
+  // 中文格式: 2026年5月10日-11日 / 2026年5月10日-5月11日 / 2025年9月18日-2026年9月18日（结束端可带年份）
   const zhMatch = text.match(
-    /(\d{4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日?\s*[~\-–—至到]\s*(?:(\d{1,2})\s*月\s*)?(\d{1,2})\s*日?/
+    /(\d{4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日?\s*[~\-–—至到]\s*(?:(\d{4})\s*年\s*)?(?:(\d{1,2})\s*月\s*)?(\d{1,2})\s*日?/
   );
   if (zhMatch) {
     const year = +zhMatch[1];
     const startMonth = +zhMatch[2];
     const startDay = +zhMatch[3];
-    const endMonth = zhMatch[4] ? +zhMatch[4] : startMonth;
-    const endDay = +zhMatch[5];
+    const endYear = zhMatch[4] ? +zhMatch[4] : year;
+    const endMonth = zhMatch[5] ? +zhMatch[5] : startMonth;
+    const endDay = +zhMatch[6];
     return {
       start: new Date(year, startMonth - 1, startDay),
-      end: new Date(year, endMonth - 1, endDay),
+      end: new Date(endYear, endMonth - 1, endDay),
     };
   }
 
@@ -222,19 +223,20 @@ function parseDateRange(text: string): { start: Date | null; end: Date | null } 
     };
   }
 
-  // 点分格式: 2026.5.10-5.11 or 5.10-5.11
+  // 点分格式: 2026.5.10-5.11 / 5.10-5.11（结束端可带年份）
   const dotMatch = text.match(
-    /(?:(\d{4})\s*[.]\s*)?(\d{1,2})\s*[.]\s*(\d{1,2})\s*[~\-–—至到]\s*(?:(\d{1,2})\s*[.]\s*)?(\d{1,2})/
+    /(?:(\d{4})\s*[.]\s*)?(\d{1,2})\s*[.]\s*(\d{1,2})\s*[~\-–—至到]\s*(?:(\d{4})\s*[.]\s*)?(?:(\d{1,2})\s*[.]\s*)?(\d{1,2})/
   );
   if (dotMatch) {
     const year = dotMatch[1] ? +dotMatch[1] : currentYear;
     const startMonth = +dotMatch[2];
     const startDay = +dotMatch[3];
-    const endMonth = dotMatch[4] ? +dotMatch[4] : startMonth;
-    const endDay = +dotMatch[5];
+    const endYear = dotMatch[4] ? +dotMatch[4] : year;
+    const endMonth = dotMatch[5] ? +dotMatch[5] : startMonth;
+    const endDay = +dotMatch[6];
     return {
       start: new Date(year, startMonth - 1, startDay),
-      end: new Date(year, endMonth - 1, endDay),
+      end: new Date(endYear, endMonth - 1, endDay),
     };
   }
 
