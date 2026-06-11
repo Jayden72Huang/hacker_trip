@@ -113,7 +113,7 @@ function useCountUp(end: number, duration: number = 2000) {
 function TestimonialCard({ testimonial }: { testimonial: typeof testimonials[0] }) {
   return (
     <div className="flex-shrink-0 w-[300px] mx-2">
-      <div className="h-full p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-sm">
+      <div className="h-full p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
         {/* Quote */}
         <Quote size={18} className="text-white/20 mb-3" />
 
@@ -184,7 +184,21 @@ function MarqueeRow({
 
     tweenRef.current = tween;
 
+    // 滚出视口时暂停动画，避免后台持续占用 GPU
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          tween.play();
+        } else {
+          tween.pause();
+        }
+      },
+      { rootMargin: '100px' }
+    );
+    if (containerRef.current) observer.observe(containerRef.current);
+
     return () => {
+      observer.disconnect();
       tween.kill();
     };
   }, [direction, baseSpeed]);
