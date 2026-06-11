@@ -24,6 +24,8 @@ const spaceMono = localFont({
   ],
   variable: "--font-space-mono",
   display: "swap",
+  // 仅用于小徽标/按钮文字，不预加载，把首屏带宽让给 LCP 图片
+  preload: false,
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hackertrip.space';
