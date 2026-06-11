@@ -24,7 +24,9 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import { eq, and, or, ilike } from 'drizzle-orm';
 import FirecrawlApp from '@mendable/firecrawl-js';
 import * as schema from '../lib/db/schema';
-import { sanitizeOrganizers, sanitizeSponsors } from '../lib/normalize-hackathon';
+import { sanitizeOrganizers, sanitizeSponsors, parseDateRange } from '../lib/normalize-hackathon';
+import { isEndedHackathon, qualifiesForAutoPublish } from '../lib/hackathon-gate';
+import { publishDraftRow } from '../lib/publish-draft';
 
 const { scrapeTargets, scrapeLogs, draftHackathons, hackathons } = schema;
 
@@ -256,6 +258,8 @@ async function main() {
   let totalFound = 0;
   let totalSaved = 0;
   let totalDup = 0;
+  let totalEnded = 0;
+  let totalAutoPub = 0;
 
   for (const target of targets) {
     const startedAt = Date.now();
@@ -272,8 +276,16 @@ async function main() {
 
       let saved = 0;
       let dup = 0;
+      let skippedEnded = 0;
+      let autoPublished = 0;
       for (const h of list) {
         const name = h.name.trim();
+
+        // 源头拦截：已结束/往届赛事不进草稿箱
+        if (isEndedHackathon({ name, dateRange: h.dateRange })) {
+          skippedEnded++;
+          continue;
+        }
 
         // 去重：已发布表 或 草稿箱 已有同名
         const inHackathons = await db
@@ -292,7 +304,9 @@ async function main() {
           continue;
         }
 
-        await db.insert(draftHackathons).values({
+        // 解析日期，入库即带 start/end（供详情页与已结束判断用）
+        const { start, end } = parseDateRange(h.dateRange || '');
+        const [draft] = await db.insert(draftHackathons).values({
           sourceUrl: h.detailUrl || target.url,
           platform: target.platform,
           scrapeLogId: log.id,
@@ -301,6 +315,8 @@ async function main() {
           country: h.country || '中国',
           venue: h.venue || null,
           dateRange: h.dateRange || null,
+          startDate: start,
+          endDate: end,
           format: h.format || null,
           theme: h.theme || null,
           summary: h.summary || null,
@@ -312,14 +328,31 @@ async function main() {
           confidence: confidenceOf(h),
           rawData: { ...h, batchDate, sourceTarget: target.name },
           status: 'pending',
-        });
+        }).returning();
         saved++;
+
+        // 高置信度 + 报名链接验证通过 → 直接发布上架（需有起止日期）
+        if (draft.startDate && draft.endDate && qualifiesForAutoPublish(draft)) {
+          try {
+            const pub = await publishDraftRow(db, draft);
+            autoPublished++;
+            console.log(`  🚀 自动发布: ${pub.name} (conf=${draft.confidence}) → /hackathon/${pub.slug}`);
+          } catch (e) {
+            console.warn(`  ⚠️ 自动发布失败，留草稿箱: ${name} — ${(e as Error).message}`);
+          }
+        }
       }
 
       totalFound += list.length;
       totalSaved += saved;
       totalDup += dup;
-      console.log(`  ✅ 新增 ${saved} 条入草稿箱，去重跳过 ${dup} 条\n`);
+      totalEnded += skippedEnded;
+      totalAutoPub += autoPublished;
+      const extras = [
+        skippedEnded ? `跳过已结束 ${skippedEnded} 条` : '',
+        autoPublished ? `自动发布 ${autoPublished} 条` : '',
+      ].filter(Boolean).join('，');
+      console.log(`  ✅ 新增 ${saved} 条入草稿箱，去重跳过 ${dup} 条${extras ? '，' + extras : ''}\n`);
 
       await db
         .update(scrapeLogs)
@@ -360,7 +393,7 @@ async function main() {
   }
 
   console.log(`${'─'.repeat(48)}`);
-  console.log(`🏁 批次 ${batchDate} 完成：发现 ${totalFound}，新增 ${totalSaved}，去重 ${totalDup}`);
+  console.log(`🏁 批次 ${batchDate} 完成：发现 ${totalFound}，新增 ${totalSaved}，去重 ${totalDup}，跳过已结束 ${totalEnded}，自动发布 ${totalAutoPub}`);
   console.log(`   去 /admin 草稿箱审核今日批次。\n`);
 }
 
