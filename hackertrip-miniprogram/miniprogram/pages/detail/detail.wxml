@@ -1,69 +1,52 @@
-<view class="aurora" />
-<view wx:if="{{loading}}" class="state">加载中…</view>
-<view wx:elif="{{!item}}" class="state">未找到该黑客松 🛰️</view>
+<view class="focus-page detail-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content" wx:if="{{item}}">
+    <view wx:if="{{aiBanner}}" class="ai-note">
+      <text>来自微信AI助手</text>
+      <text>{{aiIntentText}}</text>
+    </view>
 
-<view wx:else class="page fade-up">
-  <view class="title">{{item.name}}</view>
+    <view class="detail-hero brutal-box blue-box">
+      <view class="detail-status">{{item.status === 'ended' ? '已结束' : item.status === 'ongoing' ? '进行中' : '即将开始'}}</view>
+      <view class="focus-title detail-title">{{item.name}}</view>
+      <view class="detail-summary">{{item.summary}}</view>
+    </view>
 
-  <view class="meta-row">
-    <text wx:if="{{item.startDate}}" class="meta">📅 {{item.startDate}} ~ {{item.endDate}}</text>
-    <text wx:if="{{item.location}}" class="meta">📍 {{item.location}}</text>
-    <text class="meta accent">{{modeLabel[item.mode] || item.mode}}</text>
-  </view>
+    <view class="brutal-box">
+      <view class="box-title">赛事信息</view>
+      <view class="meta-list detail-meta">
+        <view wx:for="{{metaRows}}" wx:key="label" class="meta-row">
+          <text class="meta-label">{{item.label}}</text>
+          <text class="meta-value">{{item.value}}</text>
+        </view>
+      </view>
+    </view>
 
-  <view wx:if="{{item.prizePool}}" class="prize-banner glass">
-    🏆 奖金池 · {{item.prizePool}}
-  </view>
+    <view class="brutal-box">
+      <view class="box-title">赛道</view>
+      <view class="chip-row detail-chips">
+        <text wx:for="{{item.tracks}}" wx:key="*this" class="focus-chip focus-chip--yellow">{{item}}</text>
+      </view>
+      <view class="box-title detail-stack-title">技术标签</view>
+      <view class="chip-row detail-chips">
+        <text wx:for="{{item.techStack}}" wx:key="*this" class="focus-chip">{{item}}</text>
+      </view>
+    </view>
 
-  <view wx:if="{{item.summary}}" class="block glass">
-    <view class="block-title">简介</view>
-    <view class="block-text">{{item.summary}}</view>
-  </view>
-
-  <view wx:if="{{item.theme}}" class="block glass">
-    <view class="block-title">主题</view>
-    <view class="block-text">{{item.theme}}</view>
-  </view>
-
-  <view wx:if="{{item.tracks.length}}" class="block glass">
-    <view class="block-title">赛道</view>
-    <view class="chips">
-      <text wx:for="{{item.tracks}}" wx:key="*this" class="chip chip-accent">{{item}}</text>
+    <view class="brutal-box yellow-box">
+      <view class="box-title">问 AI 是否适合</view>
+      <view class="box-copy">把赛事名称、日期、城市、赛道和技术栈带入 Haki，让它按你的项目方向判断适配度。</view>
+      <button class="native-btn detail-ai-btn" bindtap="askAI">问AI是否适合</button>
     </view>
   </view>
 
-  <view wx:if="{{item.techStack.length}}" class="block glass">
-    <view class="block-title">技术方向</view>
-    <view class="chips">
-      <text wx:for="{{item.techStack}}" wx:key="*this" class="chip">{{item}}</text>
-    </view>
+  <view class="fixed-actions">
+    <navigator
+      wx:if="{{item.canRegister && item.website}}"
+      class="native-link native-link--yellow"
+      url="/pages/webview/webview?url={{item.encodedWebsite}}"
+      hover-class="native-link--active"
+    >去官方报名</navigator>
+    <button class="native-btn" bindtap="joinSchedule">加入我的赛程</button>
   </view>
-
-  <view wx:if="{{item.website}}" class="block glass link-block" bindtap="copyWebsite">
-    <view class="block-title">官网</view>
-    <view class="block-text link">{{item.website}}</view>
-    <view class="copy-hint">点击复制链接 →</view>
-  </view>
-
-  <!-- 引导生成身份卡 -->
-  <view class="cta-card glow" bindtap="goMakeCard">
-    <text class="cta-emoji">🎴</text>
-    <view class="cta-body">
-      <view class="cta-title">生成你的选手身份卡</view>
-      <view class="cta-desc">报名前先亮明身份，分享到群里找队友</view>
-    </view>
-    <text class="cta-arrow">→</text>
-  </view>
-
-  <view style="height: 180rpx;" />
-</view>
-
-<!-- 底部操作栏 -->
-<view wx:if="{{item}}" class="actionbar glass-strong">
-  <view class="act-bookmark {{bookmarked ? 'on' : ''}}" bindtap="toggleBookmark">
-    {{bookmarked ? '★ 已收藏' : '☆ 收藏'}}
-  </view>
-  <button class="btn-primary act-main" bindtap="register" disabled="{{registered}}">
-    {{registered ? '✓ 已加入报名清单' : '加入报名清单'}}
-  </button>
 </view>

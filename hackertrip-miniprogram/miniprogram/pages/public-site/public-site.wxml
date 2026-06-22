@@ -1,0 +1,47 @@
+<view class="focus-page public-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view wx:if="{{aiBanner}}" class="ai-note">
+      <text>来自微信AI助手</text>
+      <text>{{aiIntentText}}</text>
+    </view>
+
+    <view class="brutal-box blue-box profile-hero">
+      <view class="avatar public-avatar">J</view>
+      <view class="public-info">
+        <view class="focus-title public-name">{{profile.name}}</view>
+        <view class="public-role">{{profile.role}} · {{profile.city}}</view>
+        <view class="box-copy">{{profile.bio}}</view>
+      </view>
+    </view>
+
+    <view class="stat-grid public-stats">
+      <view class="stat-item"><text class="stat-num">{{profile.stats.hackathons}}</text><text class="stat-label">参赛</text></view>
+      <view class="stat-item"><text class="stat-num">{{profile.stats.projects}}</text><text class="stat-label">作品</text></view>
+      <view class="stat-item"><text class="stat-num">{{profile.stats.skills}}</text><text class="stat-label">Skills</text></view>
+    </view>
+
+    <view class="section-head">技能</view>
+    <view class="chip-row">
+      <text wx:for="{{profile.skills}}" wx:key="*this" class="focus-chip">{{item}}</text>
+    </view>
+
+    <view class="section-head">项目</view>
+    <view wx:for="{{projects}}" wx:key="name" class="list-card">
+      <view class="list-title">{{item.name}}</view>
+      <view class="list-subtitle">{{item.desc}}</view>
+    </view>
+
+    <view class="section-head">参赛历史</view>
+    <navigator
+      wx:for="{{history}}"
+      wx:key="id"
+      class="list-card"
+      url="/pages/detail/detail?id={{item.id}}"
+      hover-class="list-card--active"
+    >
+      <view class="list-title">{{item.name}}</view>
+      <view class="list-subtitle">日期 {{item.dateText}} · 城市 {{item.cityText}} · 形式 {{item.modeText}}</view>
+    </navigator>
+  </view>
+</view>

@@ -1,7 +1,10 @@
 {
-  "navigationStyle": "custom",
-  "enablePullDownRefresh": false,
+  "navigationBarTitleText": "发现黑客松",
   "usingComponents": {
-    "hackathon-card": "/components/hackathon-card/index"
+    "navbar": "/components/navbar/index",
+    "hackathon-card": "/components/hackathon-card/index",
+    "t-button": "tdesign-miniprogram/button/button",
+    "t-icon": "tdesign-miniprogram/icon/icon",
+    "t-tag": "tdesign-miniprogram/tag/tag"
   }
 }

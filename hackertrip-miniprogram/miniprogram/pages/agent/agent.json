@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "Agent 技能库",
+  "usingComponents": {
+    "navbar": "/components/navbar/index",
+    "t-icon": "tdesign-miniprogram/icon/icon"
+  }
+}

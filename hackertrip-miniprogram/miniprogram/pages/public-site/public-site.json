@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "公开主页",
+  "usingComponents": {
+    "navbar": "/components/navbar/index",
+    "t-icon": "tdesign-miniprogram/icon/icon"
+  }
+}

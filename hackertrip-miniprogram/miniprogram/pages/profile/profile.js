@@ -1,80 +1,62 @@
+const catalog = require('../../utils/catalog.js');
 const api = require('../../utils/api.js');
-const { ROLE_MAP } = require('../../utils/roles.js');
+const { parseAIEntry } = require('../../utils/ai.js');
 
 Page({
   data: {
-    tab: 'cards', // cards | bookmarks | regs
-    cards: [],
-    bookmarks: [],
-    regs: [],
-    scanSynced: false,
-    roleMap: ROLE_MAP,
+    title: '我的',
+    aiBanner: false,
+    aiIntentText: '个人中心',
+    avatarChar: 'H',
+    activeCount: 0,
+    savedCount: 0,
+    assetStats: [],
+    tools: [
+      { title: '身份卡编辑', sub: '完善头像、技能栈和参赛宣言', url: '/pages/identity-edit/identity-edit' },
+      { title: '项目作品集', sub: '整理作品，用于报名和分享', url: '/pages/portfolio/portfolio' },
+      { title: 'Agent 技能库', sub: '管理 Haki 可读取的项目能力', url: '/pages/agent/agent' },
+      { title: 'Skills 同步', sub: '从 GitHub/本地项目同步技术栈', url: '/pages/sync/sync' },
+    ],
+    settings: [
+      { title: '账号设置', sub: '登录方式、通知和隐私', url: '/pages/settings/settings' },
+      { title: '公开主页', sub: '预览你的 HackerTrip 主页', url: '/pages/public-site/public-site' },
+    ],
   },
 
   onShow() {
-    this.refresh();
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().syncSelected();
+    }
+    // 收藏/报名/身份卡变化后返回时刷新资产
+    this.load();
   },
 
-  async refresh() {
-    const cards = api.getCards().map((c) => Object.assign({}, c, {
-      roleName: (ROLE_MAP[c.role] || {}).name || c.role,
-      emoji: (ROLE_MAP[c.role] || {}).emoji || '🎴',
-      techStack: Array.isArray(c.techStack) ? c.techStack : [],
-    }));
-    // IP 展示卡：取首张身份卡作为角色 hero
-    const top = cards.find((c) => c.variant !== 'config') || cards[0] || null;
-    const hero = top ? {
-      emoji: top.emoji,
-      roleName: top.roleName,
-      tagline: (ROLE_MAP[top.role] || {}).tagline || '',
-      projects: top.projects || 0,
-      hackathons: top.hackathons || 0,
-      awards: top.awards || 0,
-      role: top.role,
-      variant: top.variant,
-    } : null;
-    this.setData({ hero });
-    const bookmarks = await api.getBookmarkedHackathons();
+  onLoad(options) {
+    const ai = parseAIEntry(options);
     this.setData({
-      cards,
-      bookmarks,
-      regs: api.getRegistrations(),
-      scanSynced: !!api.getScanResults(),
+      aiBanner: !!ai.fromAI,
+      aiIntentText: ai.intent || '个人中心',
     });
+    this.load();
   },
 
-  switchTab(e) {
-    this.setData({ tab: e.currentTarget.dataset.tab });
-  },
+  load() {
+    const stats = api.getUserStats();
+    const profile = api.getProfile();
+    // 我加入的进行中赛事数（用 catalog 取最新状态）
+    const ongoing = api.getRegistrations()
+      .map((reg) => catalog.getById(reg.id) || reg)
+      .filter((item) => item && item.status === 'ongoing').length;
 
-  openCard(e) {
-    const c = this.data.cards[e.currentTarget.dataset.idx];
-    wx.navigateTo({ url: `/pages/share/share?role=${c.role}&variant=${c.variant}` });
-  },
-  makeCard() {
-    wx.navigateTo({ url: '/pages/card/card' });
-  },
-  shareHero() {
-    const h = this.data.hero;
-    if (!h) return;
-    wx.navigateTo({ url: `/pages/share/share?role=${h.role}&variant=${h.variant || 'identity'}` });
-  },
-  openDetail(e) {
-    wx.navigateTo({ url: `/pages/detail/detail?id=${e.detail.id}` });
-  },
-  onBookmark(e) {
-    api.toggleBookmark(e.detail.id);
-    this.refresh();
-  },
-  goExplore() {
-    wx.reLaunch({ url: '/pages/index/index' });
-  },
-  goSync() {
-    wx.navigateTo({ url: '/pages/sync/sync' });
-  },
-  copyWebsite(e) {
-    const url = e.currentTarget.dataset.url;
-    if (!url) return;
-    wx.setClipboardData({ data: url, success: () => wx.showToast({ title: '链接已复制', icon: 'none' }) });
+    this.setData({
+      avatarChar: (profile.nickname || 'H').trim().charAt(0).toUpperCase() || 'H',
+      activeCount: ongoing,
+      savedCount: stats.bookmarks,
+      assetStats: [
+        { label: '关注赛事', value: `${stats.bookmarks}` },
+        { label: '进行中', value: `${ongoing}` },
+        { label: '身份卡', value: `${stats.projects}` },
+      ],
+    });
   },
 });

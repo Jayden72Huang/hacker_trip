@@ -1,0 +1,86 @@
+<view class="page page--tab schedule-page">
+  <navbar title="{{title}}" showBack="{{false}}" showHome="{{false}}" />
+
+  <view class="content">
+    <view wx:if="{{aiBanner}}" class="ai-banner">
+      <text>来自微信AI助手</text>
+      <text>{{aiIntentText}}</text>
+    </view>
+
+    <view class="page-title">赛程</view>
+    <view class="page-subtitle">跟进报名、组队、提交和路演阶段。</view>
+
+    <view wx:if="{{activeEvent}}" class="active-card">
+      <view class="active-kicker">活跃赛事</view>
+      <view class="active-title">{{activeEvent.name}}</view>
+      <view class="active-grid">
+        <view class="active-meta">
+          <text class="meta-label">时间</text>
+          <text class="meta-value">{{activeEvent.startDate}} - {{activeEvent.endDate}}</text>
+        </view>
+        <view class="active-meta">
+          <text class="meta-label">地点</text>
+          <text class="meta-value">{{activeEvent.location}}</text>
+        </view>
+        <view class="active-meta">
+          <text class="meta-label">形式</text>
+          <text class="meta-value">{{activeEvent.modeText}}</text>
+        </view>
+        <view class="active-meta">
+          <text class="meta-label">奖金</text>
+          <text class="meta-value">{{activeEvent.prizePool}}</text>
+        </view>
+      </view>
+      <navigator class="active-cta" url="/pages/detail/detail?id={{activeEvent.id}}" hover-class="active-cta--active">
+        打开赛事详情
+      </navigator>
+    </view>
+
+    <view class="section-title">我的赛程</view>
+    <view wx:if="{{hasJoined}}" class="my-events">
+      <navigator
+        wx:for="{{myEvents}}"
+        wx:key="id"
+        class="my-event-card"
+        url="/pages/detail/detail?id={{item.id}}"
+        hover-class="my-event-card--active"
+      >
+        <view class="my-event-head">
+          <view class="my-event-title">{{item.name}}</view>
+          <view class="my-event-status my-event-status--{{item.status}}">{{item.status === 'ongoing' ? '进行中' : item.status === 'upcoming' ? '即将开始' : '已结束'}}</view>
+        </view>
+        <view class="my-event-meta">{{item.startDate}} - {{item.endDate}} · {{item.city || item.location}} · {{item.modeText}}</view>
+      </navigator>
+    </view>
+    <view wx:else class="my-events-empty">
+      <view class="empty-text">还没有加入的赛事，去发现页找一场报名吧。</view>
+      <navigator class="empty-cta" url="/pages/index/index" open-type="switchTab" hover-class="empty-cta--active">去发现页逛逛</navigator>
+    </view>
+
+    <view class="section-title">7 段进度</view>
+    <view class="phase-card">
+      <view class="phase-bars">
+        <view wx:for="{{phases}}" wx:key="label" class="phase-bar phase-bar--{{item.state}}"></view>
+      </view>
+      <view class="phase-labels">
+        <view wx:for="{{phases}}" wx:key="label" class="phase-label phase-label--{{item.state}}">
+          {{item.label}}
+        </view>
+      </view>
+    </view>
+
+    <view class="section-title">今日待办</view>
+    <view class="todo-list">
+      <view wx:for="{{todos}}" wx:key="title" class="todo-card">
+        <view class="todo-time">{{item.time}}</view>
+        <view class="todo-main">
+          <view class="todo-title">{{item.title}}</view>
+          <view class="todo-sub">{{item.sub}}</view>
+        </view>
+        <navigator class="todo-action" url="{{item.url}}" hover-class="todo-action--active">
+          {{item.action}}
+        </navigator>
+      </view>
+    </view>
+  </view>
+</view>

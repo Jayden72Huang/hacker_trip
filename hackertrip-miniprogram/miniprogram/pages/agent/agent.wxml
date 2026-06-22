@@ -1,0 +1,25 @@
+<view class="focus-page agent-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view wx:if="{{aiBanner}}" class="ai-note">
+      <text>来自微信AI助手</text>
+      <text>{{aiIntentText}}</text>
+    </view>
+
+    <view class="focus-title">Agent 技能库</view>
+    <view class="focus-subtitle">管理 Haki 可读取的技能、偏好与项目上下文。</view>
+
+    <view wx:for="{{agents}}" wx:key="name" class="list-card agent-card">
+      <view class="agent-head">
+        <view>
+          <view class="list-title">{{item.name}}</view>
+          <view class="list-subtitle">{{item.desc}}</view>
+        </view>
+        <text class="agent-status">{{item.status}}</text>
+      </view>
+      <view class="chip-row agent-skills">
+        <text wx:for="{{item.skills}}" wx:key="*this" class="focus-chip focus-chip--yellow">{{item}}</text>
+      </view>
+    </view>
+  </view>
+</view>

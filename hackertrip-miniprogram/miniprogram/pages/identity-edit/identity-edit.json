@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "身份编辑",
+  "usingComponents": {
+    "navbar": "/components/navbar/index",
+    "t-icon": "tdesign-miniprogram/icon/icon"
+  }
+}

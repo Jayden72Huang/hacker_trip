@@ -1,0 +1,24 @@
+<view class="focus-page portfolio-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view wx:if="{{aiBanner}}" class="ai-note">
+      <text>来自微信AI助手</text>
+      <text>{{aiIntentText}}</text>
+    </view>
+
+    <view class="focus-title">作品集</view>
+    <view class="focus-subtitle">沉淀项目、奖项和黑客松经历，项目标题、赛事、状态与标签都以文本呈现。</view>
+
+    <view wx:for="{{projects}}" wx:key="name" class="list-card project-card">
+      <view class="illus">插图</view>
+      <view class="project-main">
+        <view class="list-title">{{item.name}}</view>
+        <view class="list-subtitle">{{item.subtitle}}</view>
+        <view class="project-meta">赛事 {{item.event}} · 状态 {{item.status}}</view>
+        <view class="chip-row project-tags">
+          <text wx:for="{{item.tags}}" wx:key="*this" class="focus-chip">{{item}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

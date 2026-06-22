@@ -1,0 +1,76 @@
+@import "../focus.wxss";
+
+.project-name {
+  margin-top: 18rpx;
+  color: #FFFFFF;
+  font-size: 38rpx;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.project-domain {
+  margin-top: 10rpx;
+  color: #FBD902;
+  font-size: 25rpx;
+  font-weight: 900;
+}
+
+.project-stack {
+  margin-top: 22rpx;
+}
+
+.match-card {
+  color: #000000;
+}
+
+.match-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14rpx;
+}
+
+.match-rank {
+  color: #0C51ED;
+  font-size: 28rpx;
+  font-weight: 900;
+}
+
+.match-name {
+  flex: 1;
+}
+
+.match-score {
+  color: #000000;
+  font-size: 32rpx;
+  font-weight: 900;
+}
+
+.match-bar {
+  height: 22rpx;
+  margin: 20rpx 0;
+  overflow: hidden;
+  background: #ECE8DB;
+  border: 3rpx solid #000000;
+  border-radius: 999rpx;
+}
+
+.match-fill {
+  height: 100%;
+  background: #0C51ED;
+}
+
+.match-reason {
+  margin-top: 18rpx;
+  padding: 16rpx;
+  color: #000000;
+  background: #FBD902;
+  border: 3rpx solid #000000;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.match-identity {
+  margin-top: 12rpx;
+}

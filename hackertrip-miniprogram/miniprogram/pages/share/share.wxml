@@ -1,19 +1,30 @@
-<view class="aurora" />
-<view class="page fade-up">
-  <view class="hook glass">
-    <text class="hook-emoji">{{roleMeta.emoji}}</text>
-    <view class="hook-text">TA 在黑客松里是「{{roleMeta.name}}」</view>
-    <view class="hook-q">那么 —— 你是什么角色？</view>
-  </view>
+<view class="focus-page share-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view wx:if="{{aiBanner}}" class="ai-note">
+      <text>来自微信AI助手</text>
+      <text>{{aiIntentText}}</text>
+    </view>
 
-  <view class="preview">
-    <canvas type="2d" id="shareCanvas" class="card-canvas" style="width: 600rpx; height: 800rpx;" />
-  </view>
+    <view class="brutal-box yellow-box invite-banner">
+      <view class="box-title">邀请你加入 HackerTrip</view>
+      <view class="box-copy">一起发现黑客松、同步 Skills、生成身份卡并找到队友。</view>
+    </view>
 
-  <view class="cta-zone">
-    <button class="btn-primary" bindtap="makeMine">🎴 我也要一张身份卡</button>
-    <view class="btn-ghost" bindtap="goExplore">逛逛 HackerTrip 黑客松</view>
-  </view>
+    <view class="identity-card blue-box brutal-box">
+      <view class="identity-emoji">{{role.emoji}}</view>
+      <view class="focus-title share-role">{{role.name}}</view>
+      <view class="box-copy">{{role.tagline}}</view>
+      <view class="stat-grid share-stats">
+        <view class="stat-item"><text class="stat-num">{{stats.hackathons}}</text><text class="stat-label">参赛</text></view>
+        <view class="stat-item"><text class="stat-num">{{stats.projects}}</text><text class="stat-label">作品</text></view>
+        <view class="stat-item"><text class="stat-num">{{stats.skills}}</text><text class="stat-label">Skills</text></view>
+      </view>
+      <view class="chip-row share-skills">
+        <text wx:for="{{skills}}" wx:key="*this" class="focus-chip focus-chip--yellow">{{item}}</text>
+      </view>
+    </view>
 
-  <view class="footnote">由 HackerTrip 小程序生成 · 一键扫描代码匹配黑客松</view>
+    <button class="native-btn native-btn--yellow" bindtap="generateCard">生成我的身份卡</button>
+  </view>
 </view>

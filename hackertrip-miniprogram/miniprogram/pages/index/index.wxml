@@ -1,107 +1,88 @@
-<wxs src="../../utils/tools.wxs" module="tools" />
+<view class="page page--tab discovery-page">
+  <navbar title="{{title}}" showBack="{{false}}" showHome="{{false}}" />
 
-<view class="root mode-{{mode}}" bindtouchstart="onTouchStart" bindtouchmove="onTouchMove">
-  <!-- 自定义导航：左 ☰，右侧留给微信胶囊 -->
-  <view class="nav" style="padding-top:{{statusBarH}}px">
-    <view class="nav-row" style="height:{{navH + (navTop - statusBarH) * 2}}px">
-      <view class="menu-btn" bindtap="openDrawer">
-        <view class="ml" /><view class="ml" /><view class="ml ml-s" />
-      </view>
-      <view wx:if="{{mode !== 'idle'}}" class="nav-title" bindtap="collapse">发现黑客松 ⌄</view>
+  <view class="content">
+    <view wx:if="{{aiBanner}}" class="ai-banner">
+      <text>来自微信AI助手</text>
+      <text>{{aiIntentText}}</text>
     </view>
-  </view>
 
-  <!-- 静默态：品牌问候 -->
-  <view wx:if="{{mode === 'idle'}}" class="greet fade-up">
-    <view class="spark">✳</view>
-    <view class="greet-title serif">{{greeting}}，{{userName}}</view>
-    <view class="greet-sub">今天想找什么黑客松？{{'\n'}}点击下方或上滑搜索</view>
-  </view>
-
-  <!-- 展开 / 搜索态 -->
-  <view wx:else class="content">
-    <!-- 顶部命令栏 -->
-    <view class="cmd cmd-top">
-      <view wx:if="{{mode === 'search'}}" class="cmd-input-row">
-        <text class="cmd-glass">🔍</text>
-        <input class="cmd-input" placeholder="搜黑客松 / 城市 / 赛道" placeholder-class="cmd-ph-cls"
-          value="{{keyword}}" focus="{{searchFocus}}" confirm-type="search"
-          bindinput="onInput" bindconfirm="onSearch" />
-        <text wx:if="{{keyword}}" class="cmd-clear" bindtap="onClearKeyword">✕</text>
-        <text class="cmd-cancel" bindtap="backToOpen">取消</text>
-      </view>
-      <block wx:else>
-        <view class="cmd-ph" bindtap="focusSearch">搜索黑客松 / 城市 / 赛道</view>
-        <view class="cmd-row">
-          <view class="cmd-ic">＋</view>
-          <view class="cmd-pill">{{status === 'ended' ? '已结束' : status === 'upcoming' ? '进行中' : '全部'}}</view>
-          <view class="cmd-send" bindtap="focusSearch">🔍</view>
+    <view class="hero">
+      <view class="hero-copy">
+        <view class="city-row">
+          <text class="city-label">当前城市</text>
+          <text class="city-name">{{city}}</text>
         </view>
-      </block>
+        <view class="page-title">发现黑客松</view>
+        <view class="page-subtitle">按城市、赛道、时间和技术栈找到可报名赛事。</view>
+      </view>
+      <image class="city-sketch" src="/images/sketches/shenzhen-t.png" mode="aspectFit" />
     </view>
 
-    <!-- 搜索态：最近 / 热门 -->
-    <view wx:if="{{mode === 'search'}}" class="suggest">
-      <view class="sug-h">最近搜索</view>
-      <view class="sug-row">
-        <text wx:for="{{recents}}" wx:key="*this" class="chip" data-k="{{item}}" bindtap="pickSuggest">{{item}}</text>
-      </view>
-      <view class="sug-h">热门赛道</view>
-      <view class="sug-row">
-        <text wx:for="{{hots}}" wx:key="*this" class="chip" data-k="{{item}}" bindtap="pickSuggest">{{item}}</text>
-      </view>
+    <view class="search-box">
+      <t-icon name="search" size="34rpx" color="#000000" />
+      <input
+        class="search-input"
+        value="{{query}}"
+        placeholder="搜索 AI、深圳、Web3、硬件"
+        confirm-type="search"
+        bindinput="onSearchInput"
+      />
     </view>
 
-    <!-- 列表 -->
-    <scroll-view wx:else scroll-y class="list" enhanced show-scrollbar="{{false}}">
-      <view class="grab" />
-      <!-- 状态筛选 -->
-      <scroll-view scroll-x class="tabs" enhanced show-scrollbar="{{false}}">
-        <view class="tab {{status==='all'?'on':''}}" data-key="all" bindtap="onStatusTab">全部</view>
-        <view class="tab {{status==='upcoming'?'on':''}}" data-key="upcoming" bindtap="onStatusTab">进行中/即将</view>
-        <view class="tab {{status==='ended'?'on':''}}" data-key="ended" bindtap="onStatusTab">已结束</view>
-      </scroll-view>
-      <view class="list-head">
-        <text class="lh-title">{{status==='ended'?'已结束':status==='upcoming'?'进行中/即将开始':'全部黑客松'}}</text>
-        <text class="lh-count">{{list.length}} 场</text>
-      </view>
-      <view wx:if="{{loading}}" class="state">加载中…</view>
-      <view wx:elif="{{list.length===0}}" class="state">没有符合条件的黑客松 🛰️</view>
-      <hackathon-card wx:for="{{list}}" wx:key="id" item="{{item}}"
-        bookmarked="{{tools.inArray(bookmarks, item.id)}}"
-        bind:tap="onCardTap" bind:bookmark="onBookmark" />
-      <view style="height:40rpx" />
+    <view class="filter-row">
+      <button
+        wx:for="{{filters}}"
+        wx:key="key"
+        class="filter-chip {{activeFilter === item.key ? 'filter-chip--active' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="onFilterTap"
+      >
+        {{item.label}}
+      </button>
+    </view>
+
+    <view wx:if="{{focusEvent}}" class="section-title">正在关注</view>
+    <view wx:if="{{focusEvent}}" class="focus-card">
+      <view class="focus-kicker">{{focusEvent.status === 'ongoing' ? '正在进行' : '即将开始'}}</view>
+      <view class="focus-title">{{focusEvent.name}}</view>
+      <view class="focus-meta">时间 {{focusEvent.startDate}} - {{focusEvent.endDate}}</view>
+      <view class="focus-meta">地点 {{focusEvent.location}} · {{focusEvent.modeText}}</view>
+      <view class="focus-meta">奖金 {{focusEvent.prizePool}}</view>
+      <navigator class="focus-cta" url="/pages/detail/detail?id={{focusEvent.id}}" hover-class="focus-cta--active">
+        查看赛事详情
+      </navigator>
+    </view>
+
+    <view class="section-title">精选推荐</view>
+    <scroll-view class="featured-scroll" scroll-x enable-flex>
+      <navigator
+        wx:for="{{featured}}"
+        wx:key="id"
+        class="featured-card"
+        url="/pages/detail/detail?id={{item.id}}"
+        hover-class="featured-card--active"
+      >
+        <view class="featured-title">{{item.shortName || item.name}}</view>
+        <view class="featured-subtitle">{{item.startDate}} · {{item.city}} · {{item.modeText}}</view>
+        <view class="featured-prize">{{item.prizePool}}</view>
+        <view class="featured-tags">
+          <text wx:for="{{item.techStack}}" wx:key="*this" wx:if="{{index < 3}}" class="mini-tag">{{item}}</text>
+        </view>
+      </navigator>
     </scroll-view>
-  </view>
 
-  <!-- 静默态底部命令栏 -->
-  <view wx:if="{{mode === 'idle'}}" class="cmd cmd-bottom" bindtap="expand">
-    <view class="cmd-ph">搜索黑客松 / 城市 / 赛道</view>
-    <view class="cmd-row">
-      <view class="cmd-ic">＋</view>
-      <view class="cmd-pill">全部 · 进行中</view>
-      <view class="cmd-send">🔍</view>
+    <view class="list-head">
+      <view class="section-title">更多黑客松</view>
+      <text class="list-count">{{hackathons.length}} / {{totalCount}}</text>
     </view>
-  </view>
-</view>
 
-<!-- 更多抽屉 -->
-<view class="drawer-mask {{drawerOpen?'show':''}}" bindtap="closeDrawer" />
-<view class="drawer {{drawerOpen?'open':''}}" style="padding-top:{{statusBarH + 20}}px">
-  <view class="dw-head">
-    <text class="dw-mark serif">HackerTrip</text>
-    <view class="dw-av" bindtap="goLogin">{{userName === '黑客松选手' ? '登' : 'J'}}</view>
+    <hackathon-card
+      wx:for="{{hackathons}}"
+      wx:key="id"
+      item="{{item}}"
+      bookmarked="{{item.bookmarked}}"
+      bind:bookmark="onBookmark"
+    />
   </view>
-  <view class="dw-nav">
-    <view class="dw-item" bindtap="closeDrawer"><text class="dw-ic">🔍</text>发现黑客松</view>
-    <view class="dw-item" bindtap="goCard"><text class="dw-ic">🎴</text>我的身份卡</view>
-    <view class="dw-item" bindtap="goCard"><text class="dw-ic">🧩</text>开发者配置卡</view>
-    <view class="dw-item" bindtap="goSync"><text class="dw-ic">⇆</text>Skills 同步</view>
-    <view class="dw-item" bindtap="goProfile"><text class="dw-ic">☆</text>我的收藏</view>
-    <view class="dw-item" bindtap="goRecent"><text class="dw-ic">🔔</text>消息中心</view>
-    <view wx:if="{{hasScan}}" class="dw-item" bindtap="goResult"><text class="dw-ic">🎯</text>匹配结果</view>
-  </view>
-  <view class="dw-recents">最近</view>
-  <view class="dw-rec" bindtap="goProfile">我的展示库 ›</view>
-  <view class="dw-new" bindtap="goCard">＋ 新建身份卡</view>
 </view>

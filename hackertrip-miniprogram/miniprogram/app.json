@@ -1,22 +1,54 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/detail/detail",
-    "pages/card/card",
-    "pages/share/share",
-    "pages/sync/sync",
-    "pages/result/result",
+    "pages/schedule/schedule",
+    "pages/inbox/inbox",
     "pages/profile/profile",
-    "pages/recent/recent",
-    "pages/login/login"
+    "pages/chat/chat",
+    "pages/match/match",
+    "pages/detail/detail",
+    "pages/identity/identity",
+    "pages/identity-edit/identity-edit",
+    "pages/sync/sync",
+    "pages/portfolio/portfolio",
+    "pages/agent/agent",
+    "pages/public-site/public-site",
+    "pages/settings/settings",
+    "pages/login/login",
+    "pages/share/share",
+    "pages/webview/webview"
   ],
   "window": {
-    "navigationBarBackgroundColor": "#faf9f5",
+    "navigationStyle": "custom",
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "HackerTrip",
-    "backgroundColor": "#faf9f5",
+    "backgroundColor": "#F4F1E8",
     "backgroundTextStyle": "dark",
     "enablePullDownRefresh": false
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#7A7A75",
+    "selectedColor": "#0C51ED",
+    "backgroundColor": "#FFFFFF",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "发现"
+      },
+      {
+        "pagePath": "pages/schedule/schedule",
+        "text": "赛程"
+      },
+      {
+        "pagePath": "pages/inbox/inbox",
+        "text": "消息"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
   },
   "style": "v2",
   "lazyCodeLoading": "requiredComponents",

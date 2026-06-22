@@ -1,0 +1,34 @@
+@import "../focus.wxss";
+
+.profile-hero {
+  display: flex;
+  gap: 26rpx;
+  align-items: center;
+}
+
+.public-avatar {
+  flex: 0 0 132rpx;
+  color: #000000;
+  background: #FBD902;
+}
+
+.public-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.public-name {
+  margin: 0;
+  color: #FFFFFF;
+}
+
+.public-role {
+  margin-top: 12rpx;
+  color: #FBD902;
+  font-size: 26rpx;
+  font-weight: 900;
+}
+
+.public-stats {
+  margin: 30rpx 0 18rpx;
+}

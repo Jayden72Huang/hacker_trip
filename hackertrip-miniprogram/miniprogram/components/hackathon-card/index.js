@@ -4,14 +4,14 @@ Component({
     bookmarked: { type: Boolean, value: false },
   },
   data: {
-    modeLabel: { online: '线上', offline: '线下', hybrid: '线上+线下' },
+    statusText: {
+      upcoming: '即将开始',
+      ongoing: '进行中',
+      ended: '已结束',
+    },
   },
   methods: {
-    onTap() {
-      this.triggerEvent('tap', { id: this.data.item.id });
-    },
-    onBookmark(e) {
-      // 阻止冒泡到卡片点击
+    onBookmark() {
       this.triggerEvent('bookmark', { id: this.data.item.id });
     },
   },

@@ -1,5 +1,7 @@
 # HackerTrip 小程序 · 主要页面设计简报（Step 1 定稿）
 
+> **Hi-Fi 复刻进行中**：逐页优化记录与必守硬规则见 `hifi-build-log.md`（新页面生成前先读）。
+
 > 给 Codex 出效果图用的「每页一张简报」。每页固定写：**目标 / 核心模块 / 关键交互 / 状态 / 关联 intent**。
 > 配合 `hackertrip-product-requirements.md`（完整 PRD）+ `neobrutalist-design-system.md` / `neobrutalist-components.md`（视觉规范）使用。
 > **导航定稿（2026-06-10）**：底部 tabbar（发现 / 赛程 / 消息 / 我的），**不用左抽屉**（组件库 §7.3 抽屉作废）；**主页 = 发现页**，参赛工作台并入「赛程」tab。

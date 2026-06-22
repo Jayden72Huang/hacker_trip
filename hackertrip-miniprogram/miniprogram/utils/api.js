@@ -15,6 +15,18 @@ const STORAGE = {
   BOOKMARKS: 'ht_bookmarks', // 收藏的黑客松 id
   REGISTRATIONS: 'ht_registrations', // 报名清单
   SCAN_RESULTS: 'ht_scan_results', // Skills 同步过来的扫描匹配结果
+  PROFILE: 'ht_profile', // 统一用户档案（身份编辑/身份卡/公开主页/分享/设置共享）
+};
+
+/** 全站统一的用户档案默认值（替代各页面散落的硬编码 mock） */
+const DEFAULT_PROFILE = {
+  nickname: 'Jayden',
+  role: 'AI Builder',
+  city: '上海',
+  bio: '关注 AI 产品原型、Agent 工作流和黑客松快速交付。',
+  skills: ['TypeScript', 'LLM', 'React', 'Prompt'],
+  github: 'github.com/jayden',
+  avatarUrl: '',
 };
 
 function cloudReady() {
@@ -150,6 +162,31 @@ function getCardById(id) {
   return getCards().find((c) => c.id === id) || null;
 }
 
+/* ----------------------------- 用户档案 ----------------------------- */
+
+/** 读取统一用户档案，缺字段用默认值补齐，永不返回 null */
+function getProfile() {
+  const v = getStorage(STORAGE.PROFILE, null);
+  return Object.assign({}, DEFAULT_PROFILE, v && typeof v === 'object' ? v : {});
+}
+/** 合并保存用户档案（patch 部分更新），同步 best-effort 上云 */
+function saveProfile(patch) {
+  const next = Object.assign({}, getProfile(), patch || {});
+  setStorage(STORAGE.PROFILE, next);
+  if (cloudReady()) callFn('saveProfile', { profile: next }).catch(() => {});
+  return next;
+}
+/** 由真实收藏/报名/卡片数量派生用户资产统计，供个人中心/公开主页/分享复用 */
+function getUserStats() {
+  const profile = getProfile();
+  return {
+    hackathons: getRegistrations().length,
+    bookmarks: getBookmarks().length,
+    projects: getCards().length,
+    skills: Array.isArray(profile.skills) ? profile.skills.length : 0,
+  };
+}
+
 /* ----------------------- Skills 同步（扫描结果） ----------------------- */
 
 function getScanResults() {
@@ -181,10 +218,11 @@ async function pullSyncByCode(code) {
         if (res.card) saveCard(res.card);
         return res;
       }
+      // 云端明确判定配对码无效/过期：如实返回，不降级
       return res || { ok: false, message: '配对码无效或已过期' };
     } catch (e) {
-      console.warn('[api] pairSync 云端失败', e);
-      return { ok: false, message: '网络异常，请重试' };
+      // 云函数未部署 / 网络异常：与全站一致降级本地 mock，不阻断同步演示
+      console.warn('[api] pairSync 云端调用失败，降级本地 mock', e);
     }
   }
   // 本地 mock：演示同步成功落地
@@ -207,6 +245,9 @@ module.exports = {
   getCards,
   saveCard,
   getCardById,
+  getProfile,
+  saveProfile,
+  getUserStats,
   getScanResults,
   setScanResults,
   pullSyncByCode,

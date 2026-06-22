@@ -1,0 +1,48 @@
+<view class="focus-page identity-edit-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view wx:if="{{aiBanner}}" class="ai-note">
+      <text>来自微信AI助手</text>
+      <text>{{aiIntentText}}</text>
+    </view>
+
+    <view class="focus-title">编辑身份</view>
+    <view class="focus-subtitle">完善头像、昵称、角色、城市、技能和 GitHub，供身份卡和公开主页复用。</view>
+
+    <view class="brutal-box edit-head">
+      <button class="avatar avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image wx:if="{{avatarUrl}}" class="avatar-image" src="{{avatarUrl}}" mode="aspectFill" />
+        <text wx:else>J</text>
+      </button>
+      <view class="edit-copy">
+        <view class="box-title">{{form.nickname}}</view>
+        <view class="box-copy">{{form.role}} · {{form.city}}</view>
+      </view>
+    </view>
+
+    <view class="form-list">
+      <view class="form-field">
+        <text class="form-label">昵称</text>
+        <input class="input-box" value="{{form.nickname}}" data-field="nickname" bindinput="onFieldInput" />
+      </view>
+      <view class="form-field">
+        <text class="form-label">角色</text>
+        <input class="input-box" value="{{form.role}}" data-field="role" bindinput="onFieldInput" />
+      </view>
+      <view class="form-field">
+        <text class="form-label">城市</text>
+        <input class="input-box" value="{{form.city}}" data-field="city" bindinput="onFieldInput" />
+      </view>
+      <view class="form-field">
+        <text class="form-label">技能</text>
+        <input class="input-box" value="{{form.skills}}" data-field="skills" bindinput="onFieldInput" />
+      </view>
+      <view class="form-field">
+        <text class="form-label">GitHub</text>
+        <input class="input-box" value="{{form.github}}" data-field="github" bindinput="onFieldInput" />
+      </view>
+    </view>
+
+    <button class="native-btn save-profile" bindtap="saveProfile">保存身份信息</button>
+  </view>
+</view>

@@ -1,0 +1,16 @@
+@import "../focus.wxss";
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22rpx;
+}
+
+.setting-line {
+  padding-right: 32rpx;
+}
+
+.logout-btn {
+  margin-top: 36rpx;
+}

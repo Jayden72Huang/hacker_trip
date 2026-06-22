@@ -1,118 +1,116 @@
+const catalog = require('../../utils/catalog.js');
 const api = require('../../utils/api.js');
+const { parseAIEntry } = require('../../utils/ai.js');
 
-function greet(h) {
-  if (h < 6) return '凌晨好';
-  if (h < 11) return '早上好';
-  if (h < 13) return '中午好';
-  if (h < 18) return '下午好';
-  return '晚上好';
+const FILTERS = [
+  { key: 'all', label: '全部' },
+  { key: 'online', label: '线上' },
+  { key: 'offline', label: '线下' },
+  { key: 'AI', label: 'AI' },
+  { key: 'Web3', label: 'Web3' },
+];
+
+function matchFilter(item, filter) {
+  if (filter === 'all') return true;
+  if (filter === item.mode) return true;
+
+  const text = [
+    item.theme,
+    ...(item.tracks || []),
+    ...(item.techStack || []),
+    ...(item.tags || []),
+  ].join(' ');
+
+  return text.toLowerCase().includes(filter.toLowerCase());
 }
 
 Page({
   data: {
-    // 自定义导航布局（避让右上胶囊）
-    statusBarH: 20,
-    navH: 44,
-    navTop: 24,
-    // 问候
-    greeting: '你好',
-    userName: '黑客松选手',
-    // 三态：idle 静默 / open 展开 / search 搜索
-    mode: 'idle',
-    keyword: '',
-    status: 'all',
-    list: [],
-    bookmarks: [],
-    loading: true,
-    drawerOpen: false,
-    hasScan: false,
-    // 最近/热门搜索建议
-    recents: ['AI Agent', '出海', '硬件', '深圳'],
-    hots: ['大模型应用', 'Web3', '创作工具'],
-  },
-
-  onLoad() {
-    let sb = 20, navTop = 24, navH = 44;
-    try {
-      const win = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
-      sb = win.statusBarHeight || 20;
-      const m = wx.getMenuButtonBoundingClientRect ? wx.getMenuButtonBoundingClientRect() : null;
-      if (m && m.top) { navTop = m.top; navH = m.height; }
-      else { navTop = sb + 6; navH = 32; }
-    } catch (e) {}
-    const name = (function () { try { return wx.getStorageSync('ht_user_name') || '黑客松选手'; } catch (e) { return '黑客松选手'; } })();
-    let hour = 20;
-    try { hour = new Date().getHours(); } catch (e) {}
-    this.setData({ statusBarH: sb, navTop, navH, greeting: greet(hour), userName: name });
-    this.refresh();
+    title: '发现黑客松',
+    aiBanner: false,
+    aiIntentText: '继续任务',
+    city: '深圳',
+    query: '',
+    activeFilter: 'all',
+    filters: FILTERS,
+    focusEvent: null,
+    featured: [],
+    hackathons: [],
+    totalCount: 0,
   },
 
   onShow() {
-    this.setData({ bookmarks: api.getBookmarks(), hasScan: !!api.getScanResults() });
-  },
-
-  async refresh() {
-    this.setData({ loading: true });
-    const list = await api.getHackathons({ q: this.data.keyword, status: this.data.status });
-    this.setData({ list, bookmarks: api.getBookmarks(), loading: false });
-  },
-
-  /* ---------- 上滑手势：静默 → 展开 ---------- */
-  onTouchStart(e) {
-    this._touchY = (e.touches && e.touches[0]) ? e.touches[0].clientY : 0;
-  },
-  onTouchMove(e) {
-    if (this.data.mode !== 'idle') return;
-    const y = (e.touches && e.touches[0]) ? e.touches[0].clientY : 0;
-    if (this._touchY - y > 50) {
-      this._touchY = y;
-      this.setData({ mode: 'open' });
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().syncSelected();
     }
+    // 从详情等页返回时同步收藏态
+    if (this.data.hackathons.length) this.applyFilters();
   },
 
-  /* ---------- 三态切换 ---------- */
-  // 第 1 下：静默 → 展开
-  expand() {
-    if (this.data.mode === 'idle') this.setData({ mode: 'open' });
-    else if (this.data.mode === 'open') this.focusSearch();
-  },
-  // 第 2 下：展开 → 搜索（聚焦输入）
-  focusSearch() {
-    this.setData({ mode: 'search', searchFocus: true });
-  },
-  collapse() {
-    this.setData({ mode: 'idle', keyword: '', searchFocus: false }, () => this.refresh());
-  },
-  backToOpen() {
-    this.setData({ mode: 'open', searchFocus: false });
+  onLoad(options) {
+    const ai = parseAIEntry(options);
+    const all = catalog.getAll();
+    const focusEvent = all.find((item) => item.status === 'ongoing') || all[0] || null;
+
+    this.setData({
+      aiBanner: !!ai.fromAI,
+      aiIntentText: ai.intent || '发现黑客松',
+      focusEvent,
+      featured: all.slice(0, 4),
+      totalCount: all.length,
+    });
+    this.applyFilters(all);
   },
 
-  onInput(e) { this.setData({ keyword: e.detail.value }); },
-  onSearch() { this.setData({ mode: 'open' }, () => this.refresh()); },
-  onClearKeyword() { this.setData({ keyword: '' }, () => this.refresh()); },
-  pickSuggest(e) {
-    this.setData({ keyword: e.currentTarget.dataset.k, mode: 'open' }, () => this.refresh());
-  },
-  onStatusTab(e) {
-    this.setData({ status: e.currentTarget.dataset.key }, () => this.refresh());
+  onSearchInput(e) {
+    this.setData({ query: e.detail.value || '' });
+    this.applyFilters();
   },
 
-  /* ---------- 列表 ---------- */
-  onCardTap(e) { wx.navigateTo({ url: `/pages/detail/detail?id=${e.detail.id}` }); },
-  onBookmark(e) { api.toggleBookmark(e.detail.id); this.setData({ bookmarks: api.getBookmarks() }); },
+  onFilterTap(e) {
+    this.setData({ activeFilter: e.currentTarget.dataset.key || 'all' });
+    this.applyFilters();
+  },
 
-  /* ---------- 抽屉 ---------- */
-  openDrawer() { this.setData({ drawerOpen: true, searchFocus: false }); },
-  closeDrawer() { this.setData({ drawerOpen: false }); },
-  noop() {},
-  goCard() { this.closeDrawer(); wx.navigateTo({ url: '/pages/card/card' }); },
-  goSync() { this.closeDrawer(); wx.navigateTo({ url: '/pages/sync/sync' }); },
-  goProfile() { this.closeDrawer(); wx.navigateTo({ url: '/pages/profile/profile' }); },
-  goRecent() { this.closeDrawer(); wx.navigateTo({ url: '/pages/recent/recent' }); },
-  goResult() { this.closeDrawer(); wx.navigateTo({ url: '/pages/result/result' }); },
-  goLogin() { this.closeDrawer(); wx.navigateTo({ url: '/pages/login/login' }); },
+  applyFilters(source) {
+    const all = source || catalog.getAll();
+    const query = this.data.query.trim().toLowerCase();
+    const activeFilter = this.data.activeFilter;
 
-  onShareAppMessage() {
-    return { title: 'HackerTrip · 你的一站式黑客松平台', path: '/pages/index/index' };
+    const hackathons = all.filter((item) => {
+      const searchable = [
+        item.name,
+        item.shortName,
+        item.city,
+        item.location,
+        item.theme,
+        item.summary,
+        item.prizePool,
+        ...(item.tracks || []),
+        ...(item.techStack || []),
+        ...(item.tags || []),
+      ].join(' ').toLowerCase();
+
+      return matchFilter(item, activeFilter) && (!query || searchable.includes(query));
+    });
+
+    // 标记收藏态供卡片高亮
+    const marked = hackathons.map((item) => Object.assign({}, item, {
+      bookmarked: api.isBookmarked(item.id),
+    }));
+
+    this.setData({ hackathons: marked });
+  },
+
+  onBookmark(e) {
+    const id = e.detail.id;
+    if (!id) return;
+    const active = api.toggleBookmark(id);
+    // 局部更新对应卡片的收藏态，避免整列表重渲
+    const hackathons = this.data.hackathons.map((item) =>
+      item.id === id ? Object.assign({}, item, { bookmarked: active }) : item,
+    );
+    this.setData({ hackathons });
+    wx.showToast({ title: active ? '已收藏' : '已取消收藏', icon: 'none' });
   },
 });

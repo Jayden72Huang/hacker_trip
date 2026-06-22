@@ -1,0 +1,17 @@
+<view class="tabbar">
+  <navigator
+    wx:for="{{list}}"
+    wx:key="pagePath"
+    class="tabbar__item {{selected === index ? 'tabbar__item--active' : ''}}"
+    url="{{item.pagePath}}"
+    open-type="switchTab"
+    hover-class="none"
+  >
+    <t-icon
+      name="{{item.icon}}"
+      size="34rpx"
+      color="{{selected === index ? selectedColor : color}}"
+    />
+    <text class="tabbar__text">{{item.text}}</text>
+  </navigator>
+</view>

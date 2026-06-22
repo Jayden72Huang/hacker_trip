@@ -3,7 +3,15 @@
   "rules": [
     {
       "action": "allow",
-      "page": "*"
+      "page": "pages/index/index"
+    },
+    {
+      "action": "allow",
+      "page": "pages/detail/detail"
+    },
+    {
+      "action": "allow",
+      "page": "pages/public-site/public-site"
     }
   ]
 }

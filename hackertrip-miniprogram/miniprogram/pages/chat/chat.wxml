@@ -1,0 +1,44 @@
+<view class="focus-page chat-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content chat-content">
+    <view wx:if="{{aiBanner}}" class="ai-note">
+      <text>来自微信AI助手</text>
+      <text>{{aiIntentText}}</text>
+    </view>
+
+    <view class="focus-title">Haki 聊天</view>
+    <view class="focus-subtitle">对话里保留赛事名称、时间、城市、奖金和赛道，便于微信 AI 理解页面内容。</view>
+
+    <view class="chat-thread">
+      <view wx:for="{{messages}}" wx:key="index" class="bubble bubble--{{item.role}}">
+        <text>{{item.text}}</text>
+      </view>
+    </view>
+
+    <view class="section-head">推荐赛事</view>
+    <hackathon-card item="{{event}}" />
+
+    <view class="quick-row">
+      <button
+        wx:for="{{quickReplies}}"
+        wx:key="*this"
+        class="quick-chip"
+        data-text="{{item}}"
+        bindtap="useQuickReply"
+      >{{item}}</button>
+    </view>
+  </view>
+
+  <view class="chat-inputbar">
+    <input
+      class="chat-input"
+      value="{{inputValue}}"
+      placeholder="输入项目方向或技术栈"
+      placeholder-class="placeholder-text"
+      confirm-type="send"
+      bindinput="onInput"
+      bindconfirm="sendMessage"
+    />
+    <button class="send-btn" bindtap="sendMessage">发送</button>
+  </view>
+</view>

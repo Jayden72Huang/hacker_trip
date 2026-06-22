@@ -1,0 +1,33 @@
+<view class="focus-page settings-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view wx:if="{{aiBanner}}" class="ai-note">
+      <text>来自微信AI助手</text>
+      <text>{{aiIntentText}}</text>
+    </view>
+
+    <view class="focus-title">设置</view>
+    <view class="focus-subtitle">管理账号、通知、隐私和缓存。</view>
+
+    <view class="brutal-box blue-box">
+      <view class="box-title">{{account.name}}</view>
+      <view class="box-copy">{{account.login}}</view>
+      <view class="box-copy">{{account.sync}}</view>
+    </view>
+
+    <view class="list-card setting-row">
+      <view>
+        <view class="list-title">通知提醒</view>
+        <view class="list-subtitle">报名截止、赛程变更和匹配结果更新</view>
+      </view>
+      <t-switch value="{{noticeOn}}" bind:change="onNoticeChange" />
+    </view>
+
+    <view wx:for="{{rows}}" wx:key="label" class="list-card setting-line">
+      <view class="list-title">{{item.label}}</view>
+      <view class="list-subtitle">{{item.value}}</view>
+    </view>
+
+    <button class="native-btn native-btn--danger logout-btn" bindtap="logout">退出登录</button>
+  </view>
+</view>

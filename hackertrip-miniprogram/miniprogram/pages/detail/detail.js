@@ -1,67 +1,85 @@
+const catalog = require('../../utils/catalog.js');
 const api = require('../../utils/api.js');
+const { parseAIEntry } = require('../../utils/ai.js');
+
+function joinText(list) {
+  return Array.isArray(list) && list.length ? list.join(' / ') : '待确认';
+}
+
+function buildDetail(raw) {
+  const fallback = catalog.getAll({ includeEnded: true })[0];
+  const item = raw || fallback;
+  const website = item.website || '';
+
+  return Object.assign({}, item, {
+    dateText: `${item.startDate || '待确认'} - ${item.endDate || '待确认'}`,
+    cityText: item.city || item.location || '待确认',
+    locationText: item.location || item.city || '待确认',
+    prizeText: item.prizePool || '待确认',
+    tracksText: joinText(item.tracks),
+    stackText: joinText(item.techStack),
+    tagsText: joinText(item.tags),
+    deadlineText: item.registrationDeadline || item.startDate || '待确认',
+    encodedWebsite: encodeURIComponent(website),
+  });
+}
 
 Page({
   data: {
+    title: '黑客松详情',
+    aiBanner: false,
+    aiIntentText: '赛事详情',
     item: null,
-    loading: true,
-    bookmarked: false,
-    registered: false,
-    modeLabel: { online: '线上', offline: '线下', hybrid: '线上 + 线下' },
+    metaRows: [],
   },
 
-  async onLoad(query) {
-    const id = query.id;
-    const item = await api.getHackathonDetail(id);
-    if (item) {
-      item.tracks = Array.isArray(item.tracks) ? item.tracks : [];
-      item.techStack = Array.isArray(item.techStack) ? item.techStack : [];
-    }
-    const regs = api.getRegistrations();
+  onLoad(options) {
+    const ai = parseAIEntry(options);
+    const key = options.id || options.slug;
+    const item = buildDetail(catalog.getById(key));
+
     this.setData({
+      aiBanner: ai.fromAI,
+      aiIntentText: ai.intent || '赛事详情',
       item,
-      loading: false,
-      bookmarked: api.isBookmarked(id),
-      registered: !!regs.find((r) => r.id === id),
-    });
-    if (item) wx.setNavigationBarTitle({ title: item.shortName || item.name });
-  },
-
-  toggleBookmark() {
-    const active = api.toggleBookmark(this.data.item.id);
-    this.setData({ bookmarked: active });
-    wx.showToast({ title: active ? '已收藏' : '已取消', icon: 'none' });
-  },
-
-  register() {
-    const it = this.data.item;
-    api.addRegistration({
-      id: it.id,
-      name: it.name,
-      startDate: it.startDate,
-      city: it.city,
-      website: it.website,
-    });
-    this.setData({ registered: true });
-    wx.showToast({ title: '已加入报名清单', icon: 'success' });
-  },
-
-  copyWebsite() {
-    if (!this.data.item.website) return;
-    wx.setClipboardData({
-      data: this.data.item.website,
-      success: () => wx.showToast({ title: '官网链接已复制', icon: 'none' }),
+      metaRows: [
+        { label: '名称', value: item.name },
+        { label: '日期', value: item.dateText },
+        { label: '城市', value: item.cityText },
+        { label: '形式', value: item.modeText },
+        { label: '奖金', value: item.prizeText },
+        { label: '报名截止', value: item.deadlineText },
+        { label: '赛道', value: item.tracksText },
+        { label: '技术栈', value: item.stackText },
+        { label: '官网', value: item.website || '待确认' },
+      ],
     });
   },
 
-  goMakeCard() {
-    wx.navigateTo({ url: '/pages/card/card' });
+  joinSchedule() {
+    const item = this.data.item;
+    if (!item) return;
+    const already = api.getRegistrations().some((r) => r.id === item.id);
+    if (already) {
+      wx.showToast({ title: '已在你的赛程中', icon: 'none' });
+      return;
+    }
+    api.addRegistration(item);
+    wx.showToast({ title: '已加入赛程', icon: 'success' });
+  },
+
+  askAI() {
+    const item = this.data.item || {};
+    wx.navigateTo({
+      url: `/pages/chat/chat?id=${item.id || ''}&intent=event.fit`,
+    });
   },
 
   onShareAppMessage() {
-    const it = this.data.item || {};
+    const item = this.data.item || {};
     return {
-      title: `${it.name} · 来 HackerTrip 看看这场黑客松`,
-      path: `/pages/detail/detail?id=${it.id}`,
+      title: item.name || 'HackerTrip 黑客松详情',
+      path: `/pages/detail/detail?id=${item.id || ''}`,
     };
   },
 });

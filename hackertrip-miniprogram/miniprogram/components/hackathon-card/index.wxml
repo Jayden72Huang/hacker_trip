@@ -1,15 +1,15 @@
-<view class="hcard glass fade-up" bindtap="onTap">
+<view class="hcard">
   <view class="hcard-top">
     <view class="hcard-title">{{item.name}}</view>
-    <view class="bookmark {{bookmarked ? 'active' : ''}}" catchtap="onBookmark">
-      {{bookmarked ? '★' : '☆'}}
-    </view>
+    <button class="bookmark {{bookmarked ? 'active' : ''}}" catchtap="onBookmark" aria-label="收藏赛事">
+      <t-icon name="{{bookmarked ? 'star-filled' : 'star'}}" size="34rpx" color="{{bookmarked ? '#000000' : '#3D3D3D'}}" />
+    </button>
   </view>
 
   <view class="hcard-meta">
-    <text wx:if="{{item.startDate}}" class="meta-item">📅 {{item.startDate}}</text>
-    <text wx:if="{{item.city}}" class="meta-item">📍 {{item.city}}</text>
-    <text class="meta-item mode">{{modeLabel[item.mode] || item.mode}}</text>
+    <text wx:if="{{item.startDate}}" class="meta-item">时间 {{item.startDate}} - {{item.endDate}}</text>
+    <text wx:if="{{item.location || item.city}}" class="meta-item">地点 {{item.location || item.city}}</text>
+    <text class="meta-item mode">{{item.modeText}}</text>
   </view>
 
   <view wx:if="{{item.summary}}" class="hcard-summary">{{item.summary}}</view>
@@ -19,8 +19,16 @@
   </view>
 
   <view class="hcard-foot">
-    <text wx:if="{{item.prizePool}}" class="prize">🏆 {{item.prizePool}}</text>
-    <text wx:if="{{item.isPast}}" class="status-tag ended">已结束</text>
-    <text wx:else class="status-tag live">进行中 / 即将开始</text>
+    <text wx:if="{{item.prizePool}}" class="prize">奖金 {{item.prizePool}}</text>
+    <text class="status-tag {{item.status}}">{{statusText[item.status] || item.status}}</text>
+  </view>
+
+  <view class="hcard-actions">
+    <navigator class="hcard-link" url="/pages/detail/detail?id={{item.id}}" hover-class="hcard-link--active">
+      查看详情
+    </navigator>
+    <navigator wx:if="{{item.canRegister}}" class="hcard-register" url="/pages/detail/detail?id={{item.id}}" hover-class="hcard-register--active">
+      报名入口
+    </navigator>
   </view>
 </view>

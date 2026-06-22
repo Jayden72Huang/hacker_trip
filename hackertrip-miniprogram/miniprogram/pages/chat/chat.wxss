@@ -1,0 +1,92 @@
+@import "../focus.wxss";
+
+.chat-page {
+  padding-bottom: 190rpx;
+}
+
+.chat-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin-bottom: 30rpx;
+}
+
+.bubble {
+  max-width: 88%;
+  padding: 22rpx 24rpx;
+  border: 4rpx solid #000000;
+  border-radius: 18rpx;
+  box-shadow: 6rpx 6rpx 0 0 #000000;
+  font-size: 26rpx;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.bubble--assistant {
+  align-self: flex-start;
+  color: #000000;
+  background: #FFFFFF;
+}
+
+.bubble--user {
+  align-self: flex-end;
+  color: #FFFFFF;
+  background: #0C51ED;
+}
+
+.quick-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  margin-top: 24rpx;
+}
+
+.quick-chip {
+  min-height: 58rpx;
+  padding: 0 20rpx;
+  color: #000000;
+  background: #FBD902;
+  border: 3rpx solid #000000;
+  border-radius: 999rpx;
+  box-shadow: 4rpx 4rpx 0 0 #000000;
+  font-size: 23rpx;
+  font-weight: 900;
+}
+
+.chat-inputbar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 70;
+  display: flex;
+  gap: 14rpx;
+  padding: 18rpx 28rpx calc(18rpx + env(safe-area-inset-bottom));
+  background: #FFFFFF;
+  border-top: 4rpx solid #000000;
+  box-shadow: 0 -6rpx 0 0 #000000;
+}
+
+.chat-input {
+  flex: 1;
+  height: 82rpx;
+  padding: 0 22rpx;
+  color: #000000;
+  background: #F4F1E8;
+  border: 4rpx solid #000000;
+  border-radius: 16rpx;
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+.send-btn {
+  width: 132rpx;
+  height: 82rpx;
+  color: #FFFFFF;
+  background: #0C51ED;
+  border: 4rpx solid #000000;
+  border-radius: 16rpx;
+  box-shadow: 6rpx 6rpx 0 0 #000000;
+  font-size: 26rpx;
+  font-weight: 900;
+}

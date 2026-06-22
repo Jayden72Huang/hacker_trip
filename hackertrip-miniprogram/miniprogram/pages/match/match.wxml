@@ -1,0 +1,45 @@
+<view class="focus-page match-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view wx:if="{{aiBanner}}" class="ai-note">
+      <text>来自微信AI助手</text>
+      <text>{{aiIntentText}}</text>
+    </view>
+
+    <view class="focus-title">匹配结果</view>
+    <view class="focus-subtitle">按项目技术栈匹配本地赛事 catalog，标题、日期、城市、奖金和推荐理由全部文本化。</view>
+
+    <view class="brutal-box blue-box">
+      <view class="box-title">项目卡</view>
+      <view class="project-name">{{project.name}}</view>
+      <view class="project-domain">{{project.domain}}</view>
+      <view class="box-copy">{{project.summary}}</view>
+      <view class="chip-row project-stack">
+        <text wx:for="{{project.techStack}}" wx:key="*this" class="focus-chip focus-chip--yellow">{{item}}</text>
+      </view>
+    </view>
+
+    <view class="section-head">Top {{matches.length}} 黑客松</view>
+    <navigator
+      wx:for="{{matches}}"
+      wx:key="id"
+      class="list-card match-card"
+      url="/pages/detail/detail?id={{item.id}}"
+      hover-class="list-card--active"
+    >
+      <view class="match-head">
+        <text class="match-rank">#{{index + 1}}</text>
+        <text class="list-title match-name">{{item.name}}</text>
+        <text class="match-score">{{item.score}}%</text>
+      </view>
+      <view class="match-bar">
+        <view class="match-fill" style="width: {{item.scoreWidth}};" />
+      </view>
+      <view class="list-subtitle">日期 {{item.dateText}} · 城市 {{item.cityText}} · 奖金 {{item.prizeText}}</view>
+      <view class="list-subtitle">推荐赛道 {{item.tracksText}}</view>
+      <view class="match-reason">{{item.reason}}</view>
+    </navigator>
+
+    <button class="native-btn native-btn--yellow match-identity" bindtap="makeCard">基于结果生成身份卡</button>
+  </view>
+</view>

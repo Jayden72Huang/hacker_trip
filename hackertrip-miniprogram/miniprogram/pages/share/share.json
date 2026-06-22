@@ -1,3 +1,7 @@
 {
-  "navigationBarTitleText": "选手身份卡"
+  "navigationBarTitleText": "分享落地",
+  "usingComponents": {
+    "navbar": "/components/navbar/index",
+    "t-icon": "tdesign-miniprogram/icon/icon"
+  }
 }

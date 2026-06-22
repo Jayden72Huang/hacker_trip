@@ -1,0 +1,23 @@
+@import "../focus.wxss";
+
+.agent-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+
+.agent-status {
+  flex-shrink: 0;
+  padding: 8rpx 14rpx;
+  color: #FFFFFF;
+  background: #0C51ED;
+  border: 3rpx solid #000000;
+  border-radius: 999rpx;
+  font-size: 21rpx;
+  font-weight: 900;
+}
+
+.agent-skills {
+  margin-top: 22rpx;
+}

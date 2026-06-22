@@ -1,0 +1,32 @@
+<view class="page page--tab inbox-page">
+  <navbar title="{{title}}" showBack="{{false}}" showHome="{{false}}" />
+
+  <view class="content">
+    <view wx:if="{{aiBanner}}" class="ai-banner">
+      <text>来自微信AI助手</text>
+      <text>{{aiIntentText}}</text>
+    </view>
+
+    <view class="page-title">消息</view>
+    <view class="page-subtitle">报名提醒、队友匹配和系统通知集中在这里。</view>
+
+    <view wx:for="{{groups}}" wx:key="key" class="message-section">
+      <view class="section-title">{{item.title}}</view>
+      <navigator
+        wx:for="{{item.items}}"
+        wx:for-item="msg"
+        wx:key="title"
+        class="message-card message-card--{{msg.level}}"
+        url="{{msg.url}}"
+        hover-class="message-card--active"
+      >
+        <view class="message-tag">{{msg.tag}}</view>
+        <view class="message-body">
+          <view class="message-title">{{msg.title}}</view>
+          <view class="message-sub">{{msg.sub}}</view>
+        </view>
+        <text class="message-time">{{msg.time}}</text>
+      </navigator>
+    </view>
+  </view>
+</view>

@@ -1,51 +1,38 @@
-<view class="aurora" />
-<view class="page">
-  <view class="head fade-up">
-    <view class="head-title">把 <text class="gradient-text">Skills</text> 同步到手机</view>
-    <view class="head-sub">电脑上扫描的项目画像、黑客松匹配、身份卡，一码同步到小程序，随时查看与分享。</view>
-  </view>
+<view class="focus-page sync-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view wx:if="{{aiBanner}}" class="ai-note">
+      <text>来自微信AI助手</text>
+      <text>{{aiIntentText}}</text>
+    </view>
 
-  <!-- 已同步状态 -->
-  <view wx:if="{{scan}}" class="synced glass glow fade-up">
-    <view class="synced-top">
-      <text class="synced-badge">✅ 已同步</text>
-      <text class="synced-src">{{scan.source}}</text>
-    </view>
-    <view class="synced-proj">📦 {{scan.project.name || '已同步项目'}}{{scan.project.domain ? ' · ' + scan.project.domain : ''}}</view>
-    <view class="synced-stack">
-      <text wx:for="{{scan.project.techStack}}" wx:key="*this" class="chip">{{item}}</text>
-    </view>
-    <view wx:if="{{scan.matches.length}}" class="synced-matches">🎯 已匹配 {{scan.matches.length}} 个黑客松，最高 {{scan.matches[0].score}} 分</view>
-    <view class="synced-actions">
-      <view class="btn-ghost" bindtap="viewResult">查看匹配结果</view>
-      <view class="btn-primary" bindtap="makeCard">一键生成身份卡</view>
-    </view>
-  </view>
+    <view class="focus-title">Skills 同步</view>
+    <view class="focus-subtitle">输入桌面端生成的 6 位配对码，同步项目画像、技术栈和匹配结果。</view>
 
-  <!-- 配对输入 -->
-  <view class="pair glass fade-up">
-    <view class="pair-title">输入配对码同步</view>
-    <view class="pair-row">
-      <input class="pair-input" placeholder="6 位配对码" placeholder-class="ph" maxlength="8" value="{{code}}" bindinput="onCodeInput" bindconfirm="pull" />
-      <button class="btn-primary pair-btn" bindtap="pull" loading="{{syncing}}">同步</button>
+    <view class="brutal-box yellow-box">
+      <view class="box-title">配对码</view>
+      <input
+        class="pair-input"
+        value="{{code}}"
+        type="number"
+        maxlength="6"
+        placeholder="000000"
+        placeholder-class="placeholder-text"
+        bindinput="onCodeInput"
+      />
+      <view class="sync-status">{{statusText}}</view>
+      <button class="native-btn sync-btn" bindtap="syncNow">{{syncing ? '同步中...' : '同步 Skills'}}</button>
     </view>
-    <view class="demo-link" bindtap="demoSync">没有配对码？点此载入演示数据 →</view>
-  </view>
 
-  <!-- 步骤 -->
-  <view class="steps">
-    <view class="steps-title">如何获得配对码</view>
-    <view wx:for="{{steps}}" wx:key="n" class="step glass">
-      <view class="step-n">{{item.n}}</view>
+    <view class="section-head">同步步骤</view>
+    <view wx:for="{{steps}}" wx:key="title" class="list-card step-card">
+      <view class="step-index">{{index + 1}}</view>
       <view class="step-body">
-        <view class="step-t">{{item.t}}</view>
-        <view class="step-d">{{item.d}}</view>
+        <view class="list-title">{{item.title}}</view>
+        <view class="list-subtitle">{{item.desc}}</view>
       </view>
     </view>
-    <view class="install-row glass" bindtap="copyInstall">
-      <text class="install-code">$ curl -sfL hackertrip.space/install | bash</text>
-      <text class="install-copy">复制</text>
-    </view>
-    <view class="privacy">🔒 代码 100% 本地运行不上传，仅同步扫描结论</view>
+
+    <button wx:if="{{synced}}" class="native-btn native-btn--yellow" bindtap="goMatch">查看匹配结果</button>
   </view>
 </view>

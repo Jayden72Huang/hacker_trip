@@ -1,3 +1,7 @@
 {
-  "navigationBarTitleText": "黑客松详情"
+  "navigationBarTitleText": "黑客松详情",
+  "usingComponents": {
+    "navbar": "/components/navbar/index",
+    "t-icon": "tdesign-miniprogram/icon/icon"
+  }
 }
