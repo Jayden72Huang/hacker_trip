@@ -23,24 +23,26 @@
       <view class="skeleton-hint">加载中…</view>
     </view>
 
-    <view wx:else wx:for="{{groups}}" wx:key="key" class="message-section">
-      <view class="section-title">{{item.title}}</view>
-      <view wx:if="{{item.empty && item.items.length === 0}}" class="message-empty">{{item.empty}}</view>
-      <navigator
-        wx:for="{{item.items}}"
-        wx:for-item="msg"
-        wx:key="title"
-        class="message-card message-card--{{msg.level}}"
-        url="{{msg.url}}"
-        hover-class="message-card--active"
-      >
-        <view class="message-tag">{{msg.tag}}</view>
-        <view class="message-body">
-          <view class="message-title">{{msg.title}}</view>
-          <view class="message-sub">{{msg.sub}}</view>
-        </view>
-        <text class="message-time">{{msg.time}}</text>
-      </navigator>
-    </view>
+    <block wx:else>
+      <view wx:for="{{groups}}" wx:key="key" class="message-section">
+        <view class="section-title">{{item.title}}</view>
+        <view wx:if="{{item.empty && item.items.length === 0}}" class="message-empty">{{item.empty}}</view>
+        <navigator
+          wx:for="{{item.items}}"
+          wx:for-item="msg"
+          wx:key="title"
+          class="message-card message-card--{{msg.level}}"
+          url="{{msg.url}}"
+          hover-class="message-card--active"
+        >
+          <view class="message-tag">{{msg.tag}}</view>
+          <view class="message-body">
+            <view class="message-title">{{msg.title}}</view>
+            <view class="message-sub">{{msg.sub}}</view>
+          </view>
+          <text class="message-time">{{msg.time}}</text>
+        </navigator>
+      </view>
+    </block>
   </view>
 </view>
