@@ -79,5 +79,6 @@ next-env.d.ts
 .zencoder/
 skills/
 !packages/skills/
+!hackertrip-miniprogram/miniprogram/skills/
 skills-lock.json
 .gstack/

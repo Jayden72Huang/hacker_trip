@@ -202,6 +202,41 @@ function getUserStats() {
   };
 }
 
+/* ----------------------------- AI 聊天 ----------------------------- */
+
+/**
+ * Haki AI 问答：调 aiChat 云函数（混元），失败/未配置云开发时降级兜底文案。
+ * @param {string} message 用户当前问题
+ * @param {Array<{role,text}>} history 对话历史（仅 user/assistant）
+ * @returns {Promise<{ok:boolean, reply:string, fallback?:boolean}>}
+ */
+async function aiChat(message, history) {
+  const text = String(message || '').trim();
+  if (!text) return { ok: false, reply: '说点什么吧，比如"我会 React，适合参加哪个？"', fallback: true };
+
+  if (cloudReady()) {
+    try {
+      const payload = {
+        message: text,
+        history: (Array.isArray(history) ? history : [])
+          .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && m.text)
+          .map((m) => ({ role: m.role, content: m.text })),
+      };
+      const res = await callFn('aiChat', payload);
+      if (res && res.reply) return res;
+    } catch (e) {
+      console.warn('[api] aiChat 云端调用失败，降级兜底', e);
+    }
+  }
+
+  return {
+    ok: false,
+    fallback: true,
+    reply:
+      '当前没有连接到 AI 服务。把你的技术栈、城市偏好和组队意向告诉我，正式上线后我会按赛事的时间、地点、赛道和奖金给出匹配建议。',
+  };
+}
+
 /* ----------------------- Skills 同步（扫描结果） ----------------------- */
 
 function getScanResults() {
@@ -266,4 +301,5 @@ module.exports = {
   getScanResults,
   setScanResults,
   pullSyncByCode,
+  aiChat,
 };

@@ -1,0 +1,119 @@
+{
+  "apis": [
+    {
+      "name": "searchHackathons",
+      "description": "当用户想浏览或按关键词、城市、线上线下、时间筛选黑客松（hackathon / 编程比赛 / 极客比赛）时调用。例如「最近有什么 AI 黑客松」「周末上海的 hackathon」「有没有线上的黑客松」「深圳有什么编程比赛」。返回匹配的黑客松卡片列表，含名称、时间、地点、奖金、技术栈与一句话简介。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "q": { "type": "string", "description": "搜索关键词，可为赛事名、城市或主题，如「AI」「上海」" },
+          "mode": { "type": "string", "enum": ["offline", "online", "hybrid"], "description": "举办形式：offline 线下 / online 线上 / hybrid 线上线下" },
+          "status": { "type": "string", "enum": ["upcoming", "ended"], "description": "赛事状态筛选，upcoming 未结束 / ended 已结束，默认不限" },
+          "limit": { "type": "number", "description": "返回数量上限，默认 8" }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "title": { "type": "string" },
+                "subtitle": { "type": "string" },
+                "highlight": { "type": "string" },
+                "tags": { "type": "array", "items": { "type": "string" } },
+                "body": { "type": "string" },
+                "status": { "type": "string", "enum": ["upcoming", "ongoing", "ended"] },
+                "deeplink": { "type": "string" },
+                "website": { "type": "string" }
+              }
+            }
+          },
+          "total": { "type": "number" }
+        }
+      }
+    },
+    {
+      "name": "matchHackathonsByStack",
+      "description": "HackerTrip 的核心能力。当用户描述了自己的技术栈、擅长方向或项目类型（如 React、Node、AI、大模型、IoT、硬件、Web3、Python），想知道适合参加哪些黑客松时调用。例如「我会 React 和 Node，能参加哪些比赛」「我想做硬件项目参赛」「适合 AI 方向的黑客松」。返回按技术栈匹配度排序的赛事列表，每条带匹配理由 fitReason。",
+      "inputSchema": {
+        "type": "object",
+        "required": ["techStack"],
+        "properties": {
+          "techStack": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "用户的技术栈或方向标签，如 [\"React\",\"Node\",\"AI\"]；也接受逗号分隔的字符串"
+          },
+          "city": { "type": "string", "description": "可选，限定城市，如「深圳」" },
+          "onlyUpcoming": { "type": "boolean", "description": "是否仅返回未结束的赛事，默认 true" },
+          "limit": { "type": "number", "description": "返回数量上限，默认 6" }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "title": { "type": "string" },
+                "subtitle": { "type": "string" },
+                "highlight": { "type": "string" },
+                "tags": { "type": "array", "items": { "type": "string" } },
+                "body": { "type": "string" },
+                "status": { "type": "string", "enum": ["upcoming", "ongoing", "ended"] },
+                "matchScore": { "type": "number", "description": "匹配得分，越高越契合" },
+                "matchedTags": { "type": "array", "items": { "type": "string" }, "description": "命中的技术栈标签" },
+                "fitReason": { "type": "string", "description": "匹配理由的自然语言说明" },
+                "deeplink": { "type": "string" }
+              }
+            }
+          },
+          "total": { "type": "number" }
+        }
+      }
+    },
+    {
+      "name": "getHackathonDetail",
+      "description": "当用户想了解某一场具体黑客松的完整信息时调用。例如「AdventureX 什么时候、在哪、奖金多少」「详细介绍下这场比赛」「这个比赛的赛道有哪些」「XX 报名截止了吗」。需要先通过搜索或匹配拿到赛事 id。返回该赛事的时间、地点、形式、主题、赛道、技术栈、奖金、报名截止、官网等完整字段。",
+      "inputSchema": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": { "type": "string", "description": "赛事业务 id，如「ht-02」，来自搜索或匹配结果" }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "hackathon": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "startDate": { "type": "string" },
+              "endDate": { "type": "string" },
+              "registrationDeadline": { "type": "string" },
+              "location": { "type": "string" },
+              "modeText": { "type": "string" },
+              "theme": { "type": "string" },
+              "tracks": { "type": "array", "items": { "type": "string" } },
+              "techStack": { "type": "array", "items": { "type": "string" } },
+              "prizePool": { "type": "string" },
+              "summary": { "type": "string" },
+              "website": { "type": "string" },
+              "status": { "type": "string", "enum": ["upcoming", "ongoing", "ended"] },
+              "deeplink": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
