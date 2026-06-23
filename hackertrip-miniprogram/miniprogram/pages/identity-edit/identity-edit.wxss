@@ -6,14 +6,29 @@
   gap: 26rpx;
 }
 
+/* 微信头像大小的正方形头像(防 button 默认撑满) */
 .avatar-button {
+  width: 120rpx !important;
+  height: 120rpx;
   padding: 0;
+  margin: 0;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: #0C51ED;
+  border: 4rpx solid #000000;
+  border-radius: 20rpx;
+  box-shadow: 6rpx 6rpx 0 0 #000000;
+  line-height: 120rpx;
+}
+
+.avatar-button::after {
+  border: none;
 }
 
 .avatar-image {
+  display: block;
   width: 100%;
   height: 100%;
-  border-radius: 18rpx;
 }
 
 .edit-copy {
