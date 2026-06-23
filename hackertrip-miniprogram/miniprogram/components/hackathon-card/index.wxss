@@ -33,12 +33,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 58rpx;
+  flex-shrink: 0;
+  width: 58rpx !important;
   height: 58rpx;
+  padding: 0;
+  margin: 0;
   background: #FFFFFF;
   border: 3rpx solid #000000;
   border-radius: 12rpx;
   box-shadow: 4rpx 4rpx 0 0 #000000;
+  line-height: 1;
+}
+
+/* 去掉微信 button 默认的 ::after 边框，避免双重边框 */
+.bookmark::after {
+  border: none;
 }
 
 .bookmark.active {

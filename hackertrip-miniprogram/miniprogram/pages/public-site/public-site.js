@@ -1,4 +1,3 @@
-const catalog = require('../../utils/catalog.js');
 const { parseAIEntry } = require('../../utils/ai.js');
 const api = require('../../utils/api.js');
 
@@ -21,13 +20,21 @@ Page({
       { name: 'Pitch Deck Copilot', desc: '自动整理报名材料和路演摘要。' },
     ],
     history: [],
+    loading: true,
   },
 
-  onLoad(options) {
+  async onLoad(options) {
     const ai = parseAIEntry(options);
     const p = api.getProfile();
     const stats = api.getUserStats();
-    const history = catalog.getAll({ includeEnded: true }).slice(0, 3).map((item) => ({
+
+    let all = [];
+    try {
+      all = await api.getHackathons({ includeEnded: true });
+    } catch (err) {
+      all = [];
+    }
+    const history = all.slice(0, 3).map((item) => ({
       id: item.id,
       name: item.name,
       dateText: `${item.startDate || '待确认'} - ${item.endDate || '待确认'}`,
@@ -38,6 +45,7 @@ Page({
     this.setData({
       aiBanner: ai.fromAI,
       aiIntentText: ai.intent || 'public.site',
+      loading: false,
       profile: {
         name: p.nickname, // wxml 用 profile.name，档案字段是 nickname
         role: p.role,

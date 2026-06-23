@@ -1,4 +1,3 @@
-const catalog = require('../../utils/catalog.js');
 const api = require('../../utils/api.js');
 const { parseAIEntry } = require('../../utils/ai.js');
 
@@ -21,6 +20,7 @@ Page({
     hasJoined: false,
     phases: [],
     todos: [],
+    loading: true,
   },
 
   onShow() {
@@ -40,13 +40,25 @@ Page({
     this.load();
   },
 
-  load() {
-    // 我加入的赛事（用 catalog 取最新状态，已删除的赛事回退到报名快照）
+  async load() {
+    // 我加入的赛事（用 api 取最新状态，已删除的赛事回退到报名快照）
     const regs = api.getRegistrations();
-    const myEvents = regs.map((reg) => catalog.getById(reg.id) || reg);
+    let myEvents = [];
+    try {
+      myEvents = await Promise.all(
+        regs.map(async (reg) => (await api.getHackathonDetail(reg.id)) || reg),
+      );
+    } catch (err) {
+      myEvents = regs;
+    }
 
     // 活跃赛事：优先我加入的进行中赛事，其次我加入的第一个，最后回退全站演示
-    const fallback = catalog.getAll();
+    let fallback = [];
+    try {
+      fallback = await api.getHackathons();
+    } catch (err) {
+      fallback = [];
+    }
     const activeEvent =
       myEvents.find((item) => item.status === 'ongoing') ||
       myEvents[0] ||
@@ -60,6 +72,7 @@ Page({
       hasJoined: myEvents.length > 0,
       phases: buildPhases(activeEvent && activeEvent.status === 'upcoming' ? 1 : 4),
       todos: this.buildTodos(activeEvent),
+      loading: false,
     });
   },
 

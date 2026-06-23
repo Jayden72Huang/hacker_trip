@@ -12,9 +12,12 @@
       <view class="box-copy">发现黑客松、同步 Skills、生成身份卡，保存你的参赛路线。</view>
     </view>
 
-    <view class="welcome-illus">欢迎插图</view>
+    <view class="welcome-illus">
+      <view class="illus-emoji">🚀</view>
+      <view class="illus-text">一站式管理你的黑客松参赛旅程</view>
+    </view>
 
-    <button class="native-btn login-btn" open-type="getUserInfo" bindgetuserinfo="onGetUserInfo">微信登录</button>
+    <button class="native-btn login-btn" bindtap="onLogin">{{logging ? '登录中…' : '微信登录'}}</button>
     <view class="agreement">登录即表示同意 HackerTrip 用户协议与隐私政策，用于保存身份卡、提醒和同步结果。</view>
   </view>
 </view>

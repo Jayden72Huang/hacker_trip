@@ -1,4 +1,3 @@
-const catalog = require('../../utils/catalog.js');
 const api = require('../../utils/api.js');
 const { parseAIEntry } = require('../../utils/ai.js');
 
@@ -11,6 +10,7 @@ Page({
     activeCount: 0,
     savedCount: 0,
     assetStats: [],
+    loading: true,
     tools: [
       { title: '身份卡编辑', sub: '完善头像、技能栈和参赛宣言', url: '/pages/identity-edit/identity-edit' },
       { title: '项目作品集', sub: '整理作品，用于报名和分享', url: '/pages/portfolio/portfolio' },
@@ -40,15 +40,23 @@ Page({
     this.load();
   },
 
-  load() {
+  async load() {
     const stats = api.getUserStats();
     const profile = api.getProfile();
-    // 我加入的进行中赛事数（用 catalog 取最新状态）
-    const ongoing = api.getRegistrations()
-      .map((reg) => catalog.getById(reg.id) || reg)
-      .filter((item) => item && item.status === 'ongoing').length;
+    // 我加入的进行中赛事数（用 api 取最新状态）
+    const regs = api.getRegistrations();
+    let joined = [];
+    try {
+      joined = await Promise.all(
+        regs.map(async (reg) => (await api.getHackathonDetail(reg.id)) || reg),
+      );
+    } catch (err) {
+      joined = regs;
+    }
+    const ongoing = joined.filter((item) => item && item.status === 'ongoing').length;
 
     this.setData({
+      loading: false,
       avatarChar: (profile.nickname || 'H').trim().charAt(0).toUpperCase() || 'H',
       activeCount: ongoing,
       savedCount: stats.bookmarks,

@@ -11,7 +11,7 @@
  */
 module.exports = {
   // 留空 = 走本地 mock 降级；填入真实环境 ID 后自动切换云端
-  envId: 'jayden-01-d1g8nsnkbc91f4680',
+  envId: 'test-1-d8gn28apcbf409627',
   // 官网域名，用于「在网页打开 / 复制链接」等
   webBase: 'https://hackertrip.space',
   // 卡片分享落地页（H5），与小程序卡片同源

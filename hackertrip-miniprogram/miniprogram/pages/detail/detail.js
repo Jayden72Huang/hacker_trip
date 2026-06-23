@@ -31,16 +31,29 @@ Page({
     aiIntentText: '赛事详情',
     item: null,
     metaRows: [],
+    loading: true,
   },
 
-  onLoad(options) {
+  async onLoad(options) {
     const ai = parseAIEntry(options);
     const key = options.id || options.slug;
-    const item = buildDetail(catalog.getById(key));
-
     this.setData({
       aiBanner: ai.fromAI,
       aiIntentText: ai.intent || '赛事详情',
+      loading: true,
+    });
+
+    // 实时从云函数拉取详情（失败时 api 内部已降级本地）
+    let raw = null;
+    try {
+      raw = await api.getHackathonDetail(key);
+    } catch (e) {
+      raw = null;
+    }
+    const item = buildDetail(raw);
+
+    this.setData({
+      loading: false,
       item,
       metaRows: [
         { label: '名称', value: item.name },

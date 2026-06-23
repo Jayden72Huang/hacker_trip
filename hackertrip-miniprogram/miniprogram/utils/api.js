@@ -9,6 +9,7 @@
  */
 
 const LOCAL_HACKATHONS = require('../data/hackathons.js');
+const catalog = require('./catalog.js');
 
 const STORAGE = {
   CARDS: 'ht_cards', // 我保存的卡片
@@ -83,27 +84,41 @@ function filterLocal(list, params) {
 }
 
 async function getHackathons(params) {
+  const options = params || {};
+  const today = catalog.formatDate(new Date());
+  let raw = null;
+
   if (cloudReady()) {
     try {
-      const res = await callFn('getHackathons', params);
-      if (res && Array.isArray(res.list)) return res.list;
+      const res = await callFn('getHackathons', options);
+      if (res && Array.isArray(res.list)) raw = res.list;
     } catch (e) {
       console.warn('[api] getHackathons 云端失败，降级本地', e);
     }
   }
-  return filterLocal(LOCAL_HACKATHONS, params);
+  if (!raw) raw = filterLocal(LOCAL_HACKATHONS, options);
+
+  // 统一 status 派生（云端/本地数据都经过 decorate，shape 与 catalog 一致）
+  const list = raw.map((item) => catalog.decorate(item, today));
+  if (options.includeEnded) return list;
+  return list.filter((item) => item.status !== 'ended');
 }
 
 async function getHackathonDetail(id) {
+  const today = catalog.formatDate(new Date());
+  let raw = null;
+
   if (cloudReady()) {
     try {
       const res = await callFn('getHackathonDetail', { id });
-      if (res && res.hackathon) return res.hackathon;
+      if (res && res.hackathon) raw = res.hackathon;
     } catch (e) {
       console.warn('[api] getHackathonDetail 云端失败，降级本地', e);
     }
   }
-  return LOCAL_HACKATHONS.find((h) => h.id === id) || null;
+  if (!raw) raw = LOCAL_HACKATHONS.find((h) => h.id === id) || null;
+
+  return raw ? catalog.decorate(raw, today) : null;
 }
 
 /* ----------------------------- 收藏 / 报名 ----------------------------- */

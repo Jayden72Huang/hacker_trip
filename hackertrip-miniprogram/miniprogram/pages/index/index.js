@@ -1,4 +1,3 @@
-const catalog = require('../../utils/catalog.js');
 const api = require('../../utils/api.js');
 const { parseAIEntry } = require('../../utils/ai.js');
 
@@ -37,27 +36,41 @@ Page({
     featured: [],
     hackathons: [],
     totalCount: 0,
+    loading: true,
   },
+
+  // 云端拉取的全量赛事，applyFilters 基于此做内存过滤
+  allEvents: [],
 
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().syncSelected();
     }
-    // 从详情等页返回时同步收藏态
-    if (this.data.hackathons.length) this.applyFilters();
+    // 从详情等页返回时同步收藏态（用已缓存的 allEvents，不重复请求云端）
+    if (this.allEvents.length) this.applyFilters();
   },
 
-  onLoad(options) {
+  async onLoad(options) {
     const ai = parseAIEntry(options);
-    const all = catalog.getAll();
-    const focusEvent = all.find((item) => item.status === 'ongoing') || all[0] || null;
-
     this.setData({
       aiBanner: !!ai.fromAI,
       aiIntentText: ai.intent || '发现黑客松',
+    });
+
+    let all = [];
+    try {
+      all = await api.getHackathons();
+    } catch (err) {
+      all = [];
+    }
+    this.allEvents = all;
+    const focusEvent = all.find((item) => item.status === 'ongoing') || all[0] || null;
+
+    this.setData({
       focusEvent,
       featured: all.slice(0, 4),
       totalCount: all.length,
+      loading: false,
     });
     this.applyFilters(all);
   },
@@ -73,7 +86,7 @@ Page({
   },
 
   applyFilters(source) {
-    const all = source || catalog.getAll();
+    const all = source || this.allEvents;
     const query = this.data.query.trim().toLowerCase();
     const activeFilter = this.data.activeFilter;
 

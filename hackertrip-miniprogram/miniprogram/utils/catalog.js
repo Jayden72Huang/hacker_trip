@@ -63,4 +63,8 @@ function getById(id) {
 module.exports = {
   getAll,
   getById,
+  // 导出装饰器供 api 层对云端数据做统一的 status 派生
+  decorate,
+  deriveStatus,
+  formatDate,
 };

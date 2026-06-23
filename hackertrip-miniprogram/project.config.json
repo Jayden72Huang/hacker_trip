@@ -51,7 +51,7 @@
   },
   "compileType": "miniprogram",
   "libVersion": "3.16.1",
-  "appid": "wx38208c2b18d7d28e",
+  "appid": "wxcd9b63c14985060d",
   "projectname": "hackertrip-miniprogram",
   "condition": {},
   "editorSetting": {
@@ -63,5 +63,6 @@
     "ignore": [],
     "include": []
   },
-  "simulatorPluginLibVersion": {}
+  "simulatorPluginLibVersion": {},
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/"
 }

@@ -1,4 +1,3 @@
-const catalog = require('../../utils/catalog.js');
 const api = require('../../utils/api.js');
 const { parseAIEntry } = require('../../utils/ai.js');
 
@@ -40,14 +39,22 @@ Page({
     aiIntentText: '项目匹配',
     project: DEFAULT_PROJECT,
     matches: [],
+    loading: true,
   },
 
-  onLoad(options) {
+  async onLoad(options) {
     const ai = parseAIEntry(options);
     const scan = api.getScanResults();
     const project = scan && scan.project && scan.project.name ? scan.project : DEFAULT_PROJECT;
     const stack = Array.isArray(project.techStack) ? project.techStack : DEFAULT_PROJECT.techStack;
-    const source = catalog.getAll().length ? catalog.getAll() : catalog.getAll({ includeEnded: true });
+
+    let source = [];
+    try {
+      source = await api.getHackathons();
+      if (!source.length) source = await api.getHackathons({ includeEnded: true });
+    } catch (err) {
+      source = [];
+    }
     const matches = source
       .map((item, index) => scoreItem(item, stack, index))
       .sort((a, b) => b.score - a.score)
@@ -58,6 +65,7 @@ Page({
       aiIntentText: ai.intent || '项目匹配',
       project,
       matches,
+      loading: false,
     });
   },
 

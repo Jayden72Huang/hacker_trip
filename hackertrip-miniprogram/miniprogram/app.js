@@ -9,6 +9,8 @@ App({
     systemInfo: null,
     /** 同步配对码（与 CLI/网页端打通 Skills 同步） */
     pairCode: '',
+    /** 登录态：{ openid, userInfo, loginAt }，未登录为 null */
+    auth: null,
   },
 
   onLaunch() {
@@ -41,6 +43,12 @@ App({
     try {
       const code = wx.getStorageSync('ht_pair_code');
       if (code) this.globalData.pairCode = code;
+    } catch (e) {}
+
+    // 4. 恢复登录态
+    try {
+      const auth = wx.getStorageSync('ht_auth');
+      if (auth && auth.userInfo) this.globalData.auth = auth;
     } catch (e) {}
   },
 });

@@ -1,10 +1,10 @@
-const catalog = require('../../utils/catalog.js');
+const api = require('../../utils/api.js');
 const { parseAIEntry } = require('../../utils/ai.js');
 
-function buildGroups() {
-  const all = catalog.getAll();
-  const first = all[0] || {};
-  const second = all[1] || first;
+function buildGroups(all) {
+  const list = all || [];
+  const first = list[0] || {};
+  const second = list[1] || first;
 
   return [
     {
@@ -74,6 +74,7 @@ Page({
     aiBanner: false,
     aiIntentText: '消息提醒',
     groups: [],
+    loading: true,
   },
 
   onShow() {
@@ -82,13 +83,23 @@ Page({
     }
   },
 
-  onLoad(options) {
+  async onLoad(options) {
     const ai = parseAIEntry(options);
-
     this.setData({
       aiBanner: !!ai.fromAI,
       aiIntentText: ai.intent || '消息提醒',
-      groups: buildGroups(),
+    });
+
+    let list = [];
+    try {
+      list = await api.getHackathons();
+    } catch (err) {
+      list = [];
+    }
+
+    this.setData({
+      groups: buildGroups(list),
+      loading: false,
     });
   },
 });
