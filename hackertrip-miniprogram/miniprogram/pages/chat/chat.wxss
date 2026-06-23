@@ -90,3 +90,78 @@
   font-size: 26rpx;
   font-weight: 900;
 }
+
+/* 推荐赛事 — 紧凑小卡片，不占大篇幅 */
+.rec-mini {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 12rpx;
+  padding: 16rpx 20rpx;
+  background: #FFFFFF;
+  border: 3rpx solid #000000;
+  border-radius: 14rpx;
+  box-shadow: 4rpx 4rpx 0 0 #000000;
+}
+.rec-mini--active {
+  transform: translate(3rpx, 3rpx);
+  box-shadow: 2rpx 2rpx 0 0 #000000;
+}
+.rec-mini-label {
+  flex-shrink: 0;
+  width: 44rpx;
+  height: 44rpx;
+  line-height: 44rpx;
+  text-align: center;
+  color: #000000;
+  background: #FBD902;
+  border: 2rpx solid #000000;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  font-weight: 900;
+}
+.rec-mini-body {
+  flex: 1;
+  min-width: 0;
+}
+.rec-mini-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 25rpx;
+  font-weight: 900;
+  color: #000000;
+}
+.rec-mini-meta {
+  margin-top: 4rpx;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 21rpx;
+  color: #5A5A55;
+}
+.rec-mini-arrow {
+  flex-shrink: 0;
+  color: #0C51ED;
+  font-size: 38rpx;
+  font-weight: 900;
+}
+
+/* 快捷回复 chip 防微信 button 撑满 */
+.quick-chip {
+  display: inline-flex !important;
+  align-items: center;
+  width: auto !important;
+  line-height: 1.2;
+}
+.quick-chip::after {
+  border: none;
+}
+
+/* 流式打字光标闪烁 */
+.bubble-caret {
+  animation: caret-blink 0.9s steps(1) infinite;
+}
+@keyframes caret-blink {
+  50% { opacity: 0; }
+}

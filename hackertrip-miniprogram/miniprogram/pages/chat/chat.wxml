@@ -16,10 +16,18 @@
       </view>
     </view>
 
-    <view class="section-head">推荐赛事</view>
-    <hackathon-card item="{{event}}" />
+    <!-- 推荐赛事：紧凑小卡片，不占大篇幅 -->
+    <navigator wx:if="{{event}}" class="rec-mini" url="/pages/detail/detail?id={{event.id}}" hover-class="rec-mini--active">
+      <text class="rec-mini-label">荐</text>
+      <view class="rec-mini-body">
+        <view class="rec-mini-name">{{event.shortName || event.name}}</view>
+        <view class="rec-mini-meta">{{event.city}} · {{event.modeText}}{{event.prizePool ? ' · ' + event.prizePool : ''}}</view>
+      </view>
+      <text class="rec-mini-arrow">›</text>
+    </navigator>
 
-    <view class="quick-row">
+    <!-- 快捷回复：仅开场(还没真正对话)时显示，发送后隐藏，不常驻 -->
+    <view wx:if="{{messages.length <= 1}}" class="quick-row">
       <button
         wx:for="{{quickReplies}}"
         wx:key="*this"

@@ -94,14 +94,10 @@ Page({
     const model = wx.cloud.extend.AI.createModel(prep.provider || 'hunyuan-exp');
     let acc = '';
     try {
+      // 只用 textStream 逐字消费(增量 chunk)，不要再叠加 onText，否则同一段内容会被累积两次(重复 bug)
       const res = await model.streamText({
         data: { model: prep.model, messages: prep.messages },
-        onText: (text) => {
-          acc += text;
-          this.patchReply(replyIndex, acc, true); // 保持 pending 光标直到结束
-        },
       });
-      // 兜底消费 textStream，确保拿全（onText 已实时更新时这里多为空转）
       for await (const chunk of res.textStream) {
         if (chunk) {
           acc += chunk;
