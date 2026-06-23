@@ -1,71 +1,87 @@
 const api = require('../../utils/api.js');
+const catalog = require('../../utils/catalog.js');
 const { parseAIEntry } = require('../../utils/ai.js');
 
-function buildGroups(all) {
-  const list = all || [];
-  const first = list[0] || {};
-  const second = list[1] || first;
+/** 计算 dateStr(YYYY-MM-DD) 距今天的天数：>0 未来，=0 今天，<0 已过 */
+function daysUntil(dateStr) {
+  if (!dateStr) return null;
+  const today = new Date(catalog.formatDate(new Date()) + 'T00:00:00');
+  const target = new Date(String(dateStr) + 'T00:00:00');
+  if (isNaN(target.getTime())) return null;
+  return Math.round((target - today) / 86400000);
+}
 
-  return [
-    {
-      key: 'deadline',
-      title: '截止提醒',
-      items: [
-        {
-          level: 'urgent',
-          title: `${first.shortName || first.name || '黑客松'} 正在进行`,
-          sub: `${first.startDate || '待确认'} - ${first.endDate || '待确认'} · ${first.location || '地点待确认'} · ${first.modeText || '形式待确认'}`,
-          time: '今天',
-          tag: first.prizePool || '奖金待确认',
-          url: first.id ? `/pages/detail/detail?id=${first.id}` : '/pages/index/index',
-        },
-      ],
-    },
-    {
-      key: 'match',
-      title: '匹配结果',
-      items: [
-        {
-          level: 'match',
-          title: 'Haki 找到 3 个潜在队友',
-          sub: `与你关注的 ${second.shortName || second.name || 'AI 黑客松'} 技术栈相近：AI、LLM、产品设计`,
-          time: '1 小时前',
-          tag: '匹配 92%',
-          url: '/pages/match/match',
-        },
-        {
-          level: 'match',
-          title: '有人查看了你的身份卡',
-          sub: '深圳湾 AI 硬件方向的参赛者正在寻找前端与硬件协作伙伴',
-          time: '昨天',
-          tag: '身份卡',
-          url: '/pages/identity/identity',
-        },
-      ],
-    },
-    {
-      key: 'system',
-      title: '系统',
-      items: [
-        {
-          level: 'system',
-          title: 'HackerTrip 已启用微信 AI 入口',
-          sub: '从微信 AI 进入页面时，会保留任务来源和 intent 参数',
-          time: '刚刚',
-          tag: 'AI',
-          url: '/pages/settings/settings',
-        },
-        {
-          level: 'system',
-          title: '技能同步建议',
-          sub: '同步 GitHub 项目后，Haki 会更准确推荐黑客松和队友',
-          time: '昨天',
-          tag: 'Sync',
-          url: '/pages/sync/sync',
-        },
-      ],
-    },
-  ];
+/** 由一条已报名赛事派生截止提醒（无可用日期返回 null） */
+function toDeadlineItem(reg) {
+  // 优先报名截止，其次赛事结束日
+  const deadline = reg.registrationDeadline || reg.endDate;
+  const days = daysUntil(deadline);
+  if (days === null) return null;
+
+  let level = 'system';
+  let time = '';
+  if (days < 0) {
+    return null; // 已结束的不再提醒
+  } else if (days === 0) {
+    level = 'urgent';
+    time = '今天截止';
+  } else if (days <= 3) {
+    level = 'urgent';
+    time = `还剩 ${days} 天`;
+  } else if (days <= 7) {
+    level = 'match';
+    time = `还剩 ${days} 天`;
+  } else {
+    level = 'system';
+    time = `还剩 ${days} 天`;
+  }
+
+  const isReg = !!reg.registrationDeadline;
+  return {
+    level,
+    title: `${reg.shortName || reg.name || '黑客松'} ${isReg ? '报名即将截止' : '即将开赛'}`,
+    sub: `${reg.startDate || '待确认'} - ${reg.endDate || '待确认'} · ${reg.location || reg.city || '地点待确认'} · ${reg.modeText || '形式待确认'}`,
+    time,
+    tag: isReg ? '报名截止' : (reg.prizePool || '赛程'),
+    url: reg.id ? `/pages/detail/detail?id=${reg.id}` : '/pages/index/index',
+    _days: days,
+  };
+}
+
+function buildGroups(registrations) {
+  const regs = Array.isArray(registrations) ? registrations : [];
+  const groups = [];
+
+  // 截止提醒：基于真实报名记录，按剩余天数升序（越紧急越靠前）
+  const deadlineItems = regs
+    .map(toDeadlineItem)
+    .filter(Boolean)
+    .sort((a, b) => a._days - b._days);
+
+  groups.push({
+    key: 'deadline',
+    title: '截止提醒',
+    empty: deadlineItems.length === 0 ? '暂无提醒，去发现页关注赛事' : '',
+    items: deadlineItems,
+  });
+
+  // 系统通知：仅保留真实、稳定可解释的条目
+  groups.push({
+    key: 'system',
+    title: '系统',
+    items: [
+      {
+        level: 'system',
+        title: 'HackerTrip 已启用微信 AI 入口',
+        sub: '从微信 AI 进入页面时，会保留任务来源和 intent 参数',
+        time: '',
+        tag: 'AI',
+        url: '/pages/settings/settings',
+      },
+    ],
+  });
+
+  return groups;
 }
 
 Page({
@@ -81,24 +97,18 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().syncSelected();
     }
+    // 报名/登录状态可能在其它页变化，每次进入重算提醒
+    if (!this.data.loading) {
+      this.setData({ groups: buildGroups(api.getRegistrations()) });
+    }
   },
 
-  async onLoad(options) {
+  onLoad(options) {
     const ai = parseAIEntry(options);
     this.setData({
       aiBanner: !!ai.fromAI,
       aiIntentText: ai.intent || '消息提醒',
-    });
-
-    let list = [];
-    try {
-      list = await api.getHackathons();
-    } catch (err) {
-      list = [];
-    }
-
-    this.setData({
-      groups: buildGroups(list),
+      groups: buildGroups(api.getRegistrations()),
       loading: false,
     });
   },

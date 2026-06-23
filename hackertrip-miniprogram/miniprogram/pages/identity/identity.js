@@ -183,6 +183,7 @@ Page({
   },
 
   saveCard() {
+    if (!api.requireAuth('/pages/identity/identity')) return;
     const card = api.saveCard(this.buildCardData());
     wx.showToast({ title: '已保存到「我的」', icon: 'success' });
     return card;
@@ -199,6 +200,7 @@ Page({
   },
 
   async saveToAlbum() {
+    if (!api.requireAuth('/pages/identity/identity')) return;
     if (this.data.saving) return;
     if (!this.data.canvasReady || !this.canvas) {
       wx.showToast({ title: '卡片生成中，请稍候', icon: 'none' });

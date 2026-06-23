@@ -70,6 +70,7 @@ Page({
   },
 
   joinSchedule() {
+    if (!api.requireAuth('/pages/detail/detail?id=' + (this.data.item && this.data.item.id || ''))) return;
     const item = this.data.item;
     if (!item) return;
     const already = api.getRegistrations().some((r) => r.id === item.id);

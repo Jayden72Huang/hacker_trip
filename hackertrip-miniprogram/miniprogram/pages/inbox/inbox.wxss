@@ -85,3 +85,11 @@
   font-weight: 900;
   flex-shrink: 0;
 }
+
+.message-empty {
+  padding: 32rpx 24rpx;
+  color: #7A7A75;
+  font-size: 24rpx;
+  font-weight: 700;
+  text-align: center;
+}

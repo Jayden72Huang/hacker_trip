@@ -81,25 +81,39 @@ function normalizeHistory(history) {
     .map((m) => ({ role: m.role, content: String(m.content || m.text).slice(0, 1000) }));
 }
 
-exports.main = async (event) => {
-  const message = String((event && event.message) || '').trim();
-  if (!message) {
-    return { ok: false, reply: '说点什么吧，比如"我会 React，适合参加哪个？"', fallback: true };
-  }
-
+/**
+ * 组装注入了真实赛事 context 的完整 messages 数组。
+ * 赛事过滤(isPublished)只能在云端做，所以 prompt 装配必须留在云函数。
+ */
+async function buildMessages(message, history) {
   let context = '（暂无可用赛事数据）';
   try {
     context = buildContext(await loadHackathons());
   } catch (e) {
     console.warn('[aiChat] 构建赛事上下文失败', e);
   }
-
-  const messages = [
+  return [
     { role: 'system', content: buildSystemPrompt(context) },
-    ...normalizeHistory(event && event.history),
+    ...normalizeHistory(history),
     { role: 'user', content: message.slice(0, 1000) },
   ];
+}
 
+exports.main = async (event) => {
+  const message = String((event && event.message) || '').trim();
+  if (!message) {
+    return { ok: false, reply: '说点什么吧，比如"我会 React，适合参加哪个？"', fallback: true };
+  }
+
+  const messages = await buildMessages(message, event && event.history);
+
+  // mode=prepare：仅返回装配好的 messages，由小程序端用 wx.cloud.extend.AI 做流式生成
+  // （云函数 callFunction 是一次性 RPC，无法把 streamText 的增量 token 推回小程序）
+  if (event && event.mode === 'prepare') {
+    return { ok: true, mode: 'prepare', provider: PROVIDER, model: MODEL, messages };
+  }
+
+  // 默认 mode=generate：云函数内非流式生成，作为前端流式不可用时的降级路径
   try {
     const ai = tcbApp.ai();
     const model = ai.createModel(PROVIDER);

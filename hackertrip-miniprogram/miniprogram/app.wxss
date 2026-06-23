@@ -230,3 +230,99 @@ button::after {
 .aurora {
   display: none;
 }
+
+/* ---------------- 骨架屏 / 空态（全局复用） ---------------- */
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 22rpx;
+}
+
+/* 灰块骨架卡片，套用野兽派纯黑边 + 硬投影 */
+.skeleton-card {
+  padding: 26rpx;
+  background: #FFFFFF;
+  border: 4rpx solid #000000;
+  border-radius: 16rpx;
+  box-shadow: 8rpx 8rpx 0 0 #000000;
+}
+
+.skeleton-line {
+  height: 28rpx;
+  background: #ECE8DB;
+  border-radius: 8rpx;
+}
+
+.skeleton-line + .skeleton-line {
+  margin-top: 18rpx;
+}
+
+.skeleton-line--title {
+  height: 38rpx;
+  width: 60%;
+}
+
+.skeleton-line--short {
+  width: 40%;
+}
+
+.skeleton-line--mid {
+  width: 75%;
+}
+
+.skeleton-hint {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #7A7A75;
+  text-align: center;
+}
+
+/* 通用空态（与 schedule 的 .my-events-empty 同款野兽派虚线框） */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  padding: 56rpx 24rpx;
+  background: #FFFFFF;
+  border: 4rpx dashed #000000;
+  border-radius: 16rpx;
+}
+
+.empty-state-title {
+  font-size: 28rpx;
+  font-weight: 900;
+  color: #000000;
+  text-align: center;
+}
+
+.empty-state-text {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #5A5A55;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* 空态 CTA（野兽派黄底硬投影），与 schedule 的 .empty-cta 同款 */
+.empty-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 68rpx;
+  margin-top: 6rpx;
+  padding: 0 32rpx;
+  color: #000000;
+  background: #FBD902;
+  border: 3rpx solid #000000;
+  border-radius: 12rpx;
+  box-shadow: 5rpx 5rpx 0 0 #000000;
+  font-size: 24rpx;
+  font-weight: 900;
+}
+
+.empty-cta--active {
+  transform: translate(3rpx, 3rpx);
+  box-shadow: 2rpx 2rpx 0 0 #000000;
+}

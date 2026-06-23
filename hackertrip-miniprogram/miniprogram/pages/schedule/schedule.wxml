@@ -10,6 +10,21 @@
     <view class="page-title">赛程</view>
     <view class="page-subtitle">跟进报名、组队、提交和路演阶段。</view>
 
+    <!-- loading 骨架屏 -->
+    <view wx:if="{{loading}}" class="skeleton">
+      <view class="skeleton-card">
+        <view class="skeleton-line skeleton-line--title"></view>
+        <view class="skeleton-line skeleton-line--mid"></view>
+        <view class="skeleton-line skeleton-line--short"></view>
+      </view>
+      <view class="skeleton-card">
+        <view class="skeleton-line skeleton-line--mid"></view>
+        <view class="skeleton-line skeleton-line--short"></view>
+      </view>
+      <view class="skeleton-hint">加载中…</view>
+    </view>
+
+    <block wx:else>
     <view wx:if="{{activeEvent}}" class="active-card">
       <view class="active-kicker">活跃赛事</view>
       <view class="active-title">{{activeEvent.name}}</view>
@@ -82,5 +97,6 @@
         </navigator>
       </view>
     </view>
+    </block>
   </view>
 </view>

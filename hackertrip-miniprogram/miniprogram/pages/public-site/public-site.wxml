@@ -6,6 +6,21 @@
       <text>{{aiIntentText}}</text>
     </view>
 
+    <!-- loading 骨架屏 -->
+    <view wx:if="{{loading}}" class="skeleton">
+      <view class="skeleton-card">
+        <view class="skeleton-line skeleton-line--title"></view>
+        <view class="skeleton-line skeleton-line--mid"></view>
+        <view class="skeleton-line skeleton-line--short"></view>
+      </view>
+      <view class="skeleton-card">
+        <view class="skeleton-line skeleton-line--title"></view>
+        <view class="skeleton-line skeleton-line--mid"></view>
+      </view>
+      <view class="skeleton-hint">加载中…</view>
+    </view>
+
+    <block wx:else>
     <view class="brutal-box blue-box profile-hero">
       <view class="avatar public-avatar">J</view>
       <view class="public-info">
@@ -43,5 +58,6 @@
       <view class="list-title">{{item.name}}</view>
       <view class="list-subtitle">日期 {{item.dateText}} · 城市 {{item.cityText}} · 形式 {{item.modeText}}</view>
     </navigator>
+    </block>
   </view>
 </view>

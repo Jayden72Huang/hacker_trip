@@ -116,6 +116,7 @@ Page({
   },
 
   onBookmark(e) {
+    if (!api.requireAuth('/pages/index/index')) return;
     const id = e.detail.id;
     if (!id) return;
     const active = api.toggleBookmark(id);

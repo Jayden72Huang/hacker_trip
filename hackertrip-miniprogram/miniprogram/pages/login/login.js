@@ -43,7 +43,8 @@ Page({
       // 昵称/头像同步进统一用户档案，身份卡/公开主页/我的页立即生效
       api.saveProfile({ nickname: userInfo.nickName, avatarUrl: userInfo.avatarUrl });
       wx.showToast({ title: '登录成功', icon: 'success' });
-      setTimeout(() => this.goBack(), 600);
+      // 登录后从云端拉取收藏/报名/卡片合并到本地，完成后回原任务（失败也回）
+      Promise.resolve(api.syncFromCloud()).catch(() => {}).then(() => setTimeout(() => this.goBack(), 400));
     };
 
     if (app.globalData.cloudReady && wx.cloud) {

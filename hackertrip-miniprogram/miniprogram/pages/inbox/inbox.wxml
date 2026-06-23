@@ -10,8 +10,22 @@
     <view class="page-title">消息</view>
     <view class="page-subtitle">报名提醒、队友匹配和系统通知集中在这里。</view>
 
-    <view wx:for="{{groups}}" wx:key="key" class="message-section">
+    <!-- loading 骨架屏 -->
+    <view wx:if="{{loading}}" class="skeleton">
+      <view class="skeleton-card">
+        <view class="skeleton-line skeleton-line--title"></view>
+        <view class="skeleton-line skeleton-line--mid"></view>
+      </view>
+      <view class="skeleton-card">
+        <view class="skeleton-line skeleton-line--title"></view>
+        <view class="skeleton-line skeleton-line--mid"></view>
+      </view>
+      <view class="skeleton-hint">加载中…</view>
+    </view>
+
+    <view wx:else wx:for="{{groups}}" wx:key="key" class="message-section">
       <view class="section-title">{{item.title}}</view>
+      <view wx:if="{{item.empty && item.items.length === 0}}" class="message-empty">{{item.empty}}</view>
       <navigator
         wx:for="{{item.items}}"
         wx:for-item="msg"

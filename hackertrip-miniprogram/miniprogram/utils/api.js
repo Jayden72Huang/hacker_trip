@@ -281,9 +281,51 @@ async function pullSyncByCode(code) {
   return { ok: true, scan: mock, mock: true };
 }
 
+/* ----------------------------- 登录态 / 云同步 ----------------------------- */
+
+/** 是否已登录（globalData.auth 有 userInfo） */
+function isLoggedIn() {
+  const app = getApp();
+  return !!(app && app.globalData && app.globalData.auth && app.globalData.auth.userInfo);
+}
+
+/**
+ * 写操作前的登录守卫：未登录则跳登录页(带 redirect 回原页)，返回 false 表示已拦截。
+ * @param {string} redirectPage 当前页完整路径(含参数)，登录后回跳
+ */
+function requireAuth(redirectPage) {
+  if (isLoggedIn()) return true;
+  const url = redirectPage
+    ? '/pages/login/login?redirect=' + encodeURIComponent(redirectPage)
+    : '/pages/login/login';
+  wx.navigateTo({ url });
+  return false;
+}
+
+/** 登录后从云端拉取收藏/报名/卡片/同步结果，合并进本地 storage(云端为准) */
+async function syncFromCloud() {
+  if (!cloudReady()) return { ok: false };
+  try {
+    const res = await callFn('getProfile', {});
+    if (res && res.ok) {
+      if (Array.isArray(res.bookmarkIds)) setStorage(STORAGE.BOOKMARKS, res.bookmarkIds);
+      if (Array.isArray(res.registrations)) setStorage(STORAGE.REGISTRATIONS, res.registrations);
+      if (Array.isArray(res.cards)) setStorage(STORAGE.CARDS, res.cards);
+      if (res.scan) setScanResults(res.scan);
+      return { ok: true };
+    }
+  } catch (e) {
+    console.warn('[api] syncFromCloud 失败', e);
+  }
+  return { ok: false };
+}
+
 module.exports = {
   STORAGE,
   cloudReady,
+  isLoggedIn,
+  requireAuth,
+  syncFromCloud,
   getHackathons,
   getHackathonDetail,
   getBookmarks,

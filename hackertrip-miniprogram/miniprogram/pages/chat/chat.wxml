@@ -11,7 +11,8 @@
 
     <view class="chat-thread">
       <view wx:for="{{messages}}" wx:key="index" class="bubble bubble--{{item.role}}">
-        <text>{{item.text}}</text>
+        <text>{{item.pending && !item.text ? '思考中…' : item.text}}</text>
+        <text wx:if="{{item.pending && item.text}}" class="bubble-caret">▍</text>
       </view>
     </view>
 

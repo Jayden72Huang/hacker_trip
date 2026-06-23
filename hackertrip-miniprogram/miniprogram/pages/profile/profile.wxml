@@ -25,12 +25,30 @@
     </navigator>
 
     <view class="section-title">参赛资产</view>
+
+    <!-- loading 骨架屏 -->
+    <view wx:if="{{loading}}" class="asset-grid">
+      <view wx:for="{{[1,2,3]}}" wx:key="*this" class="asset-card">
+        <view class="skeleton-line skeleton-line--title" style="margin: 0 auto;"></view>
+        <view class="skeleton-line skeleton-line--short" style="margin: 16rpx auto 0;"></view>
+      </view>
+    </view>
+
+    <block wx:else>
     <view class="asset-grid">
       <view wx:for="{{assetStats}}" wx:key="label" class="asset-card">
         <view class="asset-value">{{item.value}}</view>
         <view class="asset-label">{{item.label}}</view>
       </view>
     </view>
+
+    <!-- 收藏为 0 时的引导空态 -->
+    <view wx:if="{{savedCount === 0}}" class="empty-state" style="margin-top: 20rpx;">
+      <view class="empty-state-title">还没有关注的赛事</view>
+      <view class="empty-state-text">去发现页收藏感兴趣的黑客松，资产会自动汇总到这里。</view>
+      <navigator class="empty-cta" url="/pages/index/index" open-type="switchTab" hover-class="empty-cta--active">去发现页逛逛</navigator>
+    </view>
+    </block>
 
     <view class="section-title">工具</view>
     <view class="link-list">

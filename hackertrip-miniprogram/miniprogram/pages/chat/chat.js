@@ -18,24 +18,16 @@ Page({
     const ai = parseAIEntry(options);
     const event = catalog.getById(options.id || options.slug) || catalog.getAll()[0];
 
+    // 开场只放一条助手引导语，不再预置写死的假对话
+    const welcome = event
+      ? `我是 Haki。把你的项目方向、技术栈和城市偏好告诉我，我会按赛事的时间、地点、赛道和奖金帮你判断适配度。比如想了解「${event.shortName || event.name}」也可以直接问。`
+      : '我是 Haki。把你的项目方向、技术栈和城市偏好告诉我，我会按赛事的时间、地点、赛道和奖金帮你判断适配度。';
+
     this.setData({
       aiBanner: ai.fromAI,
       aiIntentText: ai.intent || '匹配黑客松',
       event,
-      messages: [
-        {
-          role: 'assistant',
-          text: '把你的项目方向、技术栈和城市偏好告诉我，我会按赛事时间、地点、赛道和奖金帮你判断适配度。',
-        },
-        {
-          role: 'user',
-          text: '我想找 AI 或开发工具方向的黑客松。',
-        },
-        {
-          role: 'assistant',
-          text: `先看这场：${event.name}。时间 ${event.startDate} - ${event.endDate}，地点 ${event.city}，赛道包含 ${(event.tracks || []).slice(0, 3).join('、')}。`,
-        },
-      ],
+      messages: [{ role: 'assistant', text: welcome }],
     });
   },
 
@@ -47,31 +39,105 @@ Page({
     const value = this.data.inputValue.trim();
     if (!value || this.data.sending) return;
 
-    // 先把用户气泡 + 占位的"思考中"助手气泡渲染出来
+    // 用户气泡 + 空助手气泡（pending：显示打字光标，等待逐字填充）
     const baseMessages = this.data.messages.concat([{ role: 'user', text: value }]);
-    const thinkingIndex = baseMessages.length; // 占位气泡的下标
+    const replyIndex = baseMessages.length; // 助手气泡下标
     this.setData({
-      messages: baseMessages.concat([{ role: 'assistant', text: '思考中…', pending: true }]),
+      messages: baseMessages.concat([{ role: 'assistant', text: '', pending: true }]),
       inputValue: '',
       sending: true,
     });
 
-    // 历史只取真实对话（排除刚加的占位气泡）
-    const history = baseMessages;
+    // 历史只取真实对话（不含刚加的空助手气泡）
+    const history = baseMessages.map((m) => ({ role: m.role, content: m.text }));
 
-    let reply;
     try {
-      const res = await api.aiChat(value, history);
-      reply = (res && res.reply) || '我没太理解，换个说法再问一次？';
+      const streamed = await this.streamReply(value, history, replyIndex);
+      if (!streamed) {
+        // 流式不可用：降级到云函数非流式一次性回答
+        await this.fallbackReply(value, history, replyIndex);
+      }
     } catch (e) {
-      console.warn('[chat] aiChat 异常', e);
-      reply = '出了点问题，稍后再试一次。';
+      console.warn('[chat] 回答失败', e);
+      this.patchReply(replyIndex, '出了点问题，稍后再试一次。', false);
+    } finally {
+      this.setData({ sending: false });
+    }
+  },
+
+  /**
+   * 流式回答：云函数 prepare 拿注入赛事 context 的 messages，
+   * 再用 wx.cloud.extend.AI.streamText 在前端逐字生成（打字机效果）。
+   * 返回 true 表示已流式完成，false 表示环境不支持需走降级。
+   */
+  async streamReply(value, history, replyIndex) {
+    if (!api.cloudReady() || !wx.cloud.extend || !wx.cloud.extend.AI) return false;
+
+    // 1. 云端装配 prompt（含真实赛事上下文 + system prompt）
+    let prep;
+    try {
+      prep = await new Promise((resolve, reject) => {
+        wx.cloud.callFunction({
+          name: 'aiChat',
+          data: { mode: 'prepare', message: value, history },
+          success: (res) => resolve(res.result),
+          fail: reject,
+        });
+      });
+    } catch (e) {
+      console.warn('[chat] prepare 失败，降级非流式', e);
+      return false;
+    }
+    if (!prep || !prep.ok || !Array.isArray(prep.messages)) return false;
+
+    // 2. 前端流式生成，onText 逐字追加
+    const model = wx.cloud.extend.AI.createModel(prep.provider || 'hunyuan-exp');
+    let acc = '';
+    try {
+      const res = await model.streamText({
+        data: { model: prep.model, messages: prep.messages },
+        onText: (text) => {
+          acc += text;
+          this.patchReply(replyIndex, acc, true); // 保持 pending 光标直到结束
+        },
+      });
+      // 兜底消费 textStream，确保拿全（onText 已实时更新时这里多为空转）
+      for await (const chunk of res.textStream) {
+        if (chunk) {
+          acc += chunk;
+          this.patchReply(replyIndex, acc, true);
+        }
+      }
+    } catch (e) {
+      console.warn('[chat] streamText 失败', e);
+      if (!acc) return false; // 一个字都没出，交给降级
     }
 
-    // 用真实回答替换占位气泡
-    const messages = this.data.messages.slice();
-    messages[thinkingIndex] = { role: 'assistant', text: reply };
-    this.setData({ messages, sending: false });
+    const finalText = acc.trim() || '我没太理解，换个说法再问一次？';
+    this.patchReply(replyIndex, finalText, false);
+    return true;
+  },
+
+  /** 降级：调 api.aiChat 非流式，一次性替换助手气泡 */
+  async fallbackReply(value, history, replyIndex) {
+    let reply;
+    try {
+      const histForApi = history.map((m) => ({ role: m.role, text: m.content }));
+      const res = await api.aiChat(value, histForApi);
+      reply = (res && res.reply) || '我没太理解，换个说法再问一次？';
+    } catch (e) {
+      console.warn('[chat] aiChat 降级异常', e);
+      reply = '出了点问题，稍后再试一次。';
+    }
+    this.patchReply(replyIndex, reply, false);
+  },
+
+  /** 更新指定助手气泡的文本与 pending 态 */
+  patchReply(index, text, pending) {
+    this.setData({
+      [`messages[${index}].text`]: text,
+      [`messages[${index}].pending`]: pending,
+    });
   },
 
   useQuickReply(e) {

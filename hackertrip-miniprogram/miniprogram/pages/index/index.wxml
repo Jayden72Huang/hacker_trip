@@ -42,6 +42,23 @@
       </button>
     </view>
 
+    <!-- loading 骨架屏 -->
+    <view wx:if="{{loading}}" class="skeleton">
+      <view class="skeleton-card">
+        <view class="skeleton-line skeleton-line--title"></view>
+        <view class="skeleton-line skeleton-line--mid"></view>
+        <view class="skeleton-line skeleton-line--short"></view>
+      </view>
+      <view class="skeleton-card">
+        <view class="skeleton-line skeleton-line--title"></view>
+        <view class="skeleton-line skeleton-line--mid"></view>
+        <view class="skeleton-line skeleton-line--short"></view>
+      </view>
+      <view class="skeleton-hint">加载中…</view>
+    </view>
+
+    <!-- 内容区 -->
+    <block wx:else>
     <view wx:if="{{focusEvent}}" class="section-title">正在关注</view>
     <view wx:if="{{focusEvent}}" class="focus-card">
       <view class="focus-kicker">{{focusEvent.status === 'ongoing' ? '正在进行' : '即将开始'}}</view>
@@ -84,5 +101,12 @@
       bookmarked="{{item.bookmarked}}"
       bind:bookmark="onBookmark"
     />
+
+    <!-- 搜索 / 筛选后无结果的空态（区别于 loading） -->
+    <view wx:if="{{hackathons.length === 0}}" class="empty-state">
+      <view class="empty-state-title">没找到匹配的黑客松</view>
+      <view class="empty-state-text">换个关键词或筛选条件再试试。</view>
+    </view>
+    </block>
   </view>
 </view>

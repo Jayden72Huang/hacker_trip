@@ -9,6 +9,21 @@
     <view class="focus-title">匹配结果</view>
     <view class="focus-subtitle">按项目技术栈匹配本地赛事 catalog，标题、日期、城市、奖金和推荐理由全部文本化。</view>
 
+    <!-- loading 骨架屏 -->
+    <view wx:if="{{loading}}" class="skeleton">
+      <view class="skeleton-card">
+        <view class="skeleton-line skeleton-line--title"></view>
+        <view class="skeleton-line skeleton-line--mid"></view>
+        <view class="skeleton-line skeleton-line--short"></view>
+      </view>
+      <view class="skeleton-card">
+        <view class="skeleton-line skeleton-line--title"></view>
+        <view class="skeleton-line skeleton-line--mid"></view>
+      </view>
+      <view class="skeleton-hint">正在匹配赛事…</view>
+    </view>
+
+    <block wx:else>
     <view class="brutal-box blue-box">
       <view class="box-title">项目卡</view>
       <view class="project-name">{{project.name}}</view>
@@ -41,5 +56,6 @@
     </navigator>
 
     <button class="native-btn native-btn--yellow match-identity" bindtap="makeCard">基于结果生成身份卡</button>
+    </block>
   </view>
 </view>
