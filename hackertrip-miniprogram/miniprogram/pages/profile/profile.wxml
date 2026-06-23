@@ -7,21 +7,27 @@
       <text>{{aiIntentText}}</text>
     </view>
 
-    <view class="profile-head">
-      <view class="avatar">{{avatarChar}}</view>
-      <view class="profile-copy">
-        <view class="page-title">我的</view>
-        <view class="page-subtitle">管理身份卡、参赛资产和工具配置。</view>
-      </view>
-    </view>
+    <view class="page-title">我的</view>
 
-    <navigator class="identity-entry" url="/pages/identity/identity" hover-class="identity-entry--active">
-      <view>
-        <view class="identity-kicker">Identity Card</view>
-        <view class="identity-title">生成开发者身份卡</view>
-        <view class="identity-sub">展示技术栈、参赛方向和可合作角色。</view>
+    <!-- 个人资料卡：点击进入编辑。已填写则高亮展示，未填写则引导完善 -->
+    <navigator
+      class="profile-card {{profileCard.filled ? 'profile-card--filled' : 'profile-card--empty'}}"
+      url="/pages/identity-edit/identity-edit"
+      hover-class="profile-card--active"
+    >
+      <view class="avatar">{{profileCard.avatarChar}}</view>
+      <view class="profile-copy">
+        <block wx:if="{{profileCard.filled}}">
+          <view class="profile-name">{{profileCard.nickname}}</view>
+          <view class="profile-meta">{{profileCard.role}}{{profileCard.city ? ' · ' + profileCard.city : ''}}</view>
+          <view wx:if="{{profileCard.skillsText}}" class="profile-skills">{{profileCard.skillsText}}</view>
+        </block>
+        <block wx:else>
+          <view class="profile-name">完善个人资料</view>
+          <view class="profile-meta">填写昵称、角色、城市和技能，匹配更精准</view>
+        </block>
       </view>
-      <view class="identity-arrow">→</view>
+      <view class="profile-edit-btn">{{profileCard.filled ? '编辑' : '去填写'}}</view>
     </navigator>
 
     <view class="section-title">参赛资产</view>

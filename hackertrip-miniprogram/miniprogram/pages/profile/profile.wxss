@@ -182,3 +182,69 @@
   font-weight: 900;
   flex-shrink: 0;
 }
+
+/* ---------------- 个人资料卡 ---------------- */
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: 22rpx;
+  padding: 26rpx;
+  margin-top: 20rpx;
+  border: 4rpx solid #000000;
+  border-radius: 18rpx;
+  box-shadow: 8rpx 8rpx 0 0 #000000;
+}
+
+/* 已填写：白底专业卡(skills 蓝色高亮) */
+.profile-card--filled {
+  background: #FFFFFF;
+}
+
+/* 未填写：黄底醒目引导 */
+.profile-card--empty {
+  background: #FBD902;
+}
+
+.profile-card--active {
+  transform: translate(4rpx, 4rpx);
+  box-shadow: 4rpx 4rpx 0 0 #000000;
+}
+
+.profile-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #000000;
+  font-size: 34rpx;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.profile-meta {
+  margin-top: 6rpx;
+  color: #3D3D3D;
+  font-size: 24rpx;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.profile-skills {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-top: 8rpx;
+  color: #0C51ED;
+  font-size: 23rpx;
+  font-weight: 900;
+}
+
+.profile-edit-btn {
+  flex-shrink: 0;
+  padding: 12rpx 22rpx;
+  color: #FFFFFF;
+  background: #0C51ED;
+  border: 3rpx solid #000000;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  font-weight: 900;
+}

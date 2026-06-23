@@ -11,8 +11,10 @@ Page({
     savedCount: 0,
     assetStats: [],
     loading: true,
+    // 个人资料卡：filled=是否已填写过(决定高亮 or 引导)
+    profileCard: { filled: false, avatarChar: 'H', nickname: '', role: '', city: '', skills: [], skillsText: '' },
     tools: [
-      { title: '身份卡编辑', sub: '完善头像、技能栈和参赛宣言', url: '/pages/identity-edit/identity-edit' },
+      { title: '我的身份卡', sub: '生成参赛身份卡，分享找队友', url: '/pages/identity/identity' },
       { title: '项目作品集', sub: '整理作品，用于报名和分享', url: '/pages/portfolio/portfolio' },
       { title: 'Agent 技能库', sub: '管理 Haki 可读取的项目能力', url: '/pages/agent/agent' },
       { title: 'Skills 同步', sub: '从 GitHub/本地项目同步技术栈', url: '/pages/sync/sync' },
@@ -55,11 +57,24 @@ Page({
     }
     const ongoing = joined.filter((item) => item && item.status === 'ongoing').length;
 
+    const avatarChar = (profile.nickname || 'H').trim().charAt(0).toUpperCase() || 'H';
+    // 编辑过资料 或 已登录 → storage 有 ht_profile，视为"已填写"，高亮展示；否则引导完善
+    const hasProfile = !!wx.getStorageSync('ht_profile');
+
     this.setData({
       loading: false,
-      avatarChar: (profile.nickname || 'H').trim().charAt(0).toUpperCase() || 'H',
+      avatarChar,
       activeCount: ongoing,
       savedCount: stats.bookmarks,
+      profileCard: {
+        filled: hasProfile,
+        avatarChar,
+        nickname: profile.nickname,
+        role: profile.role,
+        city: profile.city,
+        skills: profile.skills || [],
+        skillsText: (profile.skills || []).slice(0, 4).join(' · '),
+      },
       assetStats: [
         { label: '关注赛事', value: `${stats.bookmarks}` },
         { label: '进行中', value: `${ongoing}` },
