@@ -79,7 +79,7 @@ Page({
       prep = await new Promise((resolve, reject) => {
         wx.cloud.callFunction({
           name: 'aiChat',
-          data: { mode: 'prepare', message: value, history },
+          data: { mode: 'prepare', message: value, history, focusEventId: this.data.event && this.data.event.id },
           success: (res) => resolve(res.result),
           fail: reject,
         });
@@ -119,7 +119,7 @@ Page({
     let reply;
     try {
       const histForApi = history.map((m) => ({ role: m.role, text: m.content }));
-      const res = await api.aiChat(value, histForApi);
+      const res = await api.aiChat(value, histForApi, this.data.event && this.data.event.id);
       reply = (res && res.reply) || '我没太理解，换个说法再问一次？';
     } catch (e) {
       console.warn('[chat] aiChat 降级异常', e);

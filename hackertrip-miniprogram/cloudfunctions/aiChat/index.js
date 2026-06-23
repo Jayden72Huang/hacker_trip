@@ -57,8 +57,8 @@ function buildContext(list) {
     .join('\n\n');
 }
 
-function buildSystemPrompt(context) {
-  return [
+function buildSystemPrompt(context, focusName) {
+  const lines = [
     '你是 Haki，HackerTrip 小程序里的黑客松助手，帮中文用户挑选和准备黑客松比赛。',
     '只依据下面提供的「赛事清单」回答，不要编造清单里没有的赛事、时间、奖金或链接。',
     '回答要点：',
@@ -66,10 +66,15 @@ function buildSystemPrompt(context) {
     '- 推荐赛事时给出具体理由（赛道/技术栈/城市/时间/奖金哪一点匹配）。',
     '- 用户问报名时间就报具体日期；信息缺失就如实说"暂未公布"，不要瞎猜。',
     '- 涉及组队角色时，结合用户技术栈给出实用建议。',
-    '',
-    '【赛事清单】',
-    context,
-  ].join('\n');
+  ];
+  if (focusName) {
+    lines.push(
+      '',
+      `【当前焦点赛事】用户正在查看「${focusName}」。当用户说"这个比赛""这场""它""在哪里"等指代而未点名具体赛事时，默认就是指「${focusName}」，直接回答它的信息，不要反问是哪个。`,
+    );
+  }
+  lines.push('', '【赛事清单】', context);
+  return lines.join('\n');
 }
 
 /** 归一化前端传来的对话历史 */
@@ -85,15 +90,21 @@ function normalizeHistory(history) {
  * 组装注入了真实赛事 context 的完整 messages 数组。
  * 赛事过滤(isPublished)只能在云端做，所以 prompt 装配必须留在云函数。
  */
-async function buildMessages(message, history) {
+async function buildMessages(message, history, focusEventId) {
   let context = '（暂无可用赛事数据）';
+  let focusName = '';
   try {
-    context = buildContext(await loadHackathons());
+    const list = await loadHackathons();
+    context = buildContext(list);
+    if (focusEventId) {
+      const f = list.find((h) => h.id === focusEventId);
+      if (f) focusName = f.name;
+    }
   } catch (e) {
     console.warn('[aiChat] 构建赛事上下文失败', e);
   }
   return [
-    { role: 'system', content: buildSystemPrompt(context) },
+    { role: 'system', content: buildSystemPrompt(context, focusName) },
     ...normalizeHistory(history),
     { role: 'user', content: message.slice(0, 1000) },
   ];
@@ -105,7 +116,7 @@ exports.main = async (event) => {
     return { ok: false, reply: '说点什么吧，比如"我会 React，适合参加哪个？"', fallback: true };
   }
 
-  const messages = await buildMessages(message, event && event.history);
+  const messages = await buildMessages(message, event && event.history, event && event.focusEventId);
 
   // mode=prepare：仅返回装配好的 messages，由小程序端用 wx.cloud.extend.AI 做流式生成
   // （云函数 callFunction 是一次性 RPC，无法把 streamText 的增量 token 推回小程序）

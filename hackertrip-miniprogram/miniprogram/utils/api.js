@@ -210,7 +210,7 @@ function getUserStats() {
  * @param {Array<{role,text}>} history 对话历史（仅 user/assistant）
  * @returns {Promise<{ok:boolean, reply:string, fallback?:boolean}>}
  */
-async function aiChat(message, history) {
+async function aiChat(message, history, focusEventId) {
   const text = String(message || '').trim();
   if (!text) return { ok: false, reply: '说点什么吧，比如"我会 React，适合参加哪个？"', fallback: true };
 
@@ -218,6 +218,7 @@ async function aiChat(message, history) {
     try {
       const payload = {
         message: text,
+        focusEventId: focusEventId || '',
         history: (Array.isArray(history) ? history : [])
           .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && m.text)
           .map((m) => ({ role: m.role, content: m.text })),
