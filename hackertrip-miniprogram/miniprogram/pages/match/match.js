@@ -2,9 +2,9 @@ const api = require('../../utils/api.js');
 const { parseAIEntry } = require('../../utils/ai.js');
 
 const DEFAULT_PROJECT = {
-  name: 'AI Demo Builder',
+  name: 'AI Prototype Builder',
   domain: 'AI 开发工具 / 协作效率',
-  summary: '用 TypeScript、LLM 和前端组件快速生成可演示产品原型。',
+  summary: '用 TypeScript、LLM 和前端组件快速生成可展示产品原型。',
   techStack: ['TypeScript', 'React', 'LLM', 'Node.js'],
 };
 
@@ -26,7 +26,7 @@ function scoreItem(item, stack, index) {
     cityText: item.city || item.location || '待确认',
     prizeText: item.prizePool || '待确认',
     tracksText: (item.tracks || []).slice(0, 3).join(' / ') || '待确认',
-    reason: hits.length ? `命中 ${hits.join('、')}，适合当前项目方向。` : `赛道为 ${item.theme || '综合创新'}，适合扩展项目 Demo。`,
+    reason: hits.length ? `命中 ${hits.join('、')}，适合当前项目方向。` : `赛道为 ${item.theme || '综合创新'}，适合扩展项目原型。`,
     score,
     scoreWidth: `${score}%`,
   };

@@ -39,7 +39,7 @@ Page({
     this.setData({ syncing: true, statusText: '正在同步 Skills 数据...' });
     const res = await api.pullSyncByCode(this.data.code);
     if (res && res.ok) {
-      this.setData({ synced: true, statusText: res.mock ? '已载入本地 mock 同步结果' : '同步成功' });
+      this.setData({ synced: true, statusText: res.mock ? '已载入同步结果' : '同步成功' });
       wx.showToast({ title: '同步成功', icon: 'success' });
     } else {
       this.setData({ statusText: (res && res.message) || '同步失败，请稍后重试' });

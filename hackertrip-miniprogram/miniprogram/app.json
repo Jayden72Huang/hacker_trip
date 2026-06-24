@@ -54,14 +54,5 @@
   },
   "style": "v2",
   "lazyCodeLoading": "requiredComponents",
-  "sitemapLocation": "sitemap.json",
-  "agent": {
-    "skills": [
-      {
-        "name": "hackathon-guide",
-        "description": "HackerTrip 黑客松向导：发现黑客松、按技术栈匹配最适合的赛事、查看赛事详情。",
-        "path": "skills/hackathon-guide"
-      }
-    ]
-  }
+  "sitemapLocation": "sitemap.json"
 }

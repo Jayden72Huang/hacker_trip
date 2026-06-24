@@ -10,7 +10,7 @@ Page({
     role: {
       name: 'AI Builder',
       emoji: '⚡',
-      tagline: '把想法快速变成可演示产品',
+      tagline: '把想法快速变成可展示产品',
     },
     // stats / skills 在 onLoad 用真实资产统计 + 统一档案填充
     stats: { hackathons: 0, projects: 0, skills: 0 },
