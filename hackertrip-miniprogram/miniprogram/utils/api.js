@@ -30,6 +30,35 @@ const DEFAULT_PROFILE = {
   avatarUrl: '',
 };
 
+/** 作品集示例数据（暂为 bundled，将来接真实存储后由此处统一替换） */
+const SAMPLE_PORTFOLIO = [
+  {
+    name: 'Haki Match Agent',
+    subtitle: '根据项目技术栈匹配黑客松和推荐赛道',
+    event: 'AdventureX 2025',
+    status: '已提交',
+    tags: ['LLM', 'TypeScript', '匹配算法'],
+  },
+  {
+    name: 'Pitch Deck Copilot',
+    subtitle: '把 Demo、README 和路演稿整理为评委可读材料',
+    event: 'ETHShanghai',
+    status: '准备中',
+    tags: ['AI Agent', 'Slides', 'Web3'],
+  },
+  {
+    name: 'Realtime Judge Board',
+    subtitle: '黑客松现场评分看板和队伍进度追踪',
+    event: 'XR 黑客松',
+    status: '获奖作品',
+    tags: ['Dashboard', 'Realtime', 'Cloud'],
+  },
+];
+/** 读取作品集列表（个人中心作品数、作品集页面共用同一份数据源） */
+function getPortfolioProjects() {
+  return SAMPLE_PORTFOLIO.slice();
+}
+
 function cloudReady() {
   const app = getApp();
   return !!(app && app.globalData && app.globalData.cloudReady && wx.cloud);
@@ -341,6 +370,7 @@ module.exports = {
   getProfile,
   saveProfile,
   getUserStats,
+  getPortfolioProjects,
   getScanResults,
   setScanResults,
   pullSyncByCode,

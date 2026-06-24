@@ -9,7 +9,11 @@ Page({
     avatarChar: 'H',
     activeCount: 0,
     savedCount: 0,
-    assetStats: [],
+    // 卡内数据指标：进行中赛事 + vibe coding 作品数（初始占位，load 后填真实值）
+    assetStats: [
+      { label: '进行中', value: '—' },
+      { label: 'vibe 作品', value: '—' },
+    ],
     loading: true,
     // 个人资料卡：filled=是否已填写过(决定高亮 or 引导)
     profileCard: { filled: false, avatarChar: 'H', nickname: '', role: '', city: '', skills: [], skillsText: '' },
@@ -56,6 +60,7 @@ Page({
       joined = regs;
     }
     const ongoing = joined.filter((item) => item && item.status === 'ongoing').length;
+    const worksCount = api.getPortfolioProjects().length;
 
     const avatarChar = (profile.nickname || 'H').trim().charAt(0).toUpperCase() || 'H';
     // 编辑过资料 或 已登录 → storage 有 ht_profile，视为"已填写"，高亮展示；否则引导完善
@@ -76,9 +81,8 @@ Page({
         skillsText: (profile.skills || []).slice(0, 4).join(' · '),
       },
       assetStats: [
-        { label: '关注赛事', value: `${stats.bookmarks}` },
         { label: '进行中', value: `${ongoing}` },
-        { label: '身份卡', value: `${stats.projects}` },
+        { label: 'vibe 作品', value: `${worksCount}` },
       ],
     });
   },

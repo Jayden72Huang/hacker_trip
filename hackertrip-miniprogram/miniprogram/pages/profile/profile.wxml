@@ -9,52 +9,43 @@
 
     <view class="page-title">我的</view>
 
-    <!-- 个人资料卡：点击进入编辑。已填写则高亮展示，未填写则引导完善 -->
+    <!-- 个人资料卡：上层资料 + 下层黑客松数据指标。点击进入编辑 -->
     <navigator
       class="profile-card {{profileCard.filled ? 'profile-card--filled' : 'profile-card--empty'}}"
       url="/pages/identity-edit/identity-edit"
       hover-class="profile-card--active"
     >
-      <view class="avatar">{{profileCard.avatarChar}}</view>
-      <view class="profile-copy">
-        <block wx:if="{{profileCard.filled}}">
-          <view class="profile-name">{{profileCard.nickname}}</view>
-          <view class="profile-meta">{{profileCard.role}}{{profileCard.city ? ' · ' + profileCard.city : ''}}</view>
-          <view wx:if="{{profileCard.skillsText}}" class="profile-skills">{{profileCard.skillsText}}</view>
-        </block>
-        <block wx:else>
-          <view class="profile-name">完善个人资料</view>
-          <view class="profile-meta">填写昵称、角色、城市和技能，匹配更精准</view>
-        </block>
+      <view class="profile-head">
+        <view class="avatar">{{profileCard.avatarChar}}</view>
+        <view class="profile-copy">
+          <block wx:if="{{profileCard.filled}}">
+            <view class="profile-name">{{profileCard.nickname}}</view>
+            <view class="profile-meta">{{profileCard.role}}{{profileCard.city ? ' · ' + profileCard.city : ''}}</view>
+            <view wx:if="{{profileCard.skillsText}}" class="profile-skills">{{profileCard.skillsText}}</view>
+          </block>
+          <block wx:else>
+            <view class="profile-name">完善个人资料</view>
+            <view class="profile-meta">填写昵称、角色、城市和技能，匹配更精准</view>
+          </block>
+        </view>
+        <view class="profile-edit-btn">{{profileCard.filled ? '编辑' : '去填写'}}</view>
       </view>
-      <view class="profile-edit-btn">{{profileCard.filled ? '编辑' : '去填写'}}</view>
+
+      <!-- 卡内数据指标行 -->
+      <view class="profile-stats">
+        <view wx:for="{{assetStats}}" wx:key="label" class="profile-stat">
+          <view class="profile-stat-value">{{item.value}}</view>
+          <view class="profile-stat-label">{{item.label}}</view>
+        </view>
+      </view>
     </navigator>
 
-    <view class="section-title">参赛资产</view>
-
-    <!-- loading 骨架屏 -->
-    <view wx:if="{{loading}}" class="asset-grid">
-      <view wx:for="{{[1,2,3]}}" wx:key="*this" class="asset-card">
-        <view class="skeleton-line skeleton-line--title" style="margin: 0 auto;"></view>
-        <view class="skeleton-line skeleton-line--short" style="margin: 16rpx auto 0;"></view>
-      </view>
-    </view>
-
-    <block wx:else>
-    <view class="asset-grid">
-      <view wx:for="{{assetStats}}" wx:key="label" class="asset-card">
-        <view class="asset-value">{{item.value}}</view>
-        <view class="asset-label">{{item.label}}</view>
-      </view>
-    </view>
-
     <!-- 收藏为 0 时的引导空态 -->
-    <view wx:if="{{savedCount === 0}}" class="empty-state" style="margin-top: 20rpx;">
+    <view wx:if="{{!loading && savedCount === 0}}" class="empty-state" style="margin-top: 20rpx;">
       <view class="empty-state-title">还没有关注的赛事</view>
       <view class="empty-state-text">去发现页收藏感兴趣的黑客松，资产会自动汇总到这里。</view>
       <navigator class="empty-cta" url="/pages/index/index" open-type="switchTab" hover-class="empty-cta--active">去发现页逛逛</navigator>
     </view>
-    </block>
 
     <view class="section-title">工具</view>
     <view class="link-list">

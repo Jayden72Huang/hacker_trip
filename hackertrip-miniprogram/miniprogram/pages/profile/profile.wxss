@@ -185,14 +185,57 @@
 
 /* ---------------- 个人资料卡 ---------------- */
 .profile-card {
-  display: flex;
-  align-items: center;
-  gap: 22rpx;
-  padding: 26rpx;
+  display: block;
+  padding: 30rpx;
   margin-top: 20rpx;
   border: 4rpx solid #000000;
   border-radius: 18rpx;
   box-shadow: 8rpx 8rpx 0 0 #000000;
+}
+
+/* 上层：头像 + 资料 + 编辑按钮 */
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 22rpx;
+}
+
+/* 下层：卡内数据指标行 */
+.profile-stats {
+  display: flex;
+  margin-top: 28rpx;
+  padding-top: 28rpx;
+  border-top: 4rpx dashed #000000;
+}
+
+.profile-stat {
+  flex: 1;
+  text-align: center;
+}
+
+/* 指标之间的竖向分隔线 */
+.profile-stat + .profile-stat {
+  border-left: 3rpx solid rgba(0, 0, 0, 0.12);
+}
+
+.profile-stat-value {
+  color: #0C51ED;
+  font-size: 46rpx;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.profile-stat-label {
+  margin-top: 14rpx;
+  color: #000000;
+  font-size: 23rpx;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+/* 未填写(黄底)时指标文字配色调整，保证对比 */
+.profile-card--empty .profile-stat-value {
+  color: #000000;
 }
 
 /* 已填写：白底专业卡(skills 蓝色高亮) */
