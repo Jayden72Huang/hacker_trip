@@ -10,7 +10,7 @@
     <t-icon
       name="{{item.icon}}"
       size="34rpx"
-      color="{{selected === index ? selectedColor : color}}"
+      color="{{selected === index ? '#FFFFFF' : color}}"
     />
     <text class="tabbar__text">{{item.text}}</text>
   </navigator>

@@ -7,7 +7,7 @@
     </view>
 
     <view class="focus-title">Haki 聊天</view>
-    <view class="focus-subtitle">对话里保留赛事名称、时间、城市、奖金和赛道，便于微信 AI 理解页面内容。</view>
+    <view class="focus-subtitle">{{subtitle}}</view>
 
     <view class="chat-thread">
       <view wx:for="{{messages}}" wx:key="index" class="bubble bubble--{{item.role}}">

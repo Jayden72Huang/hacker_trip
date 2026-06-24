@@ -8,38 +8,13 @@
     </view>
 
     <view class="hero">
-      <view class="hero-copy">
-        <view class="city-row">
-          <text class="city-label">当前城市</text>
-          <text class="city-name">{{city}}</text>
+      <view class="hero-brand">
+        <image class="hero-logo" src="/images/logo-transparent.png" mode="aspectFit" />
+        <view class="hero-copy">
+          <view class="page-title">发现黑客松</view>
+          <view class="page-subtitle">HackerTrip-助你探索好玩的黑客松赛事</view>
         </view>
-        <view class="page-title">发现黑客松</view>
-        <view class="page-subtitle">按城市、赛道、时间和技术栈找到可报名赛事。</view>
       </view>
-      <image class="city-sketch" src="/images/sketches/shenzhen-t.png" mode="aspectFit" />
-    </view>
-
-    <view class="search-box">
-      <t-icon name="search" size="34rpx" color="#000000" />
-      <input
-        class="search-input"
-        value="{{query}}"
-        placeholder="搜索 AI、深圳、Web3、硬件"
-        confirm-type="search"
-        bindinput="onSearchInput"
-      />
-    </view>
-
-    <view class="filter-row">
-      <button
-        wx:for="{{filters}}"
-        wx:key="key"
-        class="filter-chip {{activeFilter === item.key ? 'filter-chip--active' : ''}}"
-        data-key="{{item.key}}"
-        bindtap="onFilterTap"
-      >
-        {{item.label}}
-      </button>
     </view>
 
     <!-- loading 骨架屏 -->
@@ -59,18 +34,6 @@
 
     <!-- 内容区 -->
     <block wx:else>
-    <view wx:if="{{focusEvent}}" class="section-title">正在关注</view>
-    <view wx:if="{{focusEvent}}" class="focus-card">
-      <view class="focus-kicker">{{focusEvent.status === 'ongoing' ? '正在进行' : '即将开始'}}</view>
-      <view class="focus-title">{{focusEvent.name}}</view>
-      <view class="focus-meta">时间 {{focusEvent.startDate}} - {{focusEvent.endDate}}</view>
-      <view class="focus-meta">地点 {{focusEvent.location}} · {{focusEvent.modeText}}</view>
-      <view class="focus-meta">奖金 {{focusEvent.prizePool}}</view>
-      <navigator class="focus-cta" url="/pages/detail/detail?id={{focusEvent.id}}" hover-class="focus-cta--active">
-        查看赛事详情
-      </navigator>
-    </view>
-
     <view class="section-title">精选推荐</view>
     <scroll-view class="featured-scroll" scroll-x enable-flex>
       <navigator
@@ -91,7 +54,25 @@
 
     <view class="list-head">
       <view class="section-title">更多黑客松</view>
-      <text class="list-count">{{hackathons.length}} / {{totalCount}}</text>
+    </view>
+
+    <view class="search-row">
+      <view class="city-row search-city" bindtap="openCityPicker">
+        <text class="city-name">{{city}}</text>
+        <text class="city-caret">▾</text>
+      </view>
+      <view class="search-box">
+        <t-icon name="search" size="34rpx" color="#000000" />
+        <input
+          class="search-input"
+          value="{{query}}"
+          placeholder="搜索更多黑客松"
+          confirm-type="search"
+          bindinput="onSearchInput"
+          bindconfirm="onSearchConfirm"
+        />
+        <button wx:if="{{query}}" class="search-clear" aria-label="清空搜索" bindtap="clearSearch">×</button>
+      </view>
     </view>
 
     <hackathon-card
@@ -109,4 +90,19 @@
     </view>
     </block>
   </view>
+
+  <page-container show="{{cityPickerVisible}}" round bindbeforeleave="closeCityPicker" bindclickoverlay="closeCityPicker">
+    <view class="city-picker">
+      <view class="city-picker-title">选择城市</view>
+      <scroll-view scroll-y class="city-picker-list">
+        <view
+          wx:for="{{cities}}"
+          wx:key="*this"
+          class="city-picker-item {{city === item ? 'on' : ''}}"
+          data-city="{{item}}"
+          bindtap="onCityPick"
+        >{{item}}</view>
+      </scroll-view>
+    </view>
+  </page-container>
 </view>

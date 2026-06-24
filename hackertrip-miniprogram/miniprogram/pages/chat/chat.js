@@ -10,23 +10,31 @@ Page({
     inputValue: '',
     event: null,
     sending: false,
-    quickReplies: ['我适合参加吗', '帮我看报名时间', '推荐组队角色'],
+    quickReplies: ['推荐适合我的赛事', '按城市筛选赛事', '帮我规划参赛方向'],
     messages: [],
+    subtitle: '告诉 Haki 你的项目方向、技术栈、城市偏好和时间安排，它会帮你推荐合适的黑客松。',
   },
 
   onLoad(options) {
     const ai = parseAIEntry(options);
-    const event = catalog.getById(options.id || options.slug) || catalog.getAll()[0];
+    const eventId = options.id || options.slug;
+    const event = eventId ? catalog.getById(eventId) : null;
 
-    // 开场只放一条助手引导语，不再预置写死的假对话
+    // 开场只放一条助手引导语；只有从赛事详情进入时才挂载赛事上下文。
     const welcome = event
       ? `我是 Haki。把你的项目方向、技术栈和城市偏好告诉我，我会按赛事的时间、地点、赛道和奖金帮你判断适配度。比如想了解「${event.shortName || event.name}」也可以直接问。`
-      : '我是 Haki。把你的项目方向、技术栈和城市偏好告诉我，我会按赛事的时间、地点、赛道和奖金帮你判断适配度。';
+      : '我是 Haki。把你的项目方向、技术栈、城市偏好和时间安排告诉我，我会帮你推荐适合参加的黑客松。';
 
     this.setData({
       aiBanner: ai.fromAI,
       aiIntentText: ai.intent || '匹配黑客松',
       event,
+      quickReplies: event
+        ? ['我适合参加吗', '帮我看报名时间', '推荐组队角色']
+        : ['推荐适合我的赛事', '按城市筛选赛事', '帮我规划参赛方向'],
+      subtitle: event
+        ? '已挂载当前赛事，Haki 会结合赛事名称、时间、城市、奖金和赛道回答。'
+        : '告诉 Haki 你的项目方向、技术栈、城市偏好和时间安排，它会帮你推荐合适的黑客松。',
       messages: [{ role: 'assistant', text: welcome }],
     });
   },

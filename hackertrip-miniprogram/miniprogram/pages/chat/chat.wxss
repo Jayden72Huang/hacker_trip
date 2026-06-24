@@ -60,8 +60,9 @@
   left: 0;
   z-index: 70;
   display: flex;
+  align-items: center;
   gap: 14rpx;
-  padding: 18rpx 28rpx calc(18rpx + env(safe-area-inset-bottom));
+  padding: 18rpx 24rpx calc(18rpx + env(safe-area-inset-bottom));
   background: #FFFFFF;
   border-top: 4rpx solid #000000;
   box-shadow: 0 -6rpx 0 0 #000000;
@@ -69,7 +70,8 @@
 
 .chat-input {
   flex: 1;
-  height: 82rpx;
+  min-width: 0;
+  height: 76rpx;
   padding: 0 22rpx;
   color: #000000;
   background: #F4F1E8;
@@ -80,8 +82,11 @@
 }
 
 .send-btn {
-  width: 132rpx;
-  height: 82rpx;
+  flex: 0 0 108rpx;
+  width: 108rpx !important;
+  height: 76rpx;
+  padding: 0;
+  margin: 0;
   color: #FFFFFF;
   background: #0C51ED;
   border: 4rpx solid #000000;
@@ -89,6 +94,11 @@
   box-shadow: 6rpx 6rpx 0 0 #000000;
   font-size: 26rpx;
   font-weight: 900;
+  line-height: 76rpx;
+}
+
+.send-btn::after {
+  border: none;
 }
 
 /* 推荐赛事 — 紧凑小卡片，不占大篇幅 */
