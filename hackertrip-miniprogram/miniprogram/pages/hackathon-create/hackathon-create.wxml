@@ -59,7 +59,12 @@
         <view class="field-label">一句话简介</view>
         <textarea class="textarea-box" value="{{form.summary}}" data-field="summary" placeholder="说明活动主题、参赛对象、亮点和报名要求。" bindinput="onFieldInput" />
       </view>
-      <button class="native-btn native-btn--yellow create-submit" bindtap="submitHackathon">提交审核</button>
+      <button
+        class="native-btn native-btn--yellow create-submit"
+        bindtap="submitHackathon"
+        loading="{{submitting}}"
+        disabled="{{submitting}}"
+      >{{submitting ? '安全检测中' : '提交审核'}}</button>
     </view>
   </view>
 </view>

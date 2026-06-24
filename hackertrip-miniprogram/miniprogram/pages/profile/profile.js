@@ -53,6 +53,7 @@ Page({
   async load() {
     const stats = api.getUserStats();
     const profile = api.getProfile();
+    const profileMode = api.getProfileMode();
     const organizer = api.getOrganizerApplication();
     // 我加入的进行中赛事数（用 api 取最新状态）
     const regs = api.getRegistrations();
@@ -86,6 +87,7 @@ Page({
         skills: profile.skills || [],
         skillsText: (profile.skills || []).slice(0, 4).join(' · '),
       },
+      profileMode,
       assetStats: [
         { label: '进行中', value: `${ongoing}` },
         { label: 'vibe 作品', value: `${worksCount}` },
@@ -128,7 +130,7 @@ Page({
   },
 
   switchMode(e) {
-    const mode = e.currentTarget.dataset.mode || 'participant';
+    const mode = api.setProfileMode(e.currentTarget.dataset.mode || 'participant');
     this.setData({ profileMode: mode });
   },
 

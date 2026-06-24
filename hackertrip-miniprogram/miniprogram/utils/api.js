@@ -17,6 +17,7 @@ const STORAGE = {
   REGISTRATIONS: 'ht_registrations', // 报名清单
   SCAN_RESULTS: 'ht_scan_results', // Skills 同步过来的扫描匹配结果
   PROFILE: 'ht_profile', // 统一用户档案（身份编辑/身份卡/公开主页/分享/设置共享）
+  PROFILE_MODE: 'ht_profile_mode', // 我的页角色视图偏好
   ORGANIZER: 'ht_organizer_application', // 组织者申请与审核状态
   HACKATHON_DRAFTS: 'ht_hackathon_drafts', // 组织者提交的赛事草稿
 };
@@ -30,6 +31,7 @@ const DEFAULT_PROFILE = {
   skills: ['TypeScript', 'LLM', 'React', 'Prompt'],
   github: 'github.com/jayden',
   avatarUrl: '',
+  publicId: '',
 };
 
 /** 作品集示例数据（暂为 bundled，将来接真实存储后由此处统一替换） */
@@ -219,8 +221,62 @@ function getProfile() {
 function saveProfile(patch) {
   const next = Object.assign({}, getProfile(), patch || {});
   setStorage(STORAGE.PROFILE, next);
-  if (cloudReady()) callFn('saveProfile', { profile: next }).catch(() => {});
+  if (cloudReady()) {
+    callFn('saveProfile', { profile: next })
+      .then((res) => {
+        if (res && res.publicId) {
+          setStorage(STORAGE.PROFILE, Object.assign({}, getProfile(), { publicId: res.publicId }));
+        }
+      })
+      .catch(() => {});
+  }
   return next;
+}
+
+async function getProfileQr(profile) {
+  if (!cloudReady()) return { ok: false, code: 'CLOUD_REQUIRED', message: '需要连接云开发后生成小程序码' };
+  try {
+    const res = await callFn('getProfileQr', { profile: profile || getProfile() });
+    if (res && res.ok && res.uid) {
+      setStorage(STORAGE.PROFILE, Object.assign({}, getProfile(), { publicId: res.uid }));
+    }
+    return res || { ok: false, message: '小程序码生成失败' };
+  } catch (e) {
+    return { ok: false, message: String(e) };
+  }
+}
+
+async function getPublicProfile(uid) {
+  const id = String(uid || '').trim();
+  if (!id) return { ok: false, message: '缺少用户 id' };
+  if (cloudReady()) {
+    try {
+      const res = await callFn('getPublicProfile', { uid: id });
+      if (res && res.ok) return res;
+      return res || { ok: false, message: '公开主页不存在' };
+    } catch (e) {
+      return { ok: false, message: String(e) };
+    }
+  }
+
+  const profile = getProfile();
+  const stats = getUserStats();
+  return {
+    ok: true,
+    local: true,
+    profile: {
+      uid: id,
+      name: profile.nickname,
+      role: profile.role,
+      city: profile.city,
+      bio: profile.bio,
+      avatarUrl: profile.avatarUrl,
+      github: profile.github,
+      skills: profile.skills || [],
+      stats: { hackathons: stats.hackathons, projects: stats.projects, skills: stats.skills },
+    },
+    projects: getPortfolioProjects().map((item) => ({ name: item.name, desc: item.subtitle || item.desc || '' })),
+  };
 }
 /** 由真实收藏/报名/卡片数量派生用户资产统计，供个人中心/公开主页/分享复用 */
 function getUserStats() {
@@ -235,21 +291,26 @@ function getUserStats() {
 
 /* ----------------------------- 组织者 ----------------------------- */
 
+const PROFILE_MODES = ['participant', 'organizer'];
+const ORGANIZER_STATUSES = ['none', 'pending', 'approved', 'rejected'];
+
+function normalizeProfileMode(mode) {
+  return PROFILE_MODES.indexOf(mode) !== -1 ? mode : 'participant';
+}
+
+function getProfileMode() {
+  return normalizeProfileMode(getStorage(STORAGE.PROFILE_MODE, 'participant'));
+}
+
+function setProfileMode(mode) {
+  const next = normalizeProfileMode(mode);
+  setStorage(STORAGE.PROFILE_MODE, next);
+  return next;
+}
+
 function getOrganizerApplication() {
   const v = getStorage(STORAGE.ORGANIZER, null);
-  if (!v || typeof v !== 'object') {
-    return {
-      status: 'none',
-      orgName: '',
-      role: '',
-      contact: '',
-      website: '',
-      note: '',
-      submittedAt: 0,
-      reviewedAt: 0,
-    };
-  }
-  return Object.assign({
+  const base = {
     status: 'none',
     orgName: '',
     role: '',
@@ -258,20 +319,56 @@ function getOrganizerApplication() {
     note: '',
     submittedAt: 0,
     reviewedAt: 0,
-  }, v);
+    approvalSource: '',
+  };
+  if (!v || typeof v !== 'object') {
+    return base;
+  }
+  const next = Object.assign({}, base, v);
+  if (ORGANIZER_STATUSES.indexOf(next.status) === -1) next.status = 'none';
+  // 本地 storage 只作为 UI 缓存，不能自己把组织者改成 approved 解锁发布。
+  if (next.status === 'approved' && next.approvalSource !== 'server') {
+    next.status = next.submittedAt ? 'pending' : 'none';
+    next.reviewedAt = 0;
+  }
+  return next;
 }
 
 function saveOrganizerApplication(form) {
   const next = Object.assign({}, getOrganizerApplication(), form || {}, {
     status: 'pending',
+    approvalSource: '',
     submittedAt: Date.now(),
+    reviewedAt: 0,
   });
   setStorage(STORAGE.ORGANIZER, next);
   return next;
 }
 
+async function submitOrganizerApplication(form) {
+  if (!cloudReady()) {
+    return { ok: false, code: 'CLOUD_REQUIRED', message: '需要连接云开发后才能提交组织者申请' };
+  }
+  try {
+    const res = await callFn('submitOrganizerApplication', { form });
+    if (res && res.ok) {
+      const next = Object.assign({}, getOrganizerApplication(), form || {}, {
+        status: res.status || 'pending',
+        approvalSource: 'server',
+        submittedAt: Date.now(),
+        reviewedAt: 0,
+      });
+      setStorage(STORAGE.ORGANIZER, next);
+    }
+    return res || { ok: false, code: 'EMPTY_RESPONSE', message: '提交组织者申请失败' };
+  } catch (e) {
+    return { ok: false, code: 'SUBMIT_FAILED', message: String(e) };
+  }
+}
+
 function isOrganizerApproved() {
-  return getOrganizerApplication().status === 'approved';
+  const app = getOrganizerApplication();
+  return app.status === 'approved' && app.approvalSource === 'server';
 }
 
 function getHackathonDrafts() {
@@ -289,6 +386,32 @@ function saveHackathonDraft(form) {
   drafts.unshift(draft);
   setStorage(STORAGE.HACKATHON_DRAFTS, drafts);
   return draft;
+}
+
+function cacheHackathonDraft(form, remote) {
+  const drafts = getHackathonDrafts();
+  const draft = Object.assign({}, form || {}, {
+    id: remote && remote.id ? remote.id : `draft-${Date.now()}`,
+    status: remote && remote.status ? remote.status : 'pending_manual_review',
+    security: remote && remote.security ? remote.security : null,
+    submittedAt: Date.now(),
+  });
+  drafts.unshift(draft);
+  setStorage(STORAGE.HACKATHON_DRAFTS, drafts);
+  return draft;
+}
+
+async function submitHackathonDraft(form) {
+  if (!cloudReady()) {
+    return { ok: false, code: 'CLOUD_REQUIRED', message: '需要连接云开发后才能提交审核' };
+  }
+  try {
+    const res = await callFn('submitHackathonDraft', { form });
+    if (res && res.ok) cacheHackathonDraft(form, res);
+    return res || { ok: false, code: 'EMPTY_RESPONSE', message: '提交审核失败' };
+  } catch (e) {
+    return { ok: false, code: 'SUBMIT_FAILED', message: String(e) };
+  }
 }
 
 /* ----------------------------- AI 聊天 ----------------------------- */
@@ -402,6 +525,9 @@ async function syncFromCloud() {
       if (Array.isArray(res.registrations)) setStorage(STORAGE.REGISTRATIONS, res.registrations);
       if (Array.isArray(res.cards)) setStorage(STORAGE.CARDS, res.cards);
       if (res.scan) setScanResults(res.scan);
+      if (res.organizerApplication && typeof res.organizerApplication === 'object') {
+        setStorage(STORAGE.ORGANIZER, res.organizerApplication);
+      }
       return { ok: true };
     }
   } catch (e) {
@@ -429,12 +555,18 @@ module.exports = {
   getCardById,
   getProfile,
   saveProfile,
+  getProfileQr,
+  getPublicProfile,
   getUserStats,
+  getProfileMode,
+  setProfileMode,
   getOrganizerApplication,
   saveOrganizerApplication,
+  submitOrganizerApplication,
   isOrganizerApproved,
   getHackathonDrafts,
   saveHackathonDraft,
+  submitHackathonDraft,
   getPortfolioProjects,
   getScanResults,
   setScanResults,

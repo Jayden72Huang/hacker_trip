@@ -39,7 +39,12 @@
         <view class="field-label">补充说明</view>
         <textarea class="textarea-box" value="{{form.note}}" data-field="note" placeholder="说明你要举办的黑客松类型、城市、规模。" bindinput="onFieldInput" />
       </view>
-      <button class="native-btn native-btn--yellow organizer-submit" bindtap="submitApplication">提交组织者申请</button>
+      <button
+        class="native-btn native-btn--yellow organizer-submit"
+        bindtap="submitApplication"
+        loading="{{submitting}}"
+        disabled="{{submitting}}"
+      >{{submitting ? '安全检测中' : '提交组织者申请'}}</button>
     </view>
 
     <view wx:else class="brutal-box">
@@ -54,7 +59,7 @@
     </view>
     <view wx:for="{{drafts}}" wx:key="id" class="list-card">
       <view class="list-title">{{item.name}}</view>
-      <view class="list-subtitle">{{item.city}} · {{item.startDate}} - {{item.endDate}} · 待审核</view>
+      <view class="list-subtitle">{{item.city}} · {{item.startDate}} - {{item.endDate}} · {{item.statusText}}</view>
     </view>
   </view>
 </view>

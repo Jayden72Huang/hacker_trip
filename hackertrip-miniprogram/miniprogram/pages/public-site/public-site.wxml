@@ -21,8 +21,17 @@
     </view>
 
     <block wx:else>
+    <view wx:if="{{loadError}}" class="brutal-box public-error">
+      <view class="box-title">主页加载失败</view>
+      <view class="box-copy">{{loadError}}</view>
+    </view>
+
+    <block wx:else>
     <view class="brutal-box blue-box profile-hero">
-      <view class="avatar public-avatar">J</view>
+      <view class="avatar public-avatar">
+        <image wx:if="{{profile.avatarUrl}}" class="public-avatar-image" src="{{profile.avatarUrl}}" mode="aspectFill" />
+        <text wx:else>{{profile.avatarChar}}</text>
+      </view>
       <view class="public-info">
         <view class="focus-title public-name">{{profile.name}}</view>
         <view class="public-role">{{profile.role}} · {{profile.city}}</view>
@@ -58,6 +67,7 @@
       <view class="list-title">{{item.name}}</view>
       <view class="list-subtitle">日期 {{item.dateText}} · 城市 {{item.cityText}} · 形式 {{item.modeText}}</view>
     </navigator>
+    </block>
     </block>
   </view>
 </view>

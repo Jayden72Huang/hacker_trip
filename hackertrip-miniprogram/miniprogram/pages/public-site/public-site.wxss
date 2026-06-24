@@ -10,6 +10,13 @@
   flex: 0 0 132rpx;
   color: #000000;
   background: #FBD902;
+  overflow: hidden;
+}
+
+.public-avatar-image {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .public-info {
@@ -31,4 +38,8 @@
 
 .public-stats {
   margin: 30rpx 0 18rpx;
+}
+
+.public-error {
+  margin-top: 24rpx;
 }

@@ -13,12 +13,30 @@ exports.main = async () => {
       db.collection('sync_pairs').where({ openid, bound: true }).orderBy('boundAt', 'desc').limit(1).get(),
     ]);
     const lastPair = pairs.data && pairs.data[0];
+
+    let organizerApplication = null;
+    try {
+      const organizer = await db.collection('organizer_applications')
+        .where({ openid })
+        .orderBy('submittedAt', 'desc')
+        .limit(1)
+        .get();
+      if (organizer.data && organizer.data[0]) {
+        organizerApplication = Object.assign({}, organizer.data[0], {
+          approvalSource: 'server',
+        });
+      }
+    } catch (e) {
+      organizerApplication = null;
+    }
+
     return {
       ok: true,
       cards: cards.data || [],
       bookmarkIds: (bookmarks.data || []).map((b) => b.hackathonId),
       registrations: regs.data || [],
       scan: lastPair ? lastPair.scan : null,
+      organizerApplication,
     };
   } catch (e) {
     return { ok: false, message: String(e), cards: [], bookmarkIds: [], registrations: [], scan: null };

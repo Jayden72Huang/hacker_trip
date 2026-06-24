@@ -41,12 +41,13 @@
   </view>
 
   <view class="fixed-actions">
-    <navigator
+    <button
       wx:if="{{item.canRegister && item.website}}"
       class="native-link native-link--yellow"
-      url="/pages/webview/webview?url={{item.encodedWebsite}}"
       hover-class="native-link--active"
-    >去官方报名</navigator>
+      bindtap="copyOfficialUrl"
+    >复制链接</button>
+    <button class="native-link" open-type="share" hover-class="native-link--active">转发好友</button>
     <button class="native-btn" bindtap="joinSchedule">加入我的赛程</button>
   </view>
 </view>

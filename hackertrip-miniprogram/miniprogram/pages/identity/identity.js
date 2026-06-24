@@ -32,6 +32,9 @@ Page({
     playStyles: Object.keys(PLAY_STYLE_META).map((k) => ({ key: k, ...PLAY_STYLE_META[k] })),
     lookingFors: Object.keys(LOOKING_FOR_META).map((k) => ({ key: k, ...LOOKING_FOR_META[k] })),
     roleList: ROLES.map((r) => ({ key: r.key, name: r.name, emoji: r.emoji })),
+    profile: { nickname: '', role: '', city: '', bio: '', skills: [], github: '', avatarUrl: '', publicId: '' },
+    qrReady: false,
+    qrError: '',
     // 统计（onLoad 用真实用户资产派生，awards 暂无来源保留默认）
     stats: { projects: 0, hackathons: 0, awards: 1 },
     saving: false,
@@ -46,6 +49,7 @@ Page({
     const profile = api.getProfile();
     const userStats = api.getUserStats();
     this.setData({
+      profile,
       techStack: (profile.skills && profile.skills.length) ? profile.skills.slice() : this.data.techStack,
       stats: { projects: userStats.projects, hackathons: userStats.hackathons, awards: this.data.stats.awards },
     });
@@ -103,8 +107,61 @@ Page({
         this.canvas = canvas;
         this.ctx = ctx;
         this.dpr = dpr;
-        this.setData({ canvasReady: true }, () => this.render());
+        this.setData({ canvasReady: true }, () => {
+          this.render();
+          this.loadProfileQr();
+        });
       });
+  },
+
+  writeQrFile(base64) {
+    return new Promise((resolve, reject) => {
+      if (!wx.getFileSystemManager || !wx.env || !wx.env.USER_DATA_PATH) {
+        reject(new Error('当前环境不支持写入小程序码'));
+        return;
+      }
+      const filePath = `${wx.env.USER_DATA_PATH}/hackertrip-profile-qr-${Date.now()}.png`;
+      wx.getFileSystemManager().writeFile({
+        filePath,
+        data: base64,
+        encoding: 'base64',
+        success: () => resolve(filePath),
+        fail: reject,
+      });
+    });
+  },
+
+  loadCanvasImage(src) {
+    return new Promise((resolve, reject) => {
+      if (!this.canvas || !this.canvas.createImage) {
+        reject(new Error('Canvas 未准备好'));
+        return;
+      }
+      const img = this.canvas.createImage();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  },
+
+  async loadProfileQr() {
+    if (!this.data.canvasReady || this.data.qrReady) return;
+    const res = await api.getProfileQr(this.data.profile);
+    if (!res || !res.ok || !res.base64) {
+      this.setData({ qrError: (res && res.message) || '小程序码生成失败' }, () => this.render());
+      return;
+    }
+    try {
+      const filePath = await this.writeQrFile(res.base64);
+      this.qrImage = await this.loadCanvasImage(filePath);
+      this.setData({
+        qrReady: true,
+        qrError: '',
+        'profile.publicId': res.uid || this.data.profile.publicId,
+      }, () => this.render());
+    } catch (err) {
+      this.setData({ qrError: '小程序码加载失败' }, () => this.render());
+    }
   },
 
   render() {
@@ -122,6 +179,8 @@ Page({
       projects: this.data.stats.projects,
       hackathons: this.data.stats.hackathons,
       awards: this.data.stats.awards,
+      profile: this.data.profile,
+      qrImage: this.qrImage,
     }, this.dpr);
   },
 
@@ -179,6 +238,7 @@ Page({
       projects: this.data.stats.projects,
       hackathons: this.data.stats.hackathons,
       awards: this.data.stats.awards,
+      profileUid: this.data.profile.publicId || '',
     };
   },
 
@@ -204,6 +264,10 @@ Page({
     if (this.data.saving) return;
     if (!this.data.canvasReady || !this.canvas) {
       wx.showToast({ title: '卡片生成中，请稍候', icon: 'none' });
+      return;
+    }
+    if (!this.data.qrReady) {
+      wx.showToast({ title: this.data.qrError || '小程序码生成中，请稍候', icon: 'none' });
       return;
     }
     this.setData({ saving: true });

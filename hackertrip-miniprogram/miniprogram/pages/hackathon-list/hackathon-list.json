@@ -1,0 +1,7 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "navbar": "/components/navbar/index",
+    "hackathon-card": "/components/hackathon-card/index"
+  }
+}

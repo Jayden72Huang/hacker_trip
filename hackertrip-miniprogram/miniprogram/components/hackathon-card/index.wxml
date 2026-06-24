@@ -6,16 +6,26 @@
     </button>
   </view>
 
-  <view class="hcard-meta">
-    <text wx:if="{{item.startDate}}" class="meta-item">时间 {{item.startDate}} - {{item.endDate}}</text>
-    <text wx:if="{{item.location || item.city}}" class="meta-item">地点 {{item.location || item.city}}</text>
-    <text class="meta-item mode">{{item.modeText}}</text>
+  <view class="hcard-info">
+    <view wx:if="{{item.startDate}}" class="info-row">
+      <text class="info-label">时间</text>
+      <text class="info-value">{{item.startDate}}{{item.endDate ? ' - ' + item.endDate : ''}}</text>
+    </view>
+    <view wx:if="{{item.location || item.city}}" class="info-row">
+      <text class="info-label">地点</text>
+      <text class="info-value">{{item.location || item.city}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">模式</text>
+      <text class="mode-pill">{{item.modeText || '待确认'}}</text>
+    </view>
   </view>
 
   <view wx:if="{{item.summary}}" class="hcard-summary">{{item.summary}}</view>
 
-  <view class="hcard-tracks">
-    <text wx:for="{{item.tracks}}" wx:key="*this" wx:if="{{index < 4}}" class="chip">{{item}}</text>
+  <view wx:if="{{item.theme || item.tracks}}" class="hcard-tags">
+    <text wx:if="{{item.theme}}" class="topic-tag topic-tag--theme">{{item.theme}}</text>
+    <text wx:for="{{item.tracks}}" wx:key="*this" wx:if="{{index < 3}}" class="topic-tag">{{item}}</text>
   </view>
 
   <view class="hcard-foot">

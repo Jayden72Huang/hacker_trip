@@ -26,7 +26,7 @@
 
     <block wx:else>
     <view wx:if="{{activeEvent}}" class="active-card">
-      <view class="active-kicker">活跃赛事</view>
+      <view class="active-kicker">正在关注</view>
       <view class="active-title">{{activeEvent.name}}</view>
       <view class="active-grid">
         <view class="active-meta">

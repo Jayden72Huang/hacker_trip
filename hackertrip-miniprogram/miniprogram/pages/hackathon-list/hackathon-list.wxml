@@ -1,0 +1,68 @@
+<view class="page hackathon-list-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+
+  <view class="content">
+    <!-- 城市切换 + 搜索 -->
+    <view class="list-head">
+      <view class="city-row" bindtap="openCityPicker">
+        <text class="city-name">{{city}}</text>
+        <text class="city-caret">▾</text>
+      </view>
+      <view class="search-box">
+        <input
+          class="search-input"
+          placeholder="搜索黑客松、城市、赛道"
+          value="{{query}}"
+          confirm-type="search"
+          bindinput="onSearchInput"
+          bindconfirm="onSearchConfirm"
+        />
+        <button wx:if="{{query}}" class="search-clear" aria-label="清空搜索" bindtap="clearSearch">×</button>
+      </view>
+    </view>
+
+    <!-- 筛选标签 -->
+    <scroll-view scroll-x class="filter-scroll" enhanced show-scrollbar="{{false}}">
+      <view
+        wx:for="{{filters}}"
+        wx:key="key"
+        class="filter-chip {{activeFilter === item.key ? 'on' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="onFilterTap"
+      >{{item.label}}</view>
+    </scroll-view>
+
+    <view class="list-count">{{filteredCount}} / {{scopeCount}} 个匹配赛事</view>
+
+    <!-- 赛事卡列表 -->
+    <view wx:if="{{hackathons.length}}" class="event-list">
+      <hackathon-card
+        wx:for="{{hackathons}}"
+        wx:key="id"
+        item="{{item}}"
+        bookmarked="{{item.bookmarked}}"
+        bind:bookmark="onBookmark"
+      />
+    </view>
+    <view wx:elif="{{!loading}}" class="list-empty">
+      <view class="list-empty-title">没有匹配的黑客松</view>
+      <view class="list-empty-text">换个城市或搜索词试试。</view>
+    </view>
+  </view>
+
+  <!-- 城市选择器（半屏） -->
+  <page-container show="{{cityPickerVisible}}" round bindbeforeleave="closeCityPicker" bindclickoverlay="closeCityPicker">
+    <view class="city-picker">
+      <view class="city-picker-title">选择城市</view>
+      <scroll-view scroll-y class="city-picker-list">
+        <view
+          wx:for="{{cities}}"
+          wx:key="*this"
+          class="city-picker-item {{city === item ? 'on' : ''}}"
+          data-city="{{item}}"
+          bindtap="onCityPick"
+        >{{item}}</view>
+      </scroll-view>
+    </view>
+  </page-container>
+</view>

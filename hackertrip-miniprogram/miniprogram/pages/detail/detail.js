@@ -9,7 +9,6 @@ function joinText(list) {
 function buildDetail(raw) {
   const fallback = catalog.getAll({ includeEnded: true })[0];
   const item = raw || fallback;
-  const website = item.website || '';
 
   return Object.assign({}, item, {
     dateText: `${item.startDate || '待确认'} - ${item.endDate || '待确认'}`,
@@ -20,7 +19,6 @@ function buildDetail(raw) {
     stackText: joinText(item.techStack),
     tagsText: joinText(item.tags),
     deadlineText: item.registrationDeadline || item.startDate || '待确认',
-    encodedWebsite: encodeURIComponent(website),
   });
 }
 
@@ -89,10 +87,25 @@ Page({
     });
   },
 
+  // 复制官网报名链接到剪贴板（替代 web-view 加载外部域名，规避业务域名校验）
+  copyOfficialUrl() {
+    const url = this.data.item && this.data.item.website;
+    if (!url) {
+      wx.showToast({ title: '暂无官网链接', icon: 'none' });
+      return;
+    }
+    wx.setClipboardData({
+      data: url,
+      success: () => {
+        wx.showToast({ title: '链接已复制，去浏览器打开', icon: 'none' });
+      },
+    });
+  },
+
   onShareAppMessage() {
     const item = this.data.item || {};
     return {
-      title: item.name || 'HackerTrip 黑客松详情',
+      title: item.name ? `${item.name} · ${item.dateText || ''}` : 'HackerTrip 黑客松',
       path: `/pages/detail/detail?id=${item.id || ''}`,
     };
   },

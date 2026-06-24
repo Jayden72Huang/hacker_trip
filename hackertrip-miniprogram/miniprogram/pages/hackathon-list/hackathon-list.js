@@ -1,5 +1,4 @@
 const api = require('../../utils/api.js');
-const { parseAIEntry } = require('../../utils/ai.js');
 const { buildCityOptions, matchHackathonCity, matchHackathonQuery } = require('../../utils/hackathon-search.js');
 
 const FILTERS = [
@@ -13,53 +12,37 @@ const FILTERS = [
 function matchFilter(item, filter) {
   if (filter === 'all') return true;
   if (filter === item.mode) return true;
-
   const text = [
     item.theme,
     ...(item.tracks || []),
     ...(item.techStack || []),
     ...(item.tags || []),
   ].join(' ');
-
   return text.toLowerCase().includes(filter.toLowerCase());
 }
 
 Page({
   data: {
-    title: '发现黑客松',
-    aiBanner: false,
-    aiIntentText: '继续任务',
+    title: '全部黑客松',
     city: '全国',
     cities: ['全国'],
     cityPickerVisible: false,
     query: '',
     activeFilter: 'all',
     filters: FILTERS,
-    featured: [],
     hackathons: [],
     filteredCount: 0,
+    scopeCount: 0,
     totalCount: 0,
     loading: true,
   },
 
-  // 云端拉取的全量赛事，applyFilters 基于此做内存过滤
   allEvents: [],
 
-  onShow() {
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().syncSelected();
-    }
-    // 从详情等页返回时同步收藏态（用已缓存的 allEvents，不重复请求云端）
-    if (this.allEvents.length) this.applyFilters();
-  },
-
   async onLoad(options) {
-    const ai = parseAIEntry(options);
-    this.setData({
-      aiBanner: !!ai.fromAI,
-      aiIntentText: ai.intent || '发现黑客松',
-    });
-
+    const initialCity = options && options.city ? decodeURIComponent(options.city) : '全国';
+    const initialQuery = options && options.q ? decodeURIComponent(options.q) : '';
+    const initialFilter = options && options.filter ? decodeURIComponent(options.filter) : 'all';
     let all = [];
     try {
       all = await api.getHackathons();
@@ -68,24 +51,29 @@ Page({
     }
     this.allEvents = all;
     const cities = buildCityOptions(all);
-
+    const city = cities.indexOf(initialCity) !== -1 ? initialCity : '全国';
+    const activeFilter = FILTERS.find((item) => item.key === initialFilter) ? initialFilter : 'all';
     this.setData({
+      city,
       cities,
-      featured: all.slice(0, 4),
+      query: initialQuery,
+      activeFilter,
       totalCount: all.length,
       loading: false,
     });
     this.applyFilters(all);
   },
 
+  onShow() {
+    if (this.allEvents.length) this.applyFilters();
+  },
+
   openCityPicker() {
     this.setData({ cityPickerVisible: true });
   },
-
   closeCityPicker() {
     this.setData({ cityPickerVisible: false });
   },
-
   onCityPick(e) {
     const city = e.currentTarget.dataset.city || '全国';
     this.setData({ city, cityPickerVisible: false });
@@ -98,7 +86,7 @@ Page({
   },
 
   onSearchConfirm() {
-    this.goMore();
+    this.applyFilters();
   },
 
   clearSearch() {
@@ -122,42 +110,31 @@ Page({
       return matchFilter(item, activeFilter) && matchHackathonQuery(item, query);
     });
 
-    // 标记收藏态供卡片高亮
     const marked = hackathons.map((item) => Object.assign({}, item, {
       bookmarked: api.isBookmarked(item.id),
     }));
 
     this.setData({
-      featured: cityEvents.slice(0, 4),
-      hackathons: marked.slice(0, 4),
+      hackathons: marked,
       filteredCount: marked.length,
+      scopeCount: cityEvents.length,
     });
   },
 
-  goMore() {
-    const params = [];
-    if (this.data.city && this.data.city !== '全国') {
-      params.push(`city=${encodeURIComponent(this.data.city)}`);
-    }
-    if (this.data.query.trim()) {
-      params.push(`q=${encodeURIComponent(this.data.query.trim())}`);
-    }
-    if (this.data.activeFilter && this.data.activeFilter !== 'all') {
-      params.push(`filter=${encodeURIComponent(this.data.activeFilter)}`);
-    }
-    wx.navigateTo({ url: `/pages/hackathon-list/hackathon-list${params.length ? `?${params.join('&')}` : ''}` });
-  },
-
   onBookmark(e) {
-    if (!api.requireAuth('/pages/index/index')) return;
+    if (!api.requireAuth('/pages/hackathon-list/hackathon-list')) return;
     const id = e.detail.id;
     if (!id) return;
     const active = api.toggleBookmark(id);
-    // 局部更新对应卡片的收藏态，避免整列表重渲
     const hackathons = this.data.hackathons.map((item) =>
       item.id === id ? Object.assign({}, item, { bookmarked: active }) : item,
     );
     this.setData({ hackathons });
     wx.showToast({ title: active ? '已收藏' : '已取消收藏', icon: 'none' });
+  },
+
+  goDetail(e) {
+    const id = (e.detail && e.detail.id) || (e.currentTarget && e.currentTarget.dataset.id);
+    if (id) wx.navigateTo({ url: `/pages/detail/detail?id=${id}` });
   },
 });

@@ -61,13 +61,14 @@ function hexToRgba(hex, a) {
 /**
  * 绘制卡片。
  * @param {CanvasRenderingContext2D} ctx
- * @param {object} data 卡片数据 { variant, role, secondary[], techStack[], aiTools[], playStyle, lookingFor, hackathons, awards, projects, name }
+ * @param {object} data 卡片数据 { variant, role, secondary[], techStack[], aiTools[], playStyle, lookingFor, hackathons, awards, projects, profile, qrImage }
  * @param {number} dpr
  */
 function drawCard(ctx, data, dpr) {
   dpr = dpr || 1;
   ctx.scale(dpr, dpr);
   const role = ROLE_MAP[data.role] || ROLE_MAP.zero_to_one;
+  const profile = data.profile || {};
 
   // 背景
   ctx.fillStyle = '#1f1e1d';
@@ -99,6 +100,13 @@ function drawCard(ctx, data, dpr) {
   ctx.fillStyle = 'rgba(255,255,255,0.6)';
   ctx.font = '18px -apple-system, "PingFang SC", sans-serif';
   ctx.fillText(data.variant === 'config' ? '开发者配置卡' : '选手身份卡', 52, 82);
+  if (profile.nickname) {
+    ctx.fillStyle = 'rgba(255,255,255,0.78)';
+    ctx.font = 'bold 20px -apple-system, "PingFang SC", sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(profile.nickname, W - 52, 52, 190);
+    ctx.textAlign = 'left';
+  }
 
   // 大 emoji
   ctx.font = '90px -apple-system, "Apple Color Emoji", sans-serif';
@@ -175,11 +183,37 @@ function drawCard(ctx, data, dpr) {
     }
   }
 
+  // 右下角小程序码：扫码进入这个人的公开主页
+  const qrSize = 104;
+  const qrX = W - 52 - qrSize;
+  const qrY = H - 184;
+  ctx.fillStyle = '#ffffff';
+  roundRect(ctx, qrX - 8, qrY - 8, qrSize + 16, qrSize + 34, 16);
+  ctx.fill();
+  if (data.qrImage) {
+    ctx.drawImage(data.qrImage, qrX, qrY, qrSize, qrSize);
+  } else {
+    ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+    ctx.lineWidth = 2;
+    roundRect(ctx, qrX, qrY, qrSize, qrSize, 10);
+    ctx.stroke();
+    ctx.fillStyle = '#111111';
+    ctx.font = 'bold 18px -apple-system, "PingFang SC", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('小程序码', qrX + qrSize / 2, qrY + qrSize / 2);
+  }
+  ctx.fillStyle = '#111111';
+  ctx.font = 'bold 14px -apple-system, "PingFang SC", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText('扫码看主页', qrX + qrSize / 2, qrY + qrSize + 8);
+
   // 底部水印
   ctx.fillStyle = 'rgba(255,255,255,0.35)';
   ctx.font = '17px -apple-system, "PingFang SC", sans-serif';
   ctx.textAlign = 'right';
-  ctx.fillText('hackertrip.space · 扫码生成你的身份卡', W - 52, H - 40);
+  ctx.fillText('hackertrip.space', qrX - 16, H - 40);
   ctx.textAlign = 'left';
 }
 
