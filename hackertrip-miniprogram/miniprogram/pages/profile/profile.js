@@ -16,7 +16,7 @@ Page({
     ],
     loading: true,
     // 个人资料卡：filled=是否已填写过(决定高亮 or 引导)
-    profileCard: { filled: false, avatarChar: 'H', nickname: '', role: '', city: '', skills: [], skillsText: '' },
+    profileCard: { filled: false, avatarUrl: '', avatarChar: 'H', nickname: '', role: '', city: '', skills: [], skillsText: '' },
     profileMode: 'participant',
     organizerStatus: 'none',
     organizerStatusText: '未申请',
@@ -78,6 +78,7 @@ Page({
       savedCount: stats.bookmarks,
       profileCard: {
         filled: hasProfile,
+        avatarUrl: profile.avatarUrl || '',
         avatarChar,
         nickname: profile.nickname,
         role: profile.role,

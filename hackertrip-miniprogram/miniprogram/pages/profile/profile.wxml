@@ -29,7 +29,10 @@
       hover-class="profile-card--active"
     >
       <view class="profile-head">
-        <view class="avatar">{{profileCard.avatarChar}}</view>
+        <view class="avatar">
+          <image wx:if="{{profileCard.avatarUrl}}" class="avatar-image" src="{{profileCard.avatarUrl}}" mode="aspectFill" />
+          <text wx:else>{{profileCard.avatarChar}}</text>
+        </view>
         <view class="profile-copy">
           <block wx:if="{{profileCard.filled}}">
             <view class="profile-name">{{profileCard.nickname}}</view>
