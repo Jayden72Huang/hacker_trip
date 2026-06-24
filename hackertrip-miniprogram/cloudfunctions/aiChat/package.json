@@ -4,7 +4,8 @@
   "description": "Haki 聊天的混元 AI 问答云函数",
   "main": "index.js",
   "dependencies": {
-    "wx-server-sdk": "~2.6.3",
-    "@cloudbase/node-sdk": "^3.16.0"
+    "@cloudbase/node-sdk": "^3.16.0",
+    "ws": "^8.18.0",
+    "wx-server-sdk": "~2.6.3"
   }
 }

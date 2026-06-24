@@ -43,6 +43,6 @@
       </view>
     </view>
 
-    <button class="native-btn save-profile" bindtap="saveProfile">保存身份信息</button>
+    <button class="native-btn save-profile" disabled="{{saving}}" bindtap="saveProfile">{{saving ? '保存中...' : '保存身份信息'}}</button>
   </view>
 </view>

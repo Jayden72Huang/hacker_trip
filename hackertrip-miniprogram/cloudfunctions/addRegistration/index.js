@@ -7,6 +7,7 @@ exports.main = async (event) => {
   const { item } = event || {};
   if (!item || !item.id) return { ok: false };
   const openid = (cloud.getWXContext() || {}).OPENID;
+  if (!openid) return { ok: false, message: '缺少用户身份' };
   const col = db.collection('registrations');
   try {
     const exist = await col.where({ openid, id: item.id }).limit(1).get();

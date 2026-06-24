@@ -290,7 +290,7 @@ Page({
 
   shareCard() {
     // 保存并跳到分享落地页预览
-    this.saveCard();
+    if (!this.saveCard()) return;
     const c = this.buildCardData();
     wx.navigateTo({ url: `/pages/share/share?role=${c.role}&variant=${c.variant}` });
   },

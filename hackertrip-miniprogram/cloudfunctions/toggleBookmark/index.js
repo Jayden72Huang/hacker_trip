@@ -7,6 +7,7 @@ exports.main = async (event) => {
   const { id, active } = event || {};
   if (!id) return { ok: false };
   const openid = (cloud.getWXContext() || {}).OPENID;
+  if (!openid) return { ok: false, message: '缺少用户身份' };
   const col = db.collection('bookmarks');
   try {
     const exist = await col.where({ openid, hackathonId: id }).limit(1).get();

@@ -10,6 +10,10 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+function escapeRegExp(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // 同义词归一表（§3.3 技术栈词表归一）。key 为归一后的标准词，value 为别名。
 // 命中任一别名都折算到标准词，提升匹配召回。
 const SYNONYMS = {
@@ -85,7 +89,7 @@ exports.main = async (event) => {
   try {
     let query = { isPublished: _.neq(false) };
     if (city && String(city).trim()) {
-      query.city = db.RegExp({ regexp: String(city).trim(), options: 'i' });
+      query.city = db.RegExp({ regexp: escapeRegExp(String(city).trim().slice(0, 40)), options: 'i' });
     }
     const res = await db.collection('hackathons').where(query).limit(100).get();
     const all = res.data || [];

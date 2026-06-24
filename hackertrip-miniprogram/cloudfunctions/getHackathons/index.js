@@ -5,6 +5,10 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+function escapeRegExp(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 exports.main = async (event) => {
   const { q, mode, status, sort, limit = 50 } = event || {};
   const col = db.collection('hackathons');
@@ -16,7 +20,7 @@ exports.main = async (event) => {
 
   // 关键词：覆盖赛事文本与标签字段，保证 "AI/硬件/Web3/React" 等自然语言入口可召回
   if (q && q.trim()) {
-    const reg = db.RegExp({ regexp: q.trim(), options: 'i' });
+    const reg = db.RegExp({ regexp: escapeRegExp(q.trim().slice(0, 60)), options: 'i' });
     query = _.and([
       query,
       _.or([

@@ -77,6 +77,29 @@ function buildSystemPrompt(context, focusName) {
   return lines.join('\n');
 }
 
+async function checkMessageContent(openid, message) {
+  if (!openid) return { ok: false, reply: '缺少用户身份，暂时无法发送消息。', fallback: true };
+  try {
+    const security = await cloud.openapi.security.msgSecCheck({
+      openid,
+      scene: 1,
+      version: 2,
+      content: String(message || '').slice(0, 1000),
+      title: 'Haki chat',
+    });
+    const suggest = security && security.result && security.result.suggest;
+    if (security.errcode && security.errcode !== 0) {
+      return { ok: false, reply: '内容安全检测失败，请稍后重试。', fallback: true };
+    }
+    if (suggest === 'risky') {
+      return { ok: false, reply: '这条消息暂时无法处理，请调整内容后再试。', fallback: true };
+    }
+  } catch (e) {
+    return { ok: false, reply: '内容安全检测失败，请稍后重试。', fallback: true };
+  }
+  return null;
+}
+
 /** 归一化前端传来的对话历史 */
 function normalizeHistory(history) {
   if (!Array.isArray(history)) return [];
@@ -115,6 +138,10 @@ exports.main = async (event) => {
   if (!message) {
     return { ok: false, reply: '说点什么吧，比如"我会 React，适合参加哪个？"', fallback: true };
   }
+
+  const openid = (cloud.getWXContext() || {}).OPENID;
+  const securityError = await checkMessageContent(openid, message);
+  if (securityError) return securityError;
 
   const messages = await buildMessages(message, event && event.history, event && event.focusEventId);
 

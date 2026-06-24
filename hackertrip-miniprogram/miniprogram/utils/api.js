@@ -92,6 +92,45 @@ function setStorage(key, val) {
   try { wx.setStorageSync(key, val); } catch (e) {}
 }
 
+function needsAvatarUpload(url) {
+  const value = String(url || '');
+  if (!value) return false;
+  if (value.indexOf('cloud://') === 0) return false;
+  if (/^https?:\/\//i.test(value) && value.indexOf('http://tmp/') !== 0 && value.indexOf('https://tmp/') !== 0) {
+    return false;
+  }
+  return true;
+}
+
+function avatarExt(url) {
+  const match = String(url || '').split('?')[0].match(/\.([a-zA-Z0-9]+)$/);
+  const ext = match && match[1] ? match[1].toLowerCase() : 'png';
+  return ['jpg', 'jpeg', 'png', 'webp'].indexOf(ext) !== -1 ? ext : 'png';
+}
+
+function uploadFile(filePath, cloudPath) {
+  return new Promise((resolve, reject) => {
+    wx.cloud.uploadFile({
+      filePath,
+      cloudPath,
+      success: resolve,
+      fail: reject,
+    });
+  });
+}
+
+async function uploadAvatarIfNeeded(profile) {
+  const next = Object.assign({}, profile || {});
+  if (!cloudReady() || !wx.cloud.uploadFile || !needsAvatarUpload(next.avatarUrl)) return next;
+
+  const ext = avatarExt(next.avatarUrl);
+  const rand = Math.random().toString(36).slice(2, 8);
+  const cloudPath = `avatars/${Date.now()}-${rand}.${ext}`;
+  const uploaded = await uploadFile(next.avatarUrl, cloudPath);
+  if (uploaded && uploaded.fileID) next.avatarUrl = uploaded.fileID;
+  return next;
+}
+
 /* ----------------------------- 黑客松 ----------------------------- */
 
 /** 本地筛选/排序，模拟云函数行为 */
@@ -217,17 +256,36 @@ function getProfile() {
   const v = getStorage(STORAGE.PROFILE, null);
   return Object.assign({}, DEFAULT_PROFILE, v && typeof v === 'object' ? v : {});
 }
+function mergeProfile(patch) {
+  return Object.assign({}, getProfile(), patch || {});
+}
+
+async function saveProfileWithSync(patch, alreadyMerged) {
+  let next = alreadyMerged ? Object.assign({}, patch || {}) : mergeProfile(patch);
+  setStorage(STORAGE.PROFILE, next);
+  if (!cloudReady()) return { ok: true, local: true, profile: next };
+
+  next = await uploadAvatarIfNeeded(next);
+  setStorage(STORAGE.PROFILE, next);
+
+  const res = await callFn('saveProfile', { profile: next });
+  if (res && res.ok) {
+    const profile = Object.assign({}, getProfile(), {
+      avatarUrl: next.avatarUrl || '',
+      publicId: res.publicId || next.publicId || '',
+    });
+    setStorage(STORAGE.PROFILE, profile);
+    return { ok: true, profile, result: res };
+  }
+  return res || { ok: false, message: '身份资料保存失败' };
+}
+
 /** 合并保存用户档案（patch 部分更新），同步 best-effort 上云 */
 function saveProfile(patch) {
-  const next = Object.assign({}, getProfile(), patch || {});
+  const next = mergeProfile(patch);
   setStorage(STORAGE.PROFILE, next);
   if (cloudReady()) {
-    callFn('saveProfile', { profile: next })
-      .then((res) => {
-        if (res && res.publicId) {
-          setStorage(STORAGE.PROFILE, Object.assign({}, getProfile(), { publicId: res.publicId }));
-        }
-      })
+    saveProfileWithSync(next, true)
       .catch(() => {});
   }
   return next;
@@ -236,7 +294,9 @@ function saveProfile(patch) {
 async function getProfileQr(profile) {
   if (!cloudReady()) return { ok: false, code: 'CLOUD_REQUIRED', message: '需要连接云开发后生成小程序码' };
   try {
-    const res = await callFn('getProfileQr', { profile: profile || getProfile() });
+    const prepared = await uploadAvatarIfNeeded(profile || getProfile());
+    if (prepared.avatarUrl) setStorage(STORAGE.PROFILE, Object.assign({}, getProfile(), { avatarUrl: prepared.avatarUrl }));
+    const res = await callFn('getProfileQr', { profile: prepared });
     if (res && res.ok && res.uid) {
       setStorage(STORAGE.PROFILE, Object.assign({}, getProfile(), { publicId: res.uid }));
     }
@@ -524,6 +584,9 @@ async function syncFromCloud() {
       if (Array.isArray(res.bookmarkIds)) setStorage(STORAGE.BOOKMARKS, res.bookmarkIds);
       if (Array.isArray(res.registrations)) setStorage(STORAGE.REGISTRATIONS, res.registrations);
       if (Array.isArray(res.cards)) setStorage(STORAGE.CARDS, res.cards);
+      if (res.profile && typeof res.profile === 'object') {
+        setStorage(STORAGE.PROFILE, Object.assign({}, getProfile(), res.profile));
+      }
       if (res.scan) setScanResults(res.scan);
       if (res.organizerApplication && typeof res.organizerApplication === 'object') {
         setStorage(STORAGE.ORGANIZER, res.organizerApplication);
@@ -555,6 +618,7 @@ module.exports = {
   getCardById,
   getProfile,
   saveProfile,
+  saveProfileWithSync,
   getProfileQr,
   getPublicProfile,
   getUserStats,

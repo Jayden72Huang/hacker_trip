@@ -8,6 +8,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
 const TTL_MS = 30 * 60 * 1000; // 配对码 30 分钟有效
+const CODE_RE = /^\d{6}$/;
 
 exports.main = async (event, context) => {
   const { action, code } = event || {};
@@ -19,6 +20,7 @@ exports.main = async (event, context) => {
     const { scan, card, pairCode } = event;
     const c = (pairCode || code || '').toUpperCase();
     if (!c || !scan) return { ok: false, message: '缺少配对码或扫描数据' };
+    if (!CODE_RE.test(c)) return { ok: false, message: '配对码格式错误' };
     try {
       // 覆盖式写入（同码重推则更新）
       const exist = await col.where({ code: c }).limit(1).get();
@@ -38,7 +40,9 @@ exports.main = async (event, context) => {
   if (action === 'pull') {
     const c = (code || '').toUpperCase();
     if (!c) return { ok: false, message: '请输入配对码' };
+    if (!CODE_RE.test(c)) return { ok: false, message: '配对码格式错误' };
     const openid = (cloud.getWXContext() || {}).OPENID;
+    if (!openid) return { ok: false, message: '缺少用户身份' };
     try {
       const res = await col.where({ code: c }).limit(1).get();
       const doc = res.data && res.data[0];

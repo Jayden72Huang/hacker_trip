@@ -6,7 +6,23 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const DATA = require('./data.js');
 
-exports.main = async () => {
+function isAllowed(event) {
+  const openid = (cloud.getWXContext() || {}).OPENID;
+  const admins = String(process.env.ADMIN_OPENIDS || '')
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean);
+  const token = process.env.SEED_TOKEN || '';
+  if (admins.length && admins.indexOf(openid) !== -1) return true;
+  if (token && event && event.seedToken === token) return true;
+  return false;
+}
+
+exports.main = async (event) => {
+  if (!isAllowed(event)) {
+    return { ok: false, code: 'FORBIDDEN', message: '无权执行种子数据导入' };
+  }
+
   const col = db.collection('hackathons');
   let inserted = 0;
   let updated = 0;

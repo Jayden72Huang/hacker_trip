@@ -7,6 +7,7 @@ exports.main = async (event) => {
   const { card } = event || {};
   if (!card || !card.id) return { ok: false, message: '缺少卡片数据' };
   const openid = (cloud.getWXContext() || {}).OPENID;
+  if (!openid) return { ok: false, message: '缺少用户身份' };
   const col = db.collection('cards');
   const now = Date.now();
   try {

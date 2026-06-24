@@ -5,14 +5,19 @@ const db = cloud.database();
 
 exports.main = async () => {
   const openid = (cloud.getWXContext() || {}).OPENID;
+  if (!openid) {
+    return { ok: false, message: '缺少用户身份', cards: [], bookmarkIds: [], registrations: [], scan: null };
+  }
   try {
-    const [cards, bookmarks, regs, pairs] = await Promise.all([
+    const [cards, bookmarks, regs, pairs, users] = await Promise.all([
       db.collection('cards').where({ openid }).orderBy('updatedAt', 'desc').get(),
       db.collection('bookmarks').where({ openid }).get(),
       db.collection('registrations').where({ openid }).orderBy('registeredAt', 'desc').get(),
       db.collection('sync_pairs').where({ openid, bound: true }).orderBy('boundAt', 'desc').limit(1).get(),
+      db.collection('users').where({ openid }).limit(1).get(),
     ]);
     const lastPair = pairs.data && pairs.data[0];
+    const user = users.data && users.data[0];
 
     let organizerApplication = null;
     try {
@@ -36,6 +41,16 @@ exports.main = async () => {
       bookmarkIds: (bookmarks.data || []).map((b) => b.hackathonId),
       registrations: regs.data || [],
       scan: lastPair ? lastPair.scan : null,
+      profile: user ? {
+        nickname: user.nickname || '',
+        role: user.role || '',
+        city: user.city || '',
+        bio: user.bio || '',
+        github: user.github || '',
+        avatarUrl: user.avatarUrl || '',
+        skills: Array.isArray(user.skills) ? user.skills : [],
+        publicId: user.publicId || '',
+      } : null,
       organizerApplication,
     };
   } catch (e) {
