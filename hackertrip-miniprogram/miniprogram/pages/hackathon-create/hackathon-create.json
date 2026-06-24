@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "发布黑客松",
+  "usingComponents": {
+    "navbar": "/components/navbar/index"
+  }
+}

@@ -131,6 +131,95 @@
   gap: 18rpx;
 }
 
+.role-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: end;
+  gap: 10rpx;
+  margin: 22rpx 0 -4rpx;
+  padding: 0 12rpx;
+  position: relative;
+  z-index: 2;
+}
+
+.role-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 74rpx;
+  color: #000000;
+  background: #ECE8DB;
+  border: 4rpx solid #000000;
+  border-bottom-width: 0;
+  border-radius: 18rpx 18rpx 0 0;
+  font-size: 28rpx;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.role-tab--participant {
+  color: #FFFFFF;
+  background: #0C51ED;
+}
+
+.role-tab--organizer {
+  color: #000000;
+  background: #FBD902;
+}
+
+.role-section-title {
+  margin-top: 36rpx;
+}
+
+.role-empty {
+  margin-top: 0;
+}
+
+.organizer-status {
+  padding: 24rpx;
+  margin-top: 22rpx;
+  background: #FBD902;
+  border: 4rpx solid #000000;
+  border-radius: 16rpx;
+  box-shadow: 8rpx 8rpx 0 0 #000000;
+}
+
+.organizer-status-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.organizer-status-label {
+  color: #000000;
+  font-size: 28rpx;
+  font-weight: 900;
+}
+
+.organizer-status-value {
+  padding: 8rpx 16rpx;
+  color: #FFFFFF;
+  background: #000000;
+  border: 3rpx solid #000000;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 900;
+}
+
+.organizer-status-value.is-approved {
+  color: #000000;
+  background: #13B36B;
+}
+
+.organizer-status-copy {
+  margin-top: 12rpx;
+  color: #3D3D3D;
+  font-size: 24rpx;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
 .link-card {
   display: flex;
   align-items: center;
@@ -141,6 +230,15 @@
   border: 4rpx solid #000000;
   border-radius: 16rpx;
   box-shadow: 8rpx 8rpx 0 0 #000000;
+}
+
+.link-card--disabled {
+  opacity: 0.52;
+  background: #ECE8DB;
+}
+
+.link-card--organizer {
+  border-color: #000000;
 }
 
 .link-card--active {
@@ -183,11 +281,21 @@
   flex-shrink: 0;
 }
 
+.link-arrow--disabled {
+  color: #3D3D3D;
+  background: #ECE8DB;
+}
+
+.link-arrow--organizer {
+  color: #000000;
+  background: #FBD902;
+}
+
 /* ---------------- 个人资料卡 ---------------- */
 .profile-card {
   display: block;
   padding: 30rpx;
-  margin-top: 20rpx;
+  margin-top: 0;
   border: 4rpx solid #000000;
   border-radius: 18rpx;
   box-shadow: 8rpx 8rpx 0 0 #000000;
@@ -245,6 +353,20 @@
 
 /* 未填写：黄底醒目引导 */
 .profile-card--empty {
+  background: #FBD902;
+}
+
+.profile-card--organizer.profile-card--filled {
+  background: #FBD902;
+}
+
+.profile-card--organizer .profile-stat-value,
+.profile-card--organizer .profile-skills {
+  color: #000000;
+}
+
+.profile-card--organizer .profile-edit-btn {
+  color: #000000;
   background: #FBD902;
 }
 

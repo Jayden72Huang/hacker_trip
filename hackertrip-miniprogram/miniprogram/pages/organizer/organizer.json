@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "组织者认证",
+  "usingComponents": {
+    "navbar": "/components/navbar/index"
+  }
+}

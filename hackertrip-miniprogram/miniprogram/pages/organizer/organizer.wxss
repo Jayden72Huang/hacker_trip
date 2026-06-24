@@ -1,0 +1,75 @@
+@import "../focus.wxss";
+
+.organizer-state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+
+.state-copy {
+  margin-top: 8rpx;
+  color: #000000;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.status-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 178rpx;
+  height: 64rpx;
+  color: #FFFFFF;
+  background: #000000;
+  border: 3rpx solid #000000;
+  border-radius: 16rpx;
+  font-size: 24rpx;
+  font-weight: 900;
+}
+
+.status-action--approved {
+  color: #000000;
+  background: #13B36B;
+}
+
+.form-field {
+  margin-top: 24rpx;
+}
+
+.field-label {
+  margin-bottom: 10rpx;
+  color: #000000;
+  font-size: 24rpx;
+  font-weight: 900;
+}
+
+.input-box,
+.textarea-box {
+  width: 100%;
+  padding: 0 22rpx;
+  color: #000000;
+  background: #FFFFFF;
+  border: 4rpx solid #000000;
+  border-radius: 14rpx;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.input-box {
+  height: 86rpx;
+}
+
+.textarea-box {
+  min-height: 180rpx;
+  padding-top: 20rpx;
+  line-height: 1.5;
+}
+
+.organizer-submit {
+  margin-top: 28rpx;
+}
+
+.empty-draft {
+  background: #FFFFFF;
+}

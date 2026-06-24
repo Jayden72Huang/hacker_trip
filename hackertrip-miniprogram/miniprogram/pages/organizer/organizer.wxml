@@ -1,0 +1,60 @@
+<view class="focus-page organizer-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view wx:if="{{aiBanner}}" class="ai-note">
+      <text>来自微信AI助手</text>
+      <text>{{aiIntentText}}</text>
+    </view>
+
+    <view class="focus-title">组织者认证</view>
+    <view class="focus-subtitle">通过认证后，可以发布黑客松并管理赛事信息。</view>
+
+    <view class="brutal-box yellow-box organizer-state">
+      <view>
+        <view class="box-title">当前状态</view>
+        <view class="state-copy">{{statusText}}</view>
+      </view>
+      <button class="status-action {{status === 'approved' ? 'status-action--approved' : ''}}">{{statusActionText}}</button>
+    </view>
+
+    <view wx:if="{{status !== 'pending' && status !== 'approved'}}" class="brutal-box">
+      <view class="box-title">申请信息</view>
+      <view class="form-field">
+        <view class="field-label">机构 / 团队名称</view>
+        <input class="input-box" value="{{form.orgName}}" data-field="orgName" placeholder="例如 HackerTrip / 某大学社团" bindinput="onFieldInput" />
+      </view>
+      <view class="form-field">
+        <view class="field-label">你的身份</view>
+        <input class="input-box" value="{{form.role}}" data-field="role" placeholder="主办方、社区负责人、赞助方..." bindinput="onFieldInput" />
+      </view>
+      <view class="form-field">
+        <view class="field-label">联系方式</view>
+        <input class="input-box" value="{{form.contact}}" data-field="contact" placeholder="微信 / 邮箱 / 手机" bindinput="onFieldInput" />
+      </view>
+      <view class="form-field">
+        <view class="field-label">官网或活动链接</view>
+        <input class="input-box" value="{{form.website}}" data-field="website" placeholder="https://" bindinput="onFieldInput" />
+      </view>
+      <view class="form-field">
+        <view class="field-label">补充说明</view>
+        <textarea class="textarea-box" value="{{form.note}}" data-field="note" placeholder="说明你要举办的黑客松类型、城市、规模。" bindinput="onFieldInput" />
+      </view>
+      <button class="native-btn native-btn--yellow organizer-submit" bindtap="submitApplication">提交组织者申请</button>
+    </view>
+
+    <view wx:else class="brutal-box">
+      <view class="box-title">{{status === 'approved' ? '认证已通过' : '申请审核中'}}</view>
+      <view class="box-copy">{{status === 'approved' ? '现在可以发布黑客松，提交后的赛事仍会进入内容审核。' : '我们会核对机构身份和活动真实性，审核通过后开放发布入口。'}}</view>
+    </view>
+
+    <view class="section-head">已提交赛事</view>
+    <view wx:if="{{drafts.length === 0}}" class="list-card empty-draft">
+      <view class="list-title">暂无赛事草稿</view>
+      <view class="list-subtitle">认证通过后，可以提交第一场黑客松。</view>
+    </view>
+    <view wx:for="{{drafts}}" wx:key="id" class="list-card">
+      <view class="list-title">{{item.name}}</view>
+      <view class="list-subtitle">{{item.city}} · {{item.startDate}} - {{item.endDate}} · 待审核</view>
+    </view>
+  </view>
+</view>

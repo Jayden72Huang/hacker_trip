@@ -9,9 +9,22 @@
 
     <view class="page-title">我的</view>
 
+    <view class="role-tabs" aria-label="身份选择">
+      <button
+        class="role-tab {{profileMode === 'participant' ? 'role-tab--participant' : ''}}"
+        data-mode="participant"
+        bindtap="switchMode"
+      >我要参赛</button>
+      <button
+        class="role-tab {{profileMode === 'organizer' ? 'role-tab--organizer' : ''}}"
+        data-mode="organizer"
+        bindtap="switchMode"
+      >我要举办</button>
+    </view>
+
     <!-- 个人资料卡：上层资料 + 下层黑客松数据指标。点击进入编辑 -->
     <navigator
-      class="profile-card {{profileCard.filled ? 'profile-card--filled' : 'profile-card--empty'}}"
+      class="profile-card {{profileCard.filled ? 'profile-card--filled' : 'profile-card--empty'}} {{profileMode === 'organizer' ? 'profile-card--organizer' : ''}}"
       url="/pages/identity-edit/identity-edit"
       hover-class="profile-card--active"
     >
@@ -40,15 +53,23 @@
       </view>
     </navigator>
 
+    <view wx:if="{{profileMode === 'organizer'}}" class="organizer-status">
+      <view class="organizer-status-main">
+        <text class="organizer-status-label">组织者状态</text>
+        <text class="organizer-status-value {{organizerStatus === 'approved' ? 'is-approved' : ''}}">{{organizerStatusText}}</text>
+      </view>
+      <view class="organizer-status-copy">通过组织者认证后，可以发布黑客松并管理赛事信息。</view>
+    </view>
+
     <!-- 收藏为 0 时的引导空态 -->
-    <view wx:if="{{!loading && savedCount === 0}}" class="empty-state" style="margin-top: 20rpx;">
+    <view wx:if="{{profileMode === 'participant' && !loading && savedCount === 0}}" class="empty-state role-empty">
       <view class="empty-state-title">还没有关注的赛事</view>
       <view class="empty-state-text">去发现页收藏感兴趣的黑客松，资产会自动汇总到这里。</view>
       <navigator class="empty-cta" url="/pages/index/index" open-type="switchTab" hover-class="empty-cta--active">去发现页逛逛</navigator>
     </view>
 
-    <view class="section-title">工具</view>
-    <view class="link-list">
+    <view class="section-title role-section-title">{{profileMode === 'organizer' ? '举办方工具' : '工具'}}</view>
+    <view wx:if="{{profileMode === 'participant'}}" class="link-list">
       <navigator
         wx:for="{{tools}}"
         wx:key="title"
@@ -62,6 +83,21 @@
         </view>
         <text class="link-arrow">打开</text>
       </navigator>
+    </view>
+    <view wx:else class="link-list">
+      <view
+        wx:for="{{organizerTools}}"
+        wx:key="title"
+        class="link-card link-card--organizer {{item.action === 'disabled' ? 'link-card--disabled' : ''}}"
+        data-index="{{index}}"
+        bindtap="onOrganizerToolTap"
+      >
+        <view class="link-main">
+          <view class="link-title">{{item.title}}</view>
+          <view class="link-sub">{{item.sub}}</view>
+        </view>
+        <text class="link-arrow link-arrow--organizer {{item.action === 'disabled' ? 'link-arrow--disabled' : ''}}">{{item.action === 'disabled' ? '锁定' : '进入'}}</text>
+      </view>
     </view>
 
     <view class="section-title">设置</view>

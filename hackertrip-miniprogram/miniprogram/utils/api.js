@@ -17,6 +17,8 @@ const STORAGE = {
   REGISTRATIONS: 'ht_registrations', // 报名清单
   SCAN_RESULTS: 'ht_scan_results', // Skills 同步过来的扫描匹配结果
   PROFILE: 'ht_profile', // 统一用户档案（身份编辑/身份卡/公开主页/分享/设置共享）
+  ORGANIZER: 'ht_organizer_application', // 组织者申请与审核状态
+  HACKATHON_DRAFTS: 'ht_hackathon_drafts', // 组织者提交的赛事草稿
 };
 
 /** 全站统一的用户档案默认值（替代各页面散落的硬编码 mock） */
@@ -231,6 +233,64 @@ function getUserStats() {
   };
 }
 
+/* ----------------------------- 组织者 ----------------------------- */
+
+function getOrganizerApplication() {
+  const v = getStorage(STORAGE.ORGANIZER, null);
+  if (!v || typeof v !== 'object') {
+    return {
+      status: 'none',
+      orgName: '',
+      role: '',
+      contact: '',
+      website: '',
+      note: '',
+      submittedAt: 0,
+      reviewedAt: 0,
+    };
+  }
+  return Object.assign({
+    status: 'none',
+    orgName: '',
+    role: '',
+    contact: '',
+    website: '',
+    note: '',
+    submittedAt: 0,
+    reviewedAt: 0,
+  }, v);
+}
+
+function saveOrganizerApplication(form) {
+  const next = Object.assign({}, getOrganizerApplication(), form || {}, {
+    status: 'pending',
+    submittedAt: Date.now(),
+  });
+  setStorage(STORAGE.ORGANIZER, next);
+  return next;
+}
+
+function isOrganizerApproved() {
+  return getOrganizerApplication().status === 'approved';
+}
+
+function getHackathonDrafts() {
+  const v = getStorage(STORAGE.HACKATHON_DRAFTS, []);
+  return Array.isArray(v) ? v : [];
+}
+
+function saveHackathonDraft(form) {
+  const drafts = getHackathonDrafts();
+  const draft = Object.assign({}, form || {}, {
+    id: `draft-${Date.now()}`,
+    status: 'pending_review',
+    submittedAt: Date.now(),
+  });
+  drafts.unshift(draft);
+  setStorage(STORAGE.HACKATHON_DRAFTS, drafts);
+  return draft;
+}
+
 /* ----------------------------- AI 聊天 ----------------------------- */
 
 /**
@@ -370,6 +430,11 @@ module.exports = {
   getProfile,
   saveProfile,
   getUserStats,
+  getOrganizerApplication,
+  saveOrganizerApplication,
+  isOrganizerApproved,
+  getHackathonDrafts,
+  saveHackathonDraft,
   getPortfolioProjects,
   getScanResults,
   setScanResults,

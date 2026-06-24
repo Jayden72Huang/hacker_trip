@@ -1,0 +1,65 @@
+<view class="focus-page create-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view wx:if="{{aiBanner}}" class="ai-note">
+      <text>来自微信AI助手</text>
+      <text>{{aiIntentText}}</text>
+    </view>
+
+    <view class="focus-title">发布黑客松</view>
+    <view class="focus-subtitle">提交后先进入审核，审核通过后才会展示给参赛者和微信 AI。</view>
+
+    <view wx:if="{{!allowed}}" class="brutal-box yellow-box">
+      <view class="box-title">需要组织者认证</view>
+      <view class="box-copy">发布黑客松前，需要先申请成为组织者并通过审核。</view>
+      <button class="native-btn create-apply" bindtap="goApply">申请成为组织者</button>
+    </view>
+
+    <view wx:else class="brutal-box">
+      <view class="box-title">赛事信息</view>
+      <view class="form-field">
+        <view class="field-label">赛事名称</view>
+        <input class="input-box" value="{{form.name}}" data-field="name" placeholder="例如 AI Agent 黑客松" bindinput="onFieldInput" />
+      </view>
+      <view class="form-field">
+        <view class="field-label">城市</view>
+        <input class="input-box" value="{{form.city}}" data-field="city" placeholder="深圳 / 上海 / 线上" bindinput="onFieldInput" />
+      </view>
+      <view class="form-field">
+        <view class="field-label">举办形式</view>
+        <view class="mode-row">
+          <button class="mode-chip {{form.mode === 'offline' ? 'mode-chip--active' : ''}}" data-mode="offline" bindtap="chooseMode">线下</button>
+          <button class="mode-chip {{form.mode === 'online' ? 'mode-chip--active' : ''}}" data-mode="online" bindtap="chooseMode">线上</button>
+          <button class="mode-chip {{form.mode === 'hybrid' ? 'mode-chip--active' : ''}}" data-mode="hybrid" bindtap="chooseMode">混合</button>
+        </view>
+      </view>
+      <view class="form-grid">
+        <view class="form-field">
+          <view class="field-label">开始日期</view>
+          <input class="input-box" value="{{form.startDate}}" data-field="startDate" placeholder="YYYY-MM-DD" bindinput="onFieldInput" />
+        </view>
+        <view class="form-field">
+          <view class="field-label">结束日期</view>
+          <input class="input-box" value="{{form.endDate}}" data-field="endDate" placeholder="YYYY-MM-DD" bindinput="onFieldInput" />
+        </view>
+      </view>
+      <view class="form-field">
+        <view class="field-label">奖金 / 资源</view>
+        <input class="input-box" value="{{form.prizePool}}" data-field="prizePool" placeholder="例如 10万元奖金 + 云资源" bindinput="onFieldInput" />
+      </view>
+      <view class="form-field">
+        <view class="field-label">赛道 / 技术方向</view>
+        <input class="input-box" value="{{form.tracks}}" data-field="tracks" placeholder="AI Agent、Web3、硬件..." bindinput="onFieldInput" />
+      </view>
+      <view class="form-field">
+        <view class="field-label">官网 / 报名链接</view>
+        <input class="input-box" value="{{form.website}}" data-field="website" placeholder="https://" bindinput="onFieldInput" />
+      </view>
+      <view class="form-field">
+        <view class="field-label">一句话简介</view>
+        <textarea class="textarea-box" value="{{form.summary}}" data-field="summary" placeholder="说明活动主题、参赛对象、亮点和报名要求。" bindinput="onFieldInput" />
+      </view>
+      <button class="native-btn native-btn--yellow create-submit" bindtap="submitHackathon">提交审核</button>
+    </view>
+  </view>
+</view>

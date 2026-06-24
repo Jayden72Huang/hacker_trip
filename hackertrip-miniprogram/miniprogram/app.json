@@ -10,6 +10,8 @@
     "pages/identity/identity",
     "pages/identity-edit/identity-edit",
     "pages/sync/sync",
+    "pages/organizer/organizer",
+    "pages/hackathon-create/hackathon-create",
     "pages/portfolio/portfolio",
     "pages/agent/agent",
     "pages/public-site/public-site",
