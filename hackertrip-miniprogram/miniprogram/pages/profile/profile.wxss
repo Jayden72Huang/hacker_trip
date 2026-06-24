@@ -134,12 +134,9 @@
 .role-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  align-items: end;
-  gap: 10rpx;
-  margin: 22rpx 0 -4rpx;
-  padding: 0 12rpx;
-  position: relative;
-  z-index: 2;
+  gap: 14rpx;
+  margin: 22rpx 0 24rpx;
+  padding: 0;
 }
 
 .role-tab {
@@ -150,8 +147,7 @@
   color: #000000;
   background: #ECE8DB;
   border: 4rpx solid #000000;
-  border-bottom-width: 0;
-  border-radius: 18rpx 18rpx 0 0;
+  border-radius: 18rpx;
   font-size: 28rpx;
   font-weight: 900;
   line-height: 1.2;
@@ -294,6 +290,8 @@
 /* ---------------- 个人资料卡 ---------------- */
 .profile-card {
   display: block;
+  width: 100%;
+  box-sizing: border-box;
   padding: 30rpx;
   margin-top: 0;
   border: 4rpx solid #000000;
@@ -304,8 +302,8 @@
 /* 上层：头像 + 资料 + 编辑按钮 */
 .profile-head {
   display: flex;
-  align-items: center;
-  gap: 22rpx;
+  align-items: flex-start;
+  gap: 20rpx;
 }
 
 /* 下层：卡内数据指标行 */
@@ -380,7 +378,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   color: #000000;
-  font-size: 34rpx;
+  font-size: 32rpx;
   font-weight: 900;
   line-height: 1.25;
 }
@@ -405,7 +403,8 @@
 
 .profile-edit-btn {
   flex-shrink: 0;
-  padding: 12rpx 22rpx;
+  min-width: 82rpx;
+  padding: 12rpx 18rpx;
   color: #FFFFFF;
   background: #0C51ED;
   border: 3rpx solid #000000;

@@ -6,6 +6,75 @@
   margin-bottom: 34rpx;
 }
 
+.haki-entry {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  padding: 24rpx;
+  margin: 8rpx 0 32rpx;
+  color: #000000;
+  background: #FFFFFF;
+  border: 4rpx solid #000000;
+  border-radius: 16rpx;
+  box-shadow: 8rpx 8rpx 0 0 #000000;
+}
+
+.haki-entry--active {
+  transform: translate(4rpx, 4rpx);
+  box-shadow: 4rpx 4rpx 0 0 #000000;
+}
+
+.haki-entry-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70rpx;
+  height: 70rpx;
+  color: #FFFFFF;
+  background: #0C51ED;
+  border: 3rpx solid #000000;
+  border-radius: 14rpx;
+  font-size: 24rpx;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.haki-entry-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.haki-entry-title {
+  color: #000000;
+  font-size: 32rpx;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.haki-entry-sub {
+  margin-top: 8rpx;
+  color: #3D3D3D;
+  font-size: 23rpx;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.haki-entry-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 82rpx;
+  height: 56rpx;
+  padding: 0 16rpx;
+  color: #000000;
+  background: #FBD902;
+  border: 3rpx solid #000000;
+  border-radius: 12rpx;
+  font-size: 23rpx;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
 .message-card {
   display: flex;
   align-items: flex-start;
