@@ -14,12 +14,22 @@ exports.main = async (event) => {
   if (status === 'upcoming') query.isPast = _.neq(true);
   if (status === 'ended') query.isPast = true;
 
-  // 关键词：云数据库正则模糊匹配 name/city/theme
+  // 关键词：覆盖赛事文本与标签字段，保证 "AI/硬件/Web3/React" 等自然语言入口可召回
   if (q && q.trim()) {
     const reg = db.RegExp({ regexp: q.trim(), options: 'i' });
     query = _.and([
       query,
-      _.or([{ name: reg }, { city: reg }, { theme: reg }]),
+      _.or([
+        { name: reg },
+        { shortName: reg },
+        { city: reg },
+        { location: reg },
+        { theme: reg },
+        { summary: reg },
+        { tracks: reg },
+        { techStack: reg },
+        { tags: reg },
+      ]),
     ]);
   }
 

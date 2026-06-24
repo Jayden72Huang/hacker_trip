@@ -2,14 +2,14 @@
   "apis": [
     {
       "name": "searchHackathons",
-      "description": "当用户想浏览或按关键词、城市、线上线下、时间筛选黑客松（hackathon / 编程比赛 / 极客比赛）时调用。例如「最近有什么 AI 黑客松」「周末上海的 hackathon」「有没有线上的黑客松」「深圳有什么编程比赛」。返回匹配的黑客松卡片列表，含名称、时间、地点、奖金、技术栈与一句话简介。",
+      "description": "搜索黑客松赛事。当用户想浏览或按关键词、城市、线上线下、主题、赛道、技术方向筛选黑客松（hackathon / 编程比赛 / 极客比赛）时调用。例如「最近有什么 AI 黑客松」「周末上海的 hackathon」「有没有线上的黑客松」「深圳有什么编程比赛」。如果用户已经给出自己的技术栈并询问适合参加哪些比赛，应优先调用 matchHackathonsByStack。",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "q": { "type": "string", "description": "搜索关键词，可为赛事名、城市或主题，如「AI」「上海」" },
-          "mode": { "type": "string", "enum": ["offline", "online", "hybrid"], "description": "举办形式：offline 线下 / online 线上 / hybrid 线上线下" },
-          "status": { "type": "string", "enum": ["upcoming", "ended"], "description": "赛事状态筛选，upcoming 未结束 / ended 已结束，默认不限" },
-          "limit": { "type": "number", "description": "返回数量上限，默认 8" }
+          "q": { "type": "string", "description": "搜索关键词，可为赛事名、城市、主题、赛道或技术方向，例如「AI」「上海」「硬件」「React」。用户没有说出明确关键词时不要填写本字段，可不带 q 浏览赛事。" },
+          "mode": { "type": "string", "enum": ["offline", "online", "hybrid"], "description": "举办形式：offline 线下 / online 线上 / hybrid 线上线下。用户未明确形式时不要填写本字段。" },
+          "status": { "type": "string", "enum": ["upcoming", "ended"], "description": "赛事状态筛选，upcoming 未结束 / ended 已结束。默认不填写；用户询问可报名、近期、推荐时优先使用 upcoming。" },
+          "limit": { "type": "number", "description": "返回数量上限，默认 8。用户未要求数量时不要填写；如用户说推荐几个，可填 3 到 8。" }
         }
       },
       "outputSchema": {
@@ -38,7 +38,7 @@
     },
     {
       "name": "matchHackathonsByStack",
-      "description": "HackerTrip 的核心能力。当用户描述了自己的技术栈、擅长方向或项目类型（如 React、Node、AI、大模型、IoT、硬件、Web3、Python），想知道适合参加哪些黑客松时调用。例如「我会 React 和 Node，能参加哪些比赛」「我想做硬件项目参赛」「适合 AI 方向的黑客松」。返回按技术栈匹配度排序的赛事列表，每条带匹配理由 fitReason。",
+      "description": "按技术栈匹配黑客松，这是 HackerTrip 的核心能力。当用户描述了自己的技术栈、擅长方向或项目类型（如 React、Node、AI、大模型、IoT、硬件、Web3、Python），想知道适合参加哪些黑客松时调用。例如「我会 React 和 Node，能参加哪些比赛」「我想做硬件项目参赛」「适合 AI 方向的黑客松」。返回按技术栈匹配度排序的赛事列表，每条带匹配理由 fitReason。",
       "inputSchema": {
         "type": "object",
         "required": ["techStack"],
@@ -46,11 +46,11 @@
           "techStack": {
             "type": "array",
             "items": { "type": "string" },
-            "description": "用户的技术栈或方向标签，如 [\"React\",\"Node\",\"AI\"]；也接受逗号分隔的字符串"
+            "description": "用户明确表达的技术栈、项目方向或能力标签，例如 [\"React\",\"Node\",\"AI\"]、[\"硬件\",\"IoT\"]。不要凭空补充用户未说过的技术栈；如果用户只说「推荐几个比赛」而没有技术方向，应改用 searchHackathons。"
           },
-          "city": { "type": "string", "description": "可选，限定城市，如「深圳」" },
-          "onlyUpcoming": { "type": "boolean", "description": "是否仅返回未结束的赛事，默认 true" },
-          "limit": { "type": "number", "description": "返回数量上限，默认 6" }
+          "city": { "type": "string", "description": "可选，限定城市，例如「深圳」「上海」。用户未明确城市时不要填写。" },
+          "onlyUpcoming": { "type": "boolean", "description": "是否仅返回未结束的赛事，默认 true。除非用户明确要看历史赛事，否则保持 true。" },
+          "limit": { "type": "number", "description": "返回数量上限，默认 6。用户未要求数量时不要填写；如用户说 Top3，可填 3。" }
         }
       },
       "outputSchema": {
@@ -81,12 +81,12 @@
     },
     {
       "name": "getHackathonDetail",
-      "description": "当用户想了解某一场具体黑客松的完整信息时调用。例如「AdventureX 什么时候、在哪、奖金多少」「详细介绍下这场比赛」「这个比赛的赛道有哪些」「XX 报名截止了吗」。需要先通过搜索或匹配拿到赛事 id。返回该赛事的时间、地点、形式、主题、赛道、技术栈、奖金、报名截止、官网等完整字段。",
+      "description": "查询单场黑客松详情。当用户想了解某一场具体黑客松的完整信息时调用。例如「AdventureX 什么时候、在哪、奖金多少」「详细介绍下这场比赛」「这个比赛的赛道有哪些」「XX 报名截止了吗」。必须先通过 searchHackathons 或 matchHackathonsByStack 拿到赛事 id；如果上下文没有可用 id，应先搜索或匹配。",
       "inputSchema": {
         "type": "object",
         "required": ["id"],
         "properties": {
-          "id": { "type": "string", "description": "赛事业务 id，如「ht-02」，来自搜索或匹配结果" }
+          "id": { "type": "string", "description": "赛事唯一业务 id，必须取自上游 searchHackathons 或 matchHackathonsByStack 返回的 id 原值。不要根据赛事名称、示例值或用户自然语言猜测 id；上下文没有可用 id 时，应先调用 searchHackathons 或 matchHackathonsByStack。" }
         }
       },
       "outputSchema": {
