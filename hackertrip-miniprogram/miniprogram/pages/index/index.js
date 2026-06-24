@@ -24,6 +24,21 @@ function matchFilter(item, filter) {
   return text.toLowerCase().includes(filter.toLowerCase());
 }
 
+function compactDateRange(startDate, endDate) {
+  if (!startDate) return '待确认';
+  if (!endDate || endDate === startDate) return startDate;
+  if (startDate.slice(0, 4) === endDate.slice(0, 4)) {
+    return `${startDate} - ${endDate.slice(5)}`;
+  }
+  return `${startDate} - ${endDate}`;
+}
+
+function decorateFeatured(list) {
+  return list.slice(0, 4).map((item) => Object.assign({}, item, {
+    featuredDateText: compactDateRange(item.startDate, item.endDate),
+  }));
+}
+
 Page({
   data: {
     title: '发现黑客松',
@@ -71,7 +86,7 @@ Page({
 
     this.setData({
       cities,
-      featured: all.slice(0, 4),
+      featured: decorateFeatured(all),
       totalCount: all.length,
       loading: false,
     });
@@ -128,7 +143,7 @@ Page({
     }));
 
     this.setData({
-      featured: cityEvents.slice(0, 4),
+      featured: decorateFeatured(cityEvents),
       hackathons: marked.slice(0, 4),
       filteredCount: marked.length,
     });

@@ -34,7 +34,10 @@
 
     <!-- 内容区 -->
     <block wx:else>
-    <view class="section-title">精选推荐</view>
+    <view class="featured-head">
+      <view class="section-title featured-head-title">精选推荐</view>
+      <view class="featured-head-line"></view>
+    </view>
     <scroll-view class="featured-scroll" scroll-x enable-flex>
       <navigator
         wx:for="{{featured}}"
@@ -44,16 +47,32 @@
         hover-class="featured-card--active"
       >
         <view class="featured-title">{{item.shortName || item.name}}</view>
-        <view class="featured-subtitle">{{item.startDate}} · {{item.city}} · {{item.modeText}}</view>
-        <view class="featured-prize">{{item.prizePool}}</view>
-        <view class="featured-tags">
-          <text wx:for="{{item.techStack}}" wx:key="*this" wx:if="{{index < 3}}" class="mini-tag">{{item}}</text>
+        <view class="featured-info">
+          <view class="featured-info-row">
+            <text class="featured-info-label">时间</text>
+            <text class="featured-info-value">{{item.featuredDateText || '待确认'}}</text>
+          </view>
+          <view class="featured-info-row">
+            <text class="featured-info-label">地点</text>
+            <text class="featured-info-value">{{item.location || item.city || '待确认'}}</text>
+          </view>
+          <view class="featured-info-row featured-info-row--split">
+            <view class="featured-inline">
+              <text class="featured-info-label">模式</text>
+              <text class="featured-mode-pill">{{item.modeText || '待确认'}}</text>
+            </view>
+            <view class="featured-inline featured-inline--prize">
+              <text class="featured-info-label">奖金</text>
+              <text class="featured-info-value featured-prize">{{item.prizePool || '待确认'}}</text>
+            </view>
+          </view>
         </view>
       </navigator>
     </scroll-view>
 
     <view class="list-head">
-      <view class="section-title">更多黑客松</view>
+      <view class="section-title list-head-title">更多黑客松</view>
+      <view class="list-head-line"></view>
     </view>
 
     <view class="search-row">
