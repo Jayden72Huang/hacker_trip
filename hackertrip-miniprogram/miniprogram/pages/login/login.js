@@ -8,6 +8,8 @@ Page({
     aiIntentText: 'login',
     redirect: '', // 写操作来源页，登录后回原任务
     logging: false,
+    nickName: '',
+    avatarUrl: '',
   },
 
   onLoad(options) {
@@ -19,18 +21,21 @@ Page({
     });
   },
 
-  // 必须在用户点击手势里直接调 getUserProfile（微信合规要求）
+  onChooseAvatar(e) {
+    const url = e && e.detail && e.detail.avatarUrl;
+    if (url) this.setData({ avatarUrl: url });
+  },
+
+  onNicknameInput(e) {
+    this.setData({ nickName: (e.detail && e.detail.value) || '' });
+  },
+
   onLogin() {
     if (this.data.logging) return;
-    wx.getUserProfile({
-      desc: '用于完善你的参赛身份卡和公开主页',
-      success: (res) => {
-        this.setData({ logging: true });
-        this.finishLogin(res.userInfo);
-      },
-      fail: () => {
-        wx.showToast({ title: '未完成登录', icon: 'none' });
-      },
+    this.setData({ logging: true });
+    this.finishLogin({
+      nickName: this.data.nickName.trim(),
+      avatarUrl: this.data.avatarUrl,
     });
   },
 

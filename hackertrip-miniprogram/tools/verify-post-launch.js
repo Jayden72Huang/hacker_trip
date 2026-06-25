@@ -82,7 +82,11 @@ function verifyAuthContract() {
   contains('miniprogram/utils/api.js', /function getAuth\(\)[\s\S]*cached\.openid[\s\S]*clearUserSession/, 'getAuth must reject stale auth without openid');
   contains('miniprogram/utils/api.js', /async function requireAuth[\s\S]*isLoggedIn\(\)[\s\S]*selectComponent\('#authModal'\)/, 'requireAuth must open auth-modal only after checking login state');
   contains('miniprogram/utils/api.js', /async function loginWithUserInfo[\s\S]*cloudReady[\s\S]*callFn\('login'[\s\S]*!res\.openid[\s\S]*const openid = res\.openid[\s\S]*openid, userInfo[\s\S]*setAuth\(auth\)/, 'login must require cloud login and bind auth to openid');
-  contains('miniprogram/components/auth-modal/index.js', 'wx.getUserProfile', 'auth modal must use WeChat profile authorization');
+  assertNoForbiddenText('miniprogram', 'wx.getUserProfile', 'mini program must not use deprecated getUserProfile login flow');
+  contains('miniprogram/components/auth-modal/index.wxml', 'open-type="chooseAvatar"', 'auth modal must use avatar nickname capability');
+  contains('miniprogram/components/auth-modal/index.wxml', 'type="nickname"', 'auth modal must expose nickname input');
+  contains('miniprogram/pages/login/login.wxml', 'open-type="chooseAvatar"', 'login page must use avatar nickname capability');
+  contains('miniprogram/pages/login/login.wxml', 'type="nickname"', 'login page must expose nickname input');
   contains('miniprogram/components/auth-modal/index.js', '未完成登录', 'auth modal cancel copy must not say 已取消登录');
   contains('miniprogram/pages/profile/profile.wxml', 'bindtap="openLogin"', 'profile page must expose login entry');
   contains('miniprogram/pages/profile/profile.wxml', '<auth-modal id="authModal"', 'profile page must include auth modal');

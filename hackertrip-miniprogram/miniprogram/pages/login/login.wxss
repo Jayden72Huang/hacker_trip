@@ -54,6 +54,54 @@
   text-align: center;
 }
 
+.login-profile-form {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  margin-top: 30rpx;
+  padding: 22rpx;
+}
+
+.login-avatar-btn {
+  flex: 0 0 104rpx;
+  width: 104rpx;
+  height: 104rpx;
+  padding: 0;
+  margin: 0;
+  color: #000000;
+  background: #FBD902;
+  border: 4rpx solid #000000;
+  border-radius: 18rpx;
+  box-shadow: 5rpx 5rpx 0 0 #000000;
+  font-size: 26rpx;
+  font-weight: 900;
+  line-height: 96rpx;
+}
+
+.login-avatar-btn::after {
+  border: none;
+}
+
+.login-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 14rpx;
+}
+
+.login-nickname-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 96rpx;
+  box-sizing: border-box;
+  padding: 0 22rpx;
+  color: #000000;
+  background: #FFFFFF;
+  border: 4rpx solid #000000;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
 .login-btn {
   margin-top: 24rpx;
 }

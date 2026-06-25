@@ -8,6 +8,20 @@
       <view class="auth-benefit">保存赛程、收藏和 Skills 结果</view>
       <view class="auth-benefit">生成可分享的公开 profile</view>
     </view>
+    <view class="auth-profile-form">
+      <button class="auth-avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image wx:if="{{avatarUrl}}" class="auth-avatar-img" src="{{avatarUrl}}" mode="aspectFill" />
+        <text wx:else>头像</text>
+      </button>
+      <input
+        class="auth-nickname-input"
+        type="nickname"
+        value="{{nickName}}"
+        placeholder="填写昵称（可选）"
+        placeholder-class="auth-placeholder"
+        bindinput="onNicknameInput"
+      />
+    </view>
     <button class="auth-primary" loading="{{logging}}" disabled="{{logging}}" bindtap="onLoginTap">
       {{logging ? '登录中...' : '微信登录'}}
     </button>
