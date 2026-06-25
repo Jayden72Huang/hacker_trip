@@ -9,12 +9,18 @@ Page({
     projects: [],
   },
 
-  onLoad(options) {
+  async onLoad(options) {
     const ai = parseAIEntry(options);
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
     this.setData({
       aiBanner: ai.fromAI,
       aiIntentText: ai.intent || 'portfolio',
       projects: api.getPortfolioProjects(),
     });
+  },
+
+  async onShow() {
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
+    this.setData({ projects: api.getPortfolioProjects() });
   },
 });

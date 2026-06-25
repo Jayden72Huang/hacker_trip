@@ -30,6 +30,7 @@ Page({
     item: null,
     metaRows: [],
     loading: true,
+    bookmarked: false,
   },
 
   async onLoad(options) {
@@ -50,9 +51,12 @@ Page({
     }
     const item = buildDetail(raw);
 
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
+
     this.setData({
       loading: false,
       item,
+      bookmarked: api.isBookmarked(item.id),
       metaRows: [
         { label: '名称', value: item.name },
         { label: '日期', value: item.dateText },
@@ -87,6 +91,24 @@ Page({
       wx.showToast({ title: '已加入赛程', icon: 'success' });
     } catch (e) {
       wx.showToast({ title: '赛程同步失败，请重试', icon: 'none' });
+    }
+  },
+
+  async toggleBookmark() {
+    const item = this.data.item;
+    if (!item || !item.id) return;
+    const auth = await api.requireAuth(
+      this,
+      '/pages/detail/detail?id=' + item.id,
+      '登录后才能收藏赛事，并在「赛程」Tab 中同步查看。',
+    );
+    if (!auth) return;
+    try {
+      const active = await api.toggleBookmark(item.id);
+      this.setData({ bookmarked: active });
+      wx.showToast({ title: active ? '已收藏' : '已取消收藏', icon: 'none' });
+    } catch (e) {
+      wx.showToast({ title: '收藏同步失败，请重试', icon: 'none' });
     }
   },
 

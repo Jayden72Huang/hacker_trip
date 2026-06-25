@@ -42,9 +42,23 @@ const DEFAULT_PROFILE = {
   publicId: '',
 };
 
-/** 读取作品集列表：未接真实作品提交前保持空状态，不展示示例作品冒充用户数据。 */
 function getPortfolioProjects() {
-  return [];
+  const scan = getScanResults();
+  const project = scan && scan.project && typeof scan.project === 'object' ? scan.project : null;
+  if (!project || !(project.name || project.summary || project.description)) return [];
+  const firstMatch = Array.isArray(scan.matches) && scan.matches.length ? scan.matches[0] : null;
+  const tags = Array.isArray(project.techStack) && project.techStack.length
+    ? project.techStack.slice(0, 6)
+    : (Array.isArray(project.tags) ? project.tags.slice(0, 6) : []);
+  return [{
+    id: project.id || `sync-${scan.syncedAt || 'project'}`,
+    name: project.name || '未命名项目',
+    subtitle: project.summary || project.description || '来自 Skills 同步的项目画像',
+    event: firstMatch ? (firstMatch.name || firstMatch.hackathonId || '匹配赛事') : '未关联赛事',
+    status: scan.syncedAt ? '已同步' : '待完善',
+    tags,
+    syncedAt: scan.syncedAt || 0,
+  }];
 }
 
 function cloudReady() {
@@ -434,7 +448,7 @@ function getUserStats() {
   return {
     hackathons: getRegistrations().length,
     bookmarks: getBookmarks().length,
-    projects: getCards().length,
+    projects: getPortfolioProjects().length,
     skills: Array.isArray(profile.skills) ? profile.skills.length : 0,
   };
 }

@@ -132,7 +132,7 @@ function drawCard(ctx, data, dpr) {
 
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.fillText('AI 工具', 52, y);
-    y = drawChips(ctx, data.aiTools && data.aiTools.length ? data.aiTools : ['Claude Code', 'Cursor'], 52, y + 28, W - 104, {}) + 28;
+    y = drawChips(ctx, data.aiTools && data.aiTools.length ? data.aiTools : ['未配置'], 52, y + 28, W - 104, {}) + 28;
 
     // 打法 + 组队徽章
     const ps = PLAY_STYLE_META[data.playStyle || 'solo'];

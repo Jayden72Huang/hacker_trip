@@ -16,7 +16,7 @@ Page({
     variant: 'identity', // identity | config
     // 表单（techStack 在 onLoad 用统一档案 skills 初始化）
     techStack: [],
-    aiTools: ['Claude Code'],
+    aiTools: [],
     playStyleIdx: 0,
     lookingForIdx: 1,
     techInput: '',

@@ -116,6 +116,10 @@ function verifyScheduleOwnership() {
   contains('miniprogram/pages/schedule/schedule.js', 'activeEvent =', 'schedule page must derive active event from user-owned data');
   assertInOrder('miniprogram/pages/schedule/schedule.js', ['api.isLoggedIn()', 'api.syncUserDataIfLoggedIn()', 'api.getRegistrations()', 'api.getBookmarkedHackathons()'], 'schedule must sync current user data before reading joined/bookmarked events');
   contains('miniprogram/pages/schedule/schedule.wxml', '登录后查看你已加入和收藏的赛事', 'schedule page must show logged-out login prompt instead of stale personal data');
+  contains('miniprogram/pages/detail/detail.js', 'api.toggleBookmark(item.id)', 'detail page must let users follow/bookmark an event');
+  contains('miniprogram/pages/detail/detail.wxml', "{{bookmarked ? '取消收藏' : '收藏赛事'}}", 'detail page must expose bookmark state');
+  contains('miniprogram/pages/schedule/schedule.js', 'async removeBookmark', 'schedule page must let users remove followed/bookmarked events');
+  contains('miniprogram/pages/schedule/schedule.wxml', 'catchtap="removeBookmark"', 'schedule bookmark list must expose remove action');
 }
 
 function verifyUserBoundDataSync() {
@@ -147,6 +151,7 @@ function verifyUserBoundDataSync() {
     'miniprogram/pages/settings/settings.js',
     'miniprogram/pages/organizer/organizer.js',
     'miniprogram/pages/hackathon-create/hackathon-create.js',
+    'miniprogram/pages/portfolio/portfolio.js',
   ].forEach((rel) => {
     contains(rel, 'api.syncUserDataIfLoggedIn()', `${rel} must refresh current-user cloud cache before showing user-bound data`);
   });
@@ -168,6 +173,8 @@ function verifyIdentityAndShare() {
   contains('miniprogram/pages/identity/identity.wxml', 'bindtap="prepareShare"', 'share button must prepare/persist identity card before forwarding');
   contains('miniprogram/pages/share/share.js', 'api.getPublicProfile(uid)', 'share landing must fetch sharer public profile');
   contains('miniprogram/pages/public-site/public-site.js', 'api.getPublicProfile(uid)', 'public site must fetch public profile by uid');
+  contains('miniprogram/pages/public-site/public-site.js', 'projects: api.getPortfolioProjects()', 'own public profile preview must use synced portfolio projects');
+  contains('cloudfunctions/getPublicProfile/index.js', /function buildProjects\(scan\)[\s\S]*scan\.project[\s\S]*projects\.length/, 'public profile cloud function must derive public projects from latest synced project');
 }
 
 function verifyAgentAndSkills() {
@@ -186,6 +193,9 @@ function verifyAgentAndSkills() {
   contains('miniprogram/utils/api.js', '上线产品不再把 mock 当成功', 'sync API must reject mock-as-success behavior');
   assert(!/async function pullSyncByCode[\s\S]*localScan[\s\S]*return \{[\s\S]*synced: true/.test(read('miniprogram/utils/api.js')), 'pullSyncByCode must not return local mock success');
   contains('miniprogram/pages/sync/sync.wxml', '同步后会更新', 'sync page must show where synced data is used');
+  contains('miniprogram/utils/api.js', /function getPortfolioProjects\(\)[\s\S]*getScanResults\(\)[\s\S]*project/, 'portfolio projects must derive from synced user project data instead of hardcoded samples');
+  assert(!read('miniprogram/pages/identity/identity.js').includes("aiTools: ['Claude Code']"), 'identity card must not prefill fake AI tools');
+  assert(!read('miniprogram/utils/card-canvas.js').includes("['Claude Code', 'Cursor']"), 'card canvas must not render fake AI tools when user has none');
   contains('cloudfunctions/pairSync/index.js', "action === 'create'", 'pairSync must support create action');
   contains('cloudfunctions/pairSync/index.js', "action === 'push'", 'pairSync must support push action');
   contains('cloudfunctions/pairSync/index.js', "action === 'pull'", 'pairSync must support pull action');

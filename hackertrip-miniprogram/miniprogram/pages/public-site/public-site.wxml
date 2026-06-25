@@ -54,9 +54,9 @@
     </view>
 
     <view class="section-head">项目</view>
-    <view wx:for="{{projects}}" wx:key="name" class="list-card">
+    <view wx:for="{{projects}}" wx:key="id" class="list-card">
       <view class="list-title">{{item.name}}</view>
-      <view class="list-subtitle">{{item.desc}}</view>
+      <view class="list-subtitle">{{item.desc || item.subtitle}}</view>
     </view>
     <view wx:if="{{!projects.length}}" class="list-card">
       <view class="list-subtitle">还没有公开项目，作品提交后会显示在这里。</view>

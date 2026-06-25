@@ -41,6 +41,9 @@
   </view>
 
   <view class="fixed-actions">
+    <button class="native-link" hover-class="native-link--active" bindtap="toggleBookmark">
+      {{bookmarked ? '取消收藏' : '收藏赛事'}}
+    </button>
     <button
       wx:if="{{item.canRegister && item.website}}"
       class="native-link native-link--yellow"

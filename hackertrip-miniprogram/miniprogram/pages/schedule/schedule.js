@@ -148,4 +148,20 @@ Page({
       wx.showToast({ title: '取消失败，请重试', icon: 'none' });
     }
   },
+
+  async removeBookmark(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id) return;
+    const auth = await api.requireAuth(this, '/pages/schedule/schedule', '登录后才能管理你的收藏赛事。');
+    if (!auth) return;
+    try {
+      const active = await api.toggleBookmark(id);
+      if (!active) {
+        wx.showToast({ title: '已取消收藏', icon: 'none' });
+        this.load();
+      }
+    } catch (err) {
+      wx.showToast({ title: '取消失败，请重试', icon: 'none' });
+    }
+  },
 });

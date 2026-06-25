@@ -107,6 +107,7 @@ Page({
         stats: { hackathons: stats.hackathons, projects: stats.projects, skills: stats.skills },
         skills: p.skills || [],
       },
+      projects: api.getPortfolioProjects(),
       history,
     });
   },

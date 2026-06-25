@@ -95,7 +95,10 @@
           <view class="my-event-status my-event-status--{{item.status}}">{{item.status === 'ongoing' ? '进行中' : item.status === 'upcoming' ? '即将开始' : '已结束'}}</view>
         </view>
         <view class="my-event-meta">{{item.startDate}} - {{item.endDate}} · {{item.city || item.location}} · {{item.modeText}}</view>
-        <view class="my-event-note">收藏后会在这里集中管理，加入后会进入上方赛程。</view>
+        <view class="my-event-actions">
+          <button class="native-btn my-event-action" data-id="{{item.id}}" catchtap="removeBookmark">取消收藏</button>
+          <button class="native-btn my-event-action my-event-action--primary" data-id="{{item.id}}" catchtap="openEvent">详情</button>
+        </view>
       </view>
     </view>
     <view wx:elif="{{isLoggedIn}}" class="my-events-empty">

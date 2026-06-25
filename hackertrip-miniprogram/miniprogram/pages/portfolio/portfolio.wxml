@@ -16,8 +16,8 @@
       </view>
     </view>
 
-    <view wx:for="{{projects}}" wx:key="name" class="list-card project-card">
-      <view class="illus">插图</view>
+    <view wx:for="{{projects}}" wx:key="id" class="list-card project-card">
+      <view class="illus">项目</view>
       <view class="project-main">
         <view class="list-title">{{item.name}}</view>
         <view class="list-subtitle">{{item.subtitle}}</view>
