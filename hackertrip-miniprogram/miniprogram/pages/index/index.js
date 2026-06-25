@@ -163,16 +163,21 @@ Page({
     wx.navigateTo({ url: `/pages/hackathon-list/hackathon-list${params.length ? `?${params.join('&')}` : ''}` });
   },
 
-  onBookmark(e) {
-    if (!api.requireAuth('/pages/index/index')) return;
+  async onBookmark(e) {
+    const auth = await api.requireAuth(this, '/pages/index/index', '登录后才能收藏赛事，并在你的账号中同步查看。');
+    if (!auth) return;
     const id = e.detail.id;
     if (!id) return;
-    const active = api.toggleBookmark(id);
-    // 局部更新对应卡片的收藏态，避免整列表重渲
-    const hackathons = this.data.hackathons.map((item) =>
-      item.id === id ? Object.assign({}, item, { bookmarked: active }) : item,
-    );
-    this.setData({ hackathons });
-    wx.showToast({ title: active ? '已收藏' : '已取消收藏', icon: 'none' });
+    try {
+      const active = await api.toggleBookmark(id);
+      // 局部更新对应卡片的收藏态，避免整列表重渲
+      const hackathons = this.data.hackathons.map((item) =>
+        item.id === id ? Object.assign({}, item, { bookmarked: active }) : item,
+      );
+      this.setData({ hackathons });
+      wx.showToast({ title: active ? '已收藏' : '已取消收藏', icon: 'none' });
+    } catch (err) {
+      wx.showToast({ title: '收藏同步失败，请重试', icon: 'none' });
+    }
   },
 });

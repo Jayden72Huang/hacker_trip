@@ -51,52 +51,80 @@
       </navigator>
     </view>
 
-    <view class="section-title">我的赛程</view>
+    <view class="section-title">已加入赛程</view>
     <view wx:if="{{hasJoined}}" class="my-events">
-      <navigator
+      <view
         wx:for="{{myEvents}}"
         wx:key="id"
         class="my-event-card"
-        url="/pages/detail/detail?id={{item.id}}"
-        hover-class="my-event-card--active"
+        data-id="{{item.id}}"
+        bindtap="openEvent"
       >
         <view class="my-event-head">
           <view class="my-event-title">{{item.name}}</view>
           <view class="my-event-status my-event-status--{{item.status}}">{{item.status === 'ongoing' ? '进行中' : item.status === 'upcoming' ? '即将开始' : '已结束'}}</view>
         </view>
         <view class="my-event-meta">{{item.startDate}} - {{item.endDate}} · {{item.city || item.location}} · {{item.modeText}}</view>
-      </navigator>
+        <view class="my-event-actions">
+          <button class="native-btn my-event-action" data-id="{{item.id}}" catchtap="removeEvent">取消加入</button>
+          <button class="native-btn my-event-action my-event-action--primary" data-id="{{item.id}}" catchtap="openEvent">详情</button>
+        </view>
+      </view>
     </view>
     <view wx:else class="my-events-empty">
       <view class="empty-text">还没有加入的赛事，去发现页找一场报名吧。</view>
       <navigator class="empty-cta" url="/pages/index/index" open-type="switchTab" hover-class="empty-cta--active">去发现页逛逛</navigator>
     </view>
 
-    <view class="section-title">7 段进度</view>
-    <view class="phase-card">
-      <view class="phase-bars">
-        <view wx:for="{{phases}}" wx:key="label" class="phase-bar phase-bar--{{item.state}}"></view>
-      </view>
-      <view class="phase-labels">
-        <view wx:for="{{phases}}" wx:key="label" class="phase-label phase-label--{{item.state}}">
-          {{item.label}}
+    <view class="section-title">已收藏赛事</view>
+    <view wx:if="{{hasBookmarks}}" class="my-events">
+      <view
+        wx:for="{{bookmarkedEvents}}"
+        wx:key="id"
+        class="my-event-card my-event-card--bookmark"
+        data-id="{{item.id}}"
+        bindtap="openEvent"
+      >
+        <view class="my-event-head">
+          <view class="my-event-title">{{item.name}}</view>
+          <view class="my-event-status my-event-status--{{item.status}}">{{item.status === 'ongoing' ? '进行中' : item.status === 'upcoming' ? '即将开始' : '已结束'}}</view>
         </view>
+        <view class="my-event-meta">{{item.startDate}} - {{item.endDate}} · {{item.city || item.location}} · {{item.modeText}}</view>
+        <view class="my-event-note">收藏后会在这里集中管理，加入后会进入上方赛程。</view>
       </view>
+    </view>
+    <view wx:else class="my-events-empty">
+      <view class="empty-text">还没有收藏的赛事，发现页点星标后会汇总到这里。</view>
     </view>
 
-    <view class="section-title">今日待办</view>
-    <view class="todo-list">
-      <view wx:for="{{todos}}" wx:key="title" class="todo-card">
-        <view class="todo-time">{{item.time}}</view>
-        <view class="todo-main">
-          <view class="todo-title">{{item.title}}</view>
-          <view class="todo-sub">{{item.sub}}</view>
+    <block wx:if="{{activeEvent}}">
+      <view class="section-title">7 段进度</view>
+      <view class="phase-card">
+        <view class="phase-bars">
+          <view wx:for="{{phases}}" wx:key="label" class="phase-bar phase-bar--{{item.state}}"></view>
         </view>
-        <navigator class="todo-action" url="{{item.url}}" hover-class="todo-action--active">
-          {{item.action}}
-        </navigator>
+        <view class="phase-labels">
+          <view wx:for="{{phases}}" wx:key="label" class="phase-label phase-label--{{item.state}}">
+            {{item.label}}
+          </view>
+        </view>
       </view>
-    </view>
+
+      <view class="section-title">今日待办</view>
+      <view class="todo-list">
+        <view wx:for="{{todos}}" wx:key="title" class="todo-card">
+          <view class="todo-time">{{item.time}}</view>
+          <view class="todo-main">
+            <view class="todo-title">{{item.title}}</view>
+            <view class="todo-sub">{{item.sub}}</view>
+          </view>
+          <navigator class="todo-action" url="{{item.url}}" hover-class="todo-action--active">
+            {{item.action}}
+          </navigator>
+        </view>
+      </view>
+    </block>
     </block>
   </view>
+  <auth-modal id="authModal" />
 </view>

@@ -6,20 +6,64 @@
       <text>{{aiIntentText}}</text>
     </view>
 
-    <view class="focus-title">Agent 技能库</view>
-    <view class="focus-subtitle">管理 Haki 可读取的技能、偏好与项目上下文。</view>
+    <view class="focus-title">Agent 配置</view>
+    <view class="focus-subtitle">选择 Haki 可以读取哪些同步上下文，用于赛事推荐、赛道判断和组队介绍。</view>
 
-    <view wx:for="{{agents}}" wx:key="name" class="list-card agent-card">
-      <view class="agent-head">
-        <view>
-          <view class="list-title">{{item.name}}</view>
-          <view class="list-subtitle">{{item.desc}}</view>
+    <view class="agent-guide">
+      <view class="guide-title">怎么使用 Agent 技能库</view>
+      <view class="guide-row">
+        <view class="guide-index">1</view>
+        <view class="guide-copy">
+          <view class="guide-name">先同步 Skills</view>
+          <view class="guide-desc">在电脑端安装 HackerTrip skills 或 CLI，启动项目扫描，把项目画像和技术栈同步到小程序。</view>
         </view>
-        <text class="agent-status">{{item.status}}</text>
       </view>
-      <view class="chip-row agent-skills">
-        <text wx:for="{{item.skills}}" wx:key="*this" class="focus-chip focus-chip--yellow">{{item}}</text>
+      <view class="guide-row">
+        <view class="guide-index">2</view>
+        <view class="guide-copy">
+          <view class="guide-name">再开启授权开关</view>
+          <view class="guide-desc">只打开你允许 Haki 读取的内容。未开启的项目画像、身份卡或匹配结果不会进入 Agent 上下文。</view>
+        </view>
+      </view>
+      <view class="guide-row">
+        <view class="guide-index">3</view>
+        <view class="guide-copy">
+          <view class="guide-name">用 Haki 做判断</view>
+          <view class="guide-desc">配置保存后，Haki 会基于已授权上下文回答赛事选择、组队介绍和参赛策略问题。</view>
+        </view>
       </view>
     </view>
+
+    <view class="brutal-box {{hasScan ? 'agent-source--ready' : 'yellow-box'}}">
+      <view class="box-title">{{scanTitle}}</view>
+      <view class="box-copy">{{scanMeta}}</view>
+      <button wx:if="{{!hasScan}}" class="native-btn sync-entry" bindtap="goSync">去同步 Skills</button>
+    </view>
+
+    <view class="section-head">数据来源</view>
+    <view class="agent-source-map">
+      <view wx:for="{{sourceSteps}}" wx:key="title" class="source-card {{item.ready ? 'source-card--ready' : ''}}">
+        <view class="source-status">{{item.ready ? '已就绪' : '待完成'}}</view>
+        <view class="source-title">{{item.title}}</view>
+        <view class="source-desc">{{item.desc}}</view>
+      </view>
+    </view>
+
+    <view class="section-head">Haki 可读取内容</view>
+    <view wx:for="{{rows}}" wx:key="key" class="list-card agent-card" data-key="{{item.key}}" bindtap="toggleRow">
+      <view class="agent-head">
+        <view class="agent-copy">
+          <view class="list-title">{{item.name}}</view>
+          <view class="list-subtitle">{{item.desc}}</view>
+          <view class="agent-ready {{item.ready ? 'agent-ready--ok' : ''}}">{{item.ready ? '已有数据' : '等待同步'}}</view>
+        </view>
+        <view class="agent-switch {{item.enabled ? 'agent-switch--on' : ''}}">
+          <view class="agent-switch-dot" />
+        </view>
+      </view>
+    </view>
+
+    <button class="native-btn native-btn--yellow agent-chat" bindtap="goChat">用当前配置问 Haki</button>
   </view>
+  <auth-modal id="authModal" bind:login="onAuthLogin" />
 </view>

@@ -1,3 +1,5 @@
+@import "../focus.wxss";
+
 .page {
   padding: 28rpx 40rpx 0;
 }
@@ -7,6 +9,94 @@
   border-radius: 999rpx;
   margin-bottom: 28rpx;
   background: #f4f2ec;
+}
+
+.identity-flow {
+  margin-bottom: 26rpx;
+  background: #FFFFFF;
+}
+
+.flow-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12rpx;
+  margin-top: 22rpx;
+}
+
+.flow-step {
+  min-width: 0;
+  padding: 16rpx 12rpx;
+  background: #F4F1E8;
+  border: 3rpx solid #000000;
+  border-radius: 14rpx;
+}
+
+.flow-index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38rpx;
+  height: 38rpx;
+  color: #FFFFFF;
+  background: #0C51ED;
+  border: 2rpx solid #000000;
+  border-radius: 10rpx;
+  font-size: 22rpx;
+  font-weight: 900;
+}
+
+.flow-title {
+  margin-top: 12rpx;
+  color: #000000;
+  font-size: 23rpx;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.flow-copy {
+  margin-top: 6rpx;
+  color: #3D3D3D;
+  font-size: 19rpx;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.flow-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12rpx;
+  margin-top: 20rpx;
+}
+
+.flow-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 66rpx;
+  margin: 0;
+  padding: 0 8rpx;
+  color: #FFFFFF;
+  background: #0C51ED;
+  border: 3rpx solid #000000;
+  border-radius: 12rpx;
+  box-shadow: 5rpx 5rpx 0 0 #000000;
+  font-size: 21rpx;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.flow-btn--yellow {
+  color: #000000;
+  background: #FBD902;
+}
+
+.flow-btn::after {
+  border: none;
+}
+
+.identity-section-head {
+  margin: 20rpx 0 18rpx;
 }
 .seg-item {
   flex: 1;
@@ -73,6 +163,27 @@
   padding: 32rpx;
   margin-bottom: 32rpx;
 }
+.panel-toggle,
+.config-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+.panel-arrow {
+  flex-shrink: 0;
+  padding: 8rpx 16rpx;
+  color: #FFFFFF;
+  background: #0C51ED;
+  border: 3rpx solid #000000;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 900;
+}
+.panel-body,
+.config-body {
+  margin-top: 22rpx;
+}
 .role-head {
   display: flex;
   align-items: center;
@@ -133,6 +244,26 @@
   color: #1f1e1d;
   font-weight: 600;
   margin: 26rpx 0 14rpx;
+}
+.form {
+  padding: 28rpx;
+  background: #FFFFFF;
+  border: 4rpx solid #000000;
+  border-radius: 18rpx;
+  box-shadow: 8rpx 8rpx 0 0 #000000;
+}
+.config-title {
+  color: #000000;
+  font-size: 30rpx;
+  font-weight: 900;
+  line-height: 1.2;
+}
+.config-copy {
+  margin-top: 8rpx;
+  color: #3D3D3D;
+  font-size: 22rpx;
+  font-weight: 800;
+  line-height: 1.35;
 }
 .selected,
 .preset-row,
@@ -200,8 +331,25 @@
 .act-save {
   flex: 1;
 }
-.act-share {
+.share-wrap {
   flex: 1.4;
+  min-width: 0;
+}
+.act-share {
+  width: 100%;
+  margin: 0;
+}
+.act-share.is-disabled {
+  color: #6F6F6F;
+  background: #E7E4DC;
+}
+.share-status {
+  margin-top: 10rpx;
+  color: #3D3D3D;
+  font-size: 20rpx;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
 }
 
 .identity-ai {

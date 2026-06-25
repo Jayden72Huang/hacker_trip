@@ -16,4 +16,6 @@ module.exports = {
   webBase: 'https://hackertrip.space',
   // 卡片分享落地页（H5），与小程序卡片同源
   shareBase: 'https://hackertrip.space/u',
+  // pairSync HTTP 入口；用于桌面端 CLI 把项目扫描结果推送回小程序
+  syncUrl: 'https://test-1-d8gn28apcbf409627-1445960691.ap-shanghai.app.tcloudbase.com/pairSync',
 };

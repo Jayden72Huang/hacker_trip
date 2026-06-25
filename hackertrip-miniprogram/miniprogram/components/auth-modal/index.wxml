@@ -1,0 +1,16 @@
+<view wx:if="{{visible}}" class="auth-mask" catchtouchmove="noop">
+  <view class="auth-sheet">
+    <view class="auth-icon">H</view>
+    <view class="auth-title">微信登录 HackerTrip</view>
+    <view class="auth-copy">{{reason}}</view>
+    <view class="auth-benefits">
+      <view class="auth-benefit">同步昵称和头像到身份卡</view>
+      <view class="auth-benefit">保存赛程、收藏和 Skills 结果</view>
+      <view class="auth-benefit">生成可分享的公开 profile</view>
+    </view>
+    <button class="auth-primary" loading="{{logging}}" disabled="{{logging}}" bindtap="onLoginTap">
+      {{logging ? '登录中...' : '微信登录'}}
+    </button>
+    <button class="auth-secondary" disabled="{{logging}}" bindtap="close">暂不登录</button>
+  </view>
+</view>

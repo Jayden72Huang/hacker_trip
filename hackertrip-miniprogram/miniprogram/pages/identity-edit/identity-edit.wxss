@@ -6,6 +6,23 @@
   gap: 26rpx;
 }
 
+.login-sync {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.login-sync--done {
+  background: #FFFFFF;
+}
+
+.login-sync-btn {
+  flex: 0 0 156rpx;
+  width: 156rpx;
+  margin: 0;
+  font-size: 23rpx;
+}
+
 /* 微信头像大小的正方形头像(防 button 默认撑满) */
 .avatar-button {
   width: 120rpx !important;

@@ -3,10 +3,35 @@
 <view wx:if="{{aiBanner}}" class="ai-banner identity-ai"><text>来自微信AI助手</text><text>{{aiIntentText}}</text></view>
 <wxs src="../../utils/tools.wxs" module="tools" />
 <view class="page">
-  <!-- 变体切换 -->
+  <view class="identity-flow brutal-box">
+    <view class="box-title">生成流程</view>
+    <view class="flow-row">
+      <view class="flow-step">
+        <view class="flow-index">1</view>
+        <view class="flow-title">编辑资料</view>
+        <view class="flow-copy">头像、昵称、城市、技能</view>
+      </view>
+      <view class="flow-step">
+        <view class="flow-index">2</view>
+        <view class="flow-title">生成预览</view>
+        <view class="flow-copy">刷新角色和小程序码</view>
+      </view>
+      <view class="flow-step">
+        <view class="flow-index">3</view>
+        <view class="flow-title">保存转发</view>
+        <view class="flow-copy">保存图片或发给队友</view>
+      </view>
+    </view>
+    <view class="flow-actions">
+      <button class="flow-btn" bindtap="goEditProfile">编辑身份信息</button>
+      <button class="flow-btn flow-btn--yellow" bindtap="regenerateCard">生成 / 刷新</button>
+      <button class="flow-btn" bindtap="goSyncSkills">同步 Skills</button>
+    </view>
+  </view>
+
   <view class="seg glass">
-    <view class="seg-item {{variant === 'identity' ? 'on' : ''}}" data-v="identity" bindtap="switchVariant">🎴 身份卡</view>
-    <view class="seg-item {{variant === 'config' ? 'on' : ''}}" data-v="config" bindtap="switchVariant">🧩 配置卡</view>
+    <view class="seg-item {{variant === 'identity' ? 'on' : ''}}" data-v="identity" bindtap="switchVariant">身份卡预览</view>
+    <view class="seg-item {{variant === 'config' ? 'on' : ''}}" data-v="config" bindtap="switchVariant">配置卡预览</view>
   </view>
 
   <view wx:if="{{fromSync}}" class="sync-pill">✨ 已从 Skills 扫描结果预填</view>
@@ -31,75 +56,91 @@
     </view>
   </view>
 
+  <view class="section-head identity-section-head">配置卡片内容</view>
+
   <!-- 角色判定面板 -->
   <view class="role-panel glass">
-    <view class="role-head">
-      <text class="role-emoji">{{roleMeta.emoji}}</text>
-      <view class="role-info">
-        <view class="role-name">{{roleMeta.name}}</view>
-        <view class="role-tag">{{roleMeta.tagline}}</view>
+    <view class="panel-toggle" bindtap="toggleRolePanel">
+      <view class="role-head">
+        <text class="role-emoji">{{roleMeta.emoji}}</text>
+        <view class="role-info">
+          <view class="role-name">{{roleMeta.name}}</view>
+          <view class="role-tag">{{roleMeta.tagline}}</view>
+        </view>
       </view>
+      <view class="panel-arrow">{{rolePanelOpen ? '收起' : '调整'}}</view>
     </view>
-    <view wx:if="{{reasons.length}}" class="reasons">
-      <text wx:for="{{reasons}}" wx:key="*this" class="reason">· {{item}}</text>
-    </view>
-    <view class="role-switch">
-      <text class="rs-label">不认同？锁定主角色：</text>
-      <scroll-view scroll-x class="rs-scroll" enhanced show-scrollbar="{{false}}">
-        <text
-          wx:for="{{roleList}}"
-          wx:key="key"
-          class="rs-chip {{role === item.key ? 'on' : ''}}"
-          data-key="{{item.key}}"
-          bindtap="lockRole"
-        >{{item.emoji}} {{item.name}}</text>
-      </scroll-view>
+    <view wx:if="{{rolePanelOpen}}" class="panel-body">
+      <view wx:if="{{reasons.length}}" class="reasons">
+        <text wx:for="{{reasons}}" wx:key="*this" class="reason">· {{item}}</text>
+      </view>
+      <view class="role-switch">
+        <text class="rs-label">锁定主角色</text>
+        <scroll-view scroll-x class="rs-scroll" enhanced show-scrollbar="{{false}}">
+          <text
+            wx:for="{{roleList}}"
+            wx:key="key"
+            class="rs-chip {{role === item.key ? 'on' : ''}}"
+            data-key="{{item.key}}"
+            bindtap="lockRole"
+          >{{item.emoji}} {{item.name}}</text>
+        </scroll-view>
+      </view>
     </view>
   </view>
 
   <!-- 表单 -->
   <view class="form">
-    <view class="form-label">主技术栈</view>
-    <view class="selected">
-      <text wx:for="{{techStack}}" wx:key="*this" class="chip chip-accent" data-idx="{{index}}" bindtap="removeTech">{{item}} ✕</text>
+    <view class="config-toggle" bindtap="toggleConfigPanel">
+      <view>
+        <view class="config-title">高级配置</view>
+        <view class="config-copy">技术栈、AI 工具、打法风格和组队状态</view>
+      </view>
+      <view class="panel-arrow">{{configPanelOpen ? '收起' : '展开'}}</view>
     </view>
-    <view class="preset-row">
-      <text
-        wx:for="{{techPresets}}" wx:key="*this"
-        class="chip {{tools.inArray(techStack, item) ? 'chip-accent' : ''}}"
-        data-field="techStack" data-value="{{item}}" bindtap="togglePreset"
-      >{{item}}</text>
-    </view>
-    <view class="add-row">
-      <input class="add-input" placeholder="自定义技术，回车添加" placeholder-class="ph" value="{{techInput}}" bindinput="onTechInput" bindconfirm="addTech" />
-      <view class="add-btn" bindtap="addTech">＋</view>
-    </view>
+    <view wx:if="{{configPanelOpen}}" class="config-body">
+      <view class="form-label">主技术栈</view>
+      <view class="selected">
+        <text wx:for="{{techStack}}" wx:key="*this" class="chip chip-accent" data-idx="{{index}}" bindtap="removeTech">{{item}} ✕</text>
+      </view>
+      <view class="preset-row">
+        <text
+          wx:for="{{techPresets}}" wx:key="*this"
+          class="chip {{tools.inArray(techStack, item) ? 'chip-accent' : ''}}"
+          data-field="techStack" data-value="{{item}}" bindtap="togglePreset"
+        >{{item}}</text>
+      </view>
+      <view class="add-row">
+        <input class="add-input" placeholder="自定义技术，回车添加" placeholder-class="ph" value="{{techInput}}" bindinput="onTechInput" bindconfirm="addTech" />
+        <view class="add-btn" bindtap="addTech">＋</view>
+      </view>
 
-    <view class="form-label">AI 工具</view>
-    <view class="preset-row">
-      <text
-        wx:for="{{aiPresets}}" wx:key="*this"
-        class="chip {{tools.inArray(aiTools, item) ? 'chip-accent' : ''}}"
-        data-field="aiTools" data-value="{{item}}" bindtap="togglePreset"
-      >{{item}}</text>
-    </view>
+      <view class="form-label">AI 工具</view>
+      <view class="preset-row">
+        <text
+          wx:for="{{aiPresets}}" wx:key="*this"
+          class="chip {{tools.inArray(aiTools, item) ? 'chip-accent' : ''}}"
+          data-field="aiTools" data-value="{{item}}" bindtap="togglePreset"
+        >{{item}}</text>
+      </view>
 
-    <view class="form-label">打法风格</view>
-    <view class="opt-row">
-      <view
-        wx:for="{{playStyles}}" wx:key="key"
-        class="opt {{playStyleIdx === index ? 'on' : ''}}"
-        data-idx="{{index}}" bindtap="pickPlay"
-      >{{item.emoji}} {{item.label}}</view>
-    </view>
+      <view class="form-label">打法风格</view>
+      <view class="opt-row">
+        <view
+          wx:for="{{playStyles}}" wx:key="key"
+          class="opt {{playStyleIdx === index ? 'on' : ''}}"
+          data-idx="{{index}}" bindtap="pickPlay"
+        >{{item.emoji}} {{item.label}}</view>
+      </view>
 
-    <view class="form-label">组队状态</view>
-    <view class="opt-row">
-      <view
-        wx:for="{{lookingFors}}" wx:key="key"
-        class="opt {{lookingForIdx === index ? 'on' : ''}}"
-        data-idx="{{index}}" bindtap="pickLooking"
-      >{{item.emoji}} {{item.label}}</view>
+      <view class="form-label">组队状态</view>
+      <view class="opt-row">
+        <view
+          wx:for="{{lookingFors}}" wx:key="key"
+          class="opt {{lookingForIdx === index ? 'on' : ''}}"
+          data-idx="{{index}}" bindtap="pickLooking"
+        >{{item.emoji}} {{item.label}}</view>
+      </view>
     </view>
   </view>
 
@@ -108,6 +149,12 @@
 
 <!-- 底部操作栏 -->
 <view class="actionbar glass-strong">
-  <button class="btn-ghost act-save" bindtap="saveToAlbum">{{saving ? '保存中…' : '保存图片'}}</button>
-  <button class="btn-primary act-share" open-type="share">分享 / 找队友</button>
+  <button class="btn-ghost act-save" bindtap="saveToAlbum">{{saving || savingCard ? '保存中…' : '保存图片'}}</button>
+  <view class="share-wrap">
+    <button class="btn-primary act-share {{qrReady ? '' : 'is-disabled'}}" open-type="share" disabled="{{!qrReady}}" bindtap="prepareShare">
+      {{qrReady ? '分享 / 找队友' : '生成中…'}}
+    </button>
+    <view class="share-status">{{qrReady ? (cardSaved ? '已保存到我的 · 可转发' : '已绑定公开主页') : (qrError || '正在生成小程序码')}}</view>
+  </view>
 </view>
+<auth-modal id="authModal" bind:login="onAuthLogin" />

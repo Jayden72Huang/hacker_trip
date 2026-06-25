@@ -36,10 +36,14 @@ Page({
     qrReady: false,
     qrError: '',
     // 统计（onLoad 用真实用户资产派生，awards 暂无来源保留默认）
-    stats: { projects: 0, hackathons: 0, awards: 1 },
+    stats: { projects: 0, hackathons: 0, awards: 0 },
     saving: false,
+    savingCard: false,
+    cardSaved: false,
     canvasReady: false,
     fromSync: false,
+    rolePanelOpen: false,
+    configPanelOpen: false,
   },
 
   onLoad(options) {
@@ -144,8 +148,15 @@ Page({
     });
   },
 
-  async loadProfileQr() {
+  async loadProfileQr(options) {
+    const opts = options || {};
     if (!this.data.canvasReady || this.data.qrReady) return;
+    if (!api.isLoggedIn()) {
+      this.setData({ qrError: '登录后生成小程序码' }, () => this.render());
+      if (!opts.promptLogin) return;
+      const auth = await api.requireAuth(this, '/pages/identity/identity', '登录后才能生成带小程序码的身份卡，并同步到你的公开 profile。');
+      if (!auth) return;
+    }
     const res = await api.getProfileQr(this.data.profile);
     if (!res || !res.ok || !res.base64) {
       this.setData({ qrError: (res && res.message) || '小程序码生成失败' }, () => this.render());
@@ -188,8 +199,38 @@ Page({
   switchVariant(e) {
     this.setData({ variant: e.currentTarget.dataset.v }, () => this.render());
   },
+  goEditProfile() {
+    wx.navigateTo({ url: '/pages/identity-edit/identity-edit' });
+  },
+  goSyncSkills() {
+    wx.navigateTo({ url: '/pages/sync/sync' });
+  },
+  async regenerateCard() {
+    const auth = await api.requireAuth(this, '/pages/identity/identity', '登录后才能生成带小程序码的身份卡，并同步到你的公开 profile。');
+    if (!auth) return;
+    const profile = api.getProfile();
+    const userStats = api.getUserStats();
+    this.setData({
+      profile,
+      techStack: (profile.skills && profile.skills.length) ? profile.skills.slice() : this.data.techStack,
+      stats: { projects: userStats.projects, hackathons: userStats.hackathons, awards: this.data.stats.awards },
+      qrReady: false,
+      qrError: '',
+      cardSaved: false,
+    }, () => {
+      this.recompute();
+      this.loadProfileQr({ promptLogin: true });
+      wx.showToast({ title: '已刷新身份卡', icon: 'none' });
+    });
+  },
   lockRole(e) {
     this.recompute(e.currentTarget.dataset.key);
+  },
+  toggleRolePanel() {
+    this.setData({ rolePanelOpen: !this.data.rolePanelOpen });
+  },
+  toggleConfigPanel() {
+    this.setData({ configPanelOpen: !this.data.configPanelOpen });
   },
   togglePreset(e) {
     const { field, value } = e.currentTarget.dataset;
@@ -242,11 +283,23 @@ Page({
     };
   },
 
-  saveCard() {
-    if (!api.requireAuth('/pages/identity/identity')) return;
-    const card = api.saveCard(this.buildCardData());
-    wx.showToast({ title: '已保存到「我的」', icon: 'success' });
-    return card;
+  async saveCard(options) {
+    const opts = options || {};
+    if (this.data.savingCard) return null;
+    const auth = await api.requireAuth(this, '/pages/identity/identity', '登录后才能保存身份卡，并同步到你的公开 profile。');
+    if (!auth) return null;
+    this.setData({ savingCard: true });
+    try {
+      const card = await api.saveCard(this.buildCardData());
+      this.setData({ cardSaved: true });
+      if (!opts.silent) wx.showToast({ title: '已保存到「我的」', icon: 'success' });
+      return card;
+    } catch (e) {
+      if (!opts.silent) wx.showToast({ title: '身份卡同步失败，请重试', icon: 'none' });
+      return null;
+    } finally {
+      this.setData({ savingCard: false });
+    }
   },
 
   exportImage() {
@@ -260,7 +313,8 @@ Page({
   },
 
   async saveToAlbum() {
-    if (!api.requireAuth('/pages/identity/identity')) return;
+    const auth = await api.requireAuth(this, '/pages/identity/identity', '登录后才能生成带小程序码的身份卡图片。');
+    if (!auth) return;
     if (this.data.saving) return;
     if (!this.data.canvasReady || !this.canvas) {
       wx.showToast({ title: '卡片生成中，请稍候', icon: 'none' });
@@ -272,11 +326,13 @@ Page({
     }
     this.setData({ saving: true });
     try {
+      const saved = await this.saveCard({ silent: true });
+      if (!saved) throw new Error('身份卡同步失败');
       const path = await this.exportImage();
       await new Promise((resolve, reject) => {
         wx.saveImageToPhotosAlbum({ filePath: path, success: resolve, fail: reject });
       });
-      wx.showToast({ title: '已保存到相册', icon: 'success' });
+      wx.showToast({ title: '已保存身份卡', icon: 'success' });
     } catch (e) {
       if (e && /auth|deny|scope/i.test(JSON.stringify(e))) {
         wx.showModal({ title: '需要相册权限', content: '请在设置中允许保存到相册', confirmText: '去设置', success: (r) => { if (r.confirm) wx.openSetting(); } });
@@ -288,25 +344,44 @@ Page({
     }
   },
 
-  shareCard() {
+  async shareCard() {
     // 保存并跳到分享落地页预览
-    if (!this.saveCard()) return;
-    const c = this.buildCardData();
-    wx.navigateTo({ url: `/pages/share/share?role=${c.role}&variant=${c.variant}` });
+    const saved = await this.saveCard();
+    if (!saved) return;
+    wx.navigateTo({ url: `/pages/share/share?${this.buildShareQuery()}` });
+  },
+
+  prepareShare() {
+    if (!this.data.qrReady) return;
+    this.saveCard({ silent: true });
+  },
+
+  buildShareQuery() {
+    const params = [
+      `role=${encodeURIComponent(this.data.role)}`,
+      `variant=${encodeURIComponent(this.data.variant)}`,
+    ];
+    const uid = this.data.profile && this.data.profile.publicId;
+    if (uid) params.push(`uid=${encodeURIComponent(uid)}`);
+    return params.join('&');
   },
 
   onShareAppMessage() {
     const role = this.data.roleMeta || ROLE_MAP.zero_to_one;
     return {
       title: `我在黑客松里是「${role.name}」${role.emoji}，看看你是什么角色`,
-      path: `/pages/share/share?role=${this.data.role}&variant=${this.data.variant}`,
+      path: `/pages/share/share?${this.buildShareQuery()}`,
     };
   },
   onShareTimeline() {
     const role = this.data.roleMeta || ROLE_MAP.zero_to_one;
     return {
       title: `我的黑客松身份：${role.name} ${role.emoji}`,
-      query: `role=${this.data.role}&variant=${this.data.variant}`,
+      query: this.buildShareQuery(),
     };
+  },
+
+  onAuthLogin() {
+    if (!this.data.qrReady) this.loadProfileQr();
   },
 });

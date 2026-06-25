@@ -65,4 +65,5 @@
       </scroll-view>
     </view>
   </page-container>
+  <auth-modal id="authModal" />
 </view>

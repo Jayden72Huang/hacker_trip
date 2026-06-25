@@ -7,7 +7,51 @@
     </view>
 
     <view class="focus-title">Skills 同步</view>
-    <view class="focus-subtitle">输入桌面端生成的 6 位配对码，同步项目画像、技术栈和匹配结果。</view>
+    <view class="focus-subtitle">生成一次性同步命令，桌面端扫描项目后回到这里拉取项目画像、技术栈和匹配结果。</view>
+
+    <view class="usage-card">
+      <view class="usage-title">怎么使用</view>
+      <view class="usage-step">
+        <view class="usage-index">1</view>
+        <view class="usage-copy">
+          <view class="usage-name">安装 HackerTrip Skills / CLI</view>
+          <view class="usage-desc">电脑端准备 Node.js 18+，安装 `hackertrip`；如果你在 Agent 环境里已安装 HackerTrip skills，也可以直接启动 `/ht-scan-project`。</view>
+        </view>
+      </view>
+      <view class="usage-step">
+        <view class="usage-index">2</view>
+        <view class="usage-copy">
+          <view class="usage-name">生成命令并启动扫描</view>
+          <view class="usage-desc">点击“生成命令”，复制后在项目根目录执行；把命令里的 `/你的项目` 换成真实项目路径。</view>
+        </view>
+      </view>
+      <view class="usage-step">
+        <view class="usage-index">3</view>
+        <view class="usage-copy">
+          <view class="usage-name">回到小程序拉取结果</view>
+          <view class="usage-desc">桌面端推送成功后，回到这里点击“拉取同步结果”，项目画像会绑定到当前微信账号。</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="command-card">
+      <view class="command-label">一次性桌面端命令</view>
+      <view class="command-text">{{desktopCommand}}</view>
+      <view class="command-copy">{{syncEndpointReady ? '命令只对当前微信账号和本次配对有效，30 分钟后过期。' : '需要先配置 pairSync HTTP 入口后，桌面端才能推送扫描结果。'}}</view>
+      <view class="command-actions">
+        <button class="native-btn command-btn {{syncEndpointReady ? '' : 'command-btn--disabled'}}" bindtap="createPair">{{creating ? '生成中...' : '生成命令'}}</button>
+        <button class="native-btn command-btn command-btn--ghost {{commandReady ? '' : 'command-btn--disabled'}}" bindtap="copyCommand">复制命令</button>
+      </view>
+    </view>
+
+    <view class="sync-destination">
+      <view class="destination-title">同步后会更新</view>
+      <view class="destination-grid">
+        <view class="destination-item">Agent 上下文</view>
+        <view class="destination-item">身份卡配置</view>
+        <view class="destination-item">赛事匹配</view>
+      </view>
+    </view>
 
     <view class="brutal-box yellow-box">
       <view class="box-title">配对码</view>
@@ -21,7 +65,17 @@
         bindinput="onCodeInput"
       />
       <view class="sync-status">{{statusText}}</view>
-      <button class="native-btn sync-btn" bindtap="syncNow">{{syncing ? '同步中...' : '同步 Skills'}}</button>
+      <button class="native-btn sync-btn" bindtap="syncNow">{{syncing ? '同步中...' : '拉取同步结果'}}</button>
+    </view>
+
+    <view wx:if="{{result}}" class="brutal-box sync-result">
+      <view class="box-title">同步结果</view>
+      <view class="result-name">{{result.project.name || '未命名项目'}}</view>
+      <view class="result-desc">{{result.project.summary || result.project.description || '已同步项目画像和技术栈。'}}</view>
+      <view class="chip-row result-chips">
+        <text wx:for="{{resultSkills}}" wx:key="*this" class="focus-chip">{{item}}</text>
+      </view>
+      <view class="result-meta">匹配赛事 {{result.matches.length || 0}} 个 · 来源 {{result.source || 'HackerTrip CLI'}}</view>
     </view>
 
     <view class="section-head">同步步骤</view>
@@ -35,4 +89,5 @@
 
     <button wx:if="{{synced}}" class="native-btn native-btn--yellow" bindtap="goMatch">查看匹配结果</button>
   </view>
+  <auth-modal id="authModal" bind:login="onAuthLogin" />
 </view>

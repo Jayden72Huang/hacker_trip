@@ -20,10 +20,7 @@ Page({
       stats: { hackathons: 0, projects: 0, skills: 0 },
       skills: [],
     },
-    projects: [
-      { name: 'Haki Match Agent', desc: '项目技术栈到黑客松赛道的匹配助手。' },
-      { name: 'Pitch Deck Copilot', desc: '自动整理报名材料和路演摘要。' },
-    ],
+    projects: [],
     history: [],
     loading: true,
   },
@@ -52,7 +49,7 @@ Page({
           aiIntentText: ai.intent || 'public.site',
           loading: false,
           profile: Object.assign({}, remote.profile, { avatarChar }),
-          projects: remote.projects && remote.projects.length ? remote.projects : this.data.projects,
+          projects: remote.projects || [],
           history: [],
         });
         return;
@@ -70,19 +67,28 @@ Page({
     const stats = api.getUserStats();
     const avatarChar = (p.nickname || 'H').trim().charAt(0).toUpperCase() || 'H';
 
-    let all = [];
+    const regs = api.getRegistrations();
+    let history = [];
     try {
-      all = await api.getHackathons({ includeEnded: true });
+      const joined = await Promise.all(
+        regs.map(async (reg) => (await api.getHackathonDetail(reg.id)) || reg),
+      );
+      history = joined.map((item) => ({
+        id: item.id,
+        name: item.name,
+        dateText: `${item.startDate || '待确认'} - ${item.endDate || '待确认'}`,
+        cityText: item.city || item.location || '待确认',
+        modeText: item.modeText,
+      }));
     } catch (err) {
-      all = [];
+      history = regs.map((item) => ({
+        id: item.id,
+        name: item.name,
+        dateText: `${item.startDate || '待确认'} - ${item.endDate || '待确认'}`,
+        cityText: item.city || item.location || '待确认',
+        modeText: item.modeText,
+      }));
     }
-    const history = all.slice(0, 3).map((item) => ({
-      id: item.id,
-      name: item.name,
-      dateText: `${item.startDate || '待确认'} - ${item.endDate || '待确认'}`,
-      cityText: item.city || item.location || '待确认',
-      modeText: item.modeText,
-    }));
 
     this.setData({
       aiBanner: ai.fromAI,

@@ -9,6 +9,18 @@
 
     <view class="page-title">我的</view>
 
+    <view class="login-card {{isLoggedIn ? 'login-card--done' : ''}}">
+      <view class="login-avatar">
+        <image wx:if="{{authAccount.avatarUrl}}" class="login-avatar-image" src="{{authAccount.avatarUrl}}" mode="aspectFill" />
+        <text wx:else>H</text>
+      </view>
+      <view class="login-copy">
+        <view class="login-title">{{authAccount.name}}</view>
+        <view class="login-sub">{{authAccount.copy}}</view>
+      </view>
+      <button class="login-btn" bindtap="openLogin">{{isLoggedIn ? '已登录' : '微信登录'}}</button>
+    </view>
+
     <view class="role-tabs" aria-label="身份选择">
       <button
         class="role-tab {{profileMode === 'participant' ? 'role-tab--participant' : ''}}"
@@ -64,13 +76,6 @@
       <view class="organizer-status-copy">通过组织者认证后，可以发布黑客松并管理赛事信息。</view>
     </view>
 
-    <!-- 收藏为 0 时的引导空态 -->
-    <view wx:if="{{profileMode === 'participant' && !loading && savedCount === 0}}" class="empty-state role-empty">
-      <view class="empty-state-title">还没有关注的赛事</view>
-      <view class="empty-state-text">去发现页收藏感兴趣的黑客松，资产会自动汇总到这里。</view>
-      <navigator class="empty-cta" url="/pages/index/index" open-type="switchTab" hover-class="empty-cta--active">去发现页逛逛</navigator>
-    </view>
-
     <view class="section-title role-section-title">{{profileMode === 'organizer' ? '举办方工具' : '工具'}}</view>
     <view wx:if="{{profileMode === 'participant'}}" class="link-list">
       <navigator
@@ -120,4 +125,5 @@
       </navigator>
     </view>
   </view>
+  <auth-modal id="authModal" bind:login="onAuthLogin" />
 </view>

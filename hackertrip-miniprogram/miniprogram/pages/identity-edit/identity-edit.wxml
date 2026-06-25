@@ -9,6 +9,14 @@
     <view class="focus-title">编辑身份</view>
     <view class="focus-subtitle">完善头像、昵称、角色、城市、技能和 GitHub，供身份卡和公开主页复用。</view>
 
+    <view class="login-sync brutal-box {{isLoggedIn ? 'login-sync--done' : 'yellow-box'}}">
+      <view>
+        <view class="box-title">{{isLoggedIn ? '微信已登录' : '先用微信登录同步资料'}}</view>
+        <view class="box-copy">{{isLoggedIn ? '保存后会同步到当前微信账号。' : '登录后可自动带入微信昵称和头像，并绑定身份卡、赛程和公开主页。'}}</view>
+      </view>
+      <button class="native-btn login-sync-btn" bindtap="openLogin">{{isLoggedIn ? '已登录' : '微信登录'}}</button>
+    </view>
+
     <view class="brutal-box edit-head">
       <button class="avatar avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
         <image wx:if="{{avatarUrl}}" class="avatar-image" src="{{avatarUrl}}" mode="aspectFill" />
@@ -45,4 +53,5 @@
 
     <button class="native-btn save-profile" disabled="{{saving}}" bindtap="saveProfile">{{saving ? '保存中...' : '保存身份信息'}}</button>
   </view>
+  <auth-modal id="authModal" bind:login="onAuthLogin" />
 </view>

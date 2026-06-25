@@ -77,6 +77,51 @@ function buildSystemPrompt(context, focusName) {
   return lines.join('\n');
 }
 
+async function loadLatestSync(openid) {
+  if (!openid) return null;
+  try {
+    const res = await db
+      .collection('sync_pairs')
+      .where({ openid, bound: true })
+      .orderBy('boundAt', 'desc')
+      .limit(1)
+      .get();
+    const doc = res.data && res.data[0];
+    return doc && doc.scan ? doc.scan : null;
+  } catch (e) {
+    console.warn('[aiChat] 读取 Skills 同步数据失败', e);
+    return null;
+  }
+}
+
+function buildAgentContext(scan, config) {
+  if (!scan || typeof scan !== 'object') return '';
+  const cfg = Object.assign({
+    projectContext: true,
+    techStack: true,
+    identityCard: true,
+    matchResults: true,
+  }, config || {});
+  const lines = [];
+  const project = scan.project || {};
+  const identity = scan.identity || {};
+  if (cfg.projectContext && (project.name || project.summary || project.description)) {
+    lines.push(`项目画像：${project.name || '未命名项目'} - ${project.summary || project.description || '无简介'}`);
+  }
+  const stack = project.techStack || identity.techStack || scan.techStack || [];
+  if (cfg.techStack && Array.isArray(stack) && stack.length) {
+    lines.push(`技术栈：${stack.slice(0, 16).join('、')}`);
+  }
+  if (cfg.identityCard && identity.role) {
+    lines.push(`身份卡角色：${identity.role}；组队状态：${identity.lookingFor || '未设置'}；打法：${identity.playStyle || '未设置'}`);
+  }
+  if (cfg.matchResults && Array.isArray(scan.matches) && scan.matches.length) {
+    lines.push(`已同步匹配结果：${scan.matches.slice(0, 5).map((m) => `${m.name || m.title || m.id || '赛事'}${m.reason ? `(${m.reason})` : ''}`).join('；')}`);
+  }
+  if (!lines.length) return '';
+  return ['【用户已授权的 Agent 上下文】', ...lines].join('\n');
+}
+
 async function checkMessageContent(openid, message) {
   if (!openid) return { ok: false, reply: '缺少用户身份，暂时无法发送消息。', fallback: true };
   try {
@@ -113,9 +158,10 @@ function normalizeHistory(history) {
  * 组装注入了真实赛事 context 的完整 messages 数组。
  * 赛事过滤(isPublished)只能在云端做，所以 prompt 装配必须留在云函数。
  */
-async function buildMessages(message, history, focusEventId) {
+async function buildMessages(message, history, focusEventId, openid, agentConfig) {
   let context = '（暂无可用赛事数据）';
   let focusName = '';
+  let agentContext = '';
   try {
     const list = await loadHackathons();
     context = buildContext(list);
@@ -126,8 +172,16 @@ async function buildMessages(message, history, focusEventId) {
   } catch (e) {
     console.warn('[aiChat] 构建赛事上下文失败', e);
   }
+  try {
+    agentContext = buildAgentContext(await loadLatestSync(openid), agentConfig);
+  } catch (e) {
+    agentContext = '';
+  }
+  const system = agentContext
+    ? `${buildSystemPrompt(context, focusName)}\n\n${agentContext}`
+    : buildSystemPrompt(context, focusName);
   return [
-    { role: 'system', content: buildSystemPrompt(context, focusName) },
+    { role: 'system', content: system },
     ...normalizeHistory(history),
     { role: 'user', content: message.slice(0, 1000) },
   ];
@@ -143,7 +197,13 @@ exports.main = async (event) => {
   const securityError = await checkMessageContent(openid, message);
   if (securityError) return securityError;
 
-  const messages = await buildMessages(message, event && event.history, event && event.focusEventId);
+  const messages = await buildMessages(
+    message,
+    event && event.history,
+    event && event.focusEventId,
+    openid,
+    event && event.agentConfig,
+  );
 
   // mode=prepare：仅返回装配好的 messages，由小程序端用 wx.cloud.extend.AI 做流式生成
   // （云函数 callFunction 是一次性 RPC，无法把 streamText 的增量 token 推回小程序）

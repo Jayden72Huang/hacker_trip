@@ -33,9 +33,9 @@
 | **身份卡** `identity` | 生成参赛身份卡(裂变核心) | canvas 绘制角色卡 / 技术栈/打法/组队表单 / 保存相册 / 分享 | 统一用户档案 | ✅ |
 | **身份编辑** `identity-edit` | 编辑统一档案 | 头像(chooseAvatar)/昵称/角色/城市/技能/GitHub | 统一用户档案(写) | ✅ |
 | **作品集** `portfolio` | 项目作品展示 | 项目卡列表(标题/赛事/状态/技术栈) | **mock 数据** | 🟡 未接真实作品 |
-| **Agent 技能库** `agent` | Haki 可调用技能配置 | 技能卡(启用/授权状态) | **纯展示** | 🟡 无交互 |
+| **Agent 技能库** `agent` | Haki 可调用技能配置 | 授权开关 / 数据来源状态 / Haki 上下文控制 | 用户档案 + Skills 同步 + 赛事匹配 | ✅ |
 | **公开主页** `public-site` | 对外展示个人主页(GEO/分享) | 个人卡 / 资产 / 技能 / 项目 / 参赛历史 | 统一档案 + 真实赛事 | ✅ |
-| **Skills 同步** `sync` | 与桌面端 CLI 打通 | 6位配对码 / 同步步骤 / 拉取结果 | pairSync 云函数(降级 mock) | ✅ |
+| **Skills 同步** `sync` | 与桌面端 CLI 打通 | 一次性配对码 / CLI 上传 / 小程序拉取结果 | pairSync 云函数 + CLI sync-code | ✅ |
 
 ---
 
@@ -77,7 +77,7 @@
 | 🟡 P2 | 聊天 AI 接真实匹配算法/模型（现为固定回复） | chat |
 | 🟡 P2 | 消息接真实通知系统（现为 mock 文案） | inbox |
 | 🟡 P2 | 作品集接真实项目数据（现 mock） | portfolio |
-| 🟡 P3 | Agent 技能库加启用/授权交互（现纯展示） | agent |
+| 🟢 P3 | Agent 技能库已支持授权交互；待真机验证 Haki 上下文效果 | agent |
 | 🟡 P3 | 设提醒功能(event.remind) | detail |
 | 🟢 P3 | loading 骨架屏(data.loading 已就绪，wxml 未用) | 各页 |
 

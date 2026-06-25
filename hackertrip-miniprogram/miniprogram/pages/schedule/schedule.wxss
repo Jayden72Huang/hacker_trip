@@ -225,6 +225,10 @@
   box-shadow: 6rpx 6rpx 0 0 #000000;
 }
 
+.my-event-card--bookmark {
+  background: #FFFDF5;
+}
+
 .my-event-card--active {
   transform: translate(3rpx, 3rpx);
   box-shadow: 3rpx 3rpx 0 0 #000000;
@@ -272,6 +276,41 @@
   margin-top: 12rpx;
   font-size: 22rpx;
   color: #5A5A55;
+}
+
+.my-event-note {
+  margin-top: 12rpx;
+  color: #7A7A75;
+  font-size: 21rpx;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.my-event-actions {
+  display: flex;
+  gap: 14rpx;
+  justify-content: flex-end;
+  margin-top: 18rpx;
+}
+
+.my-event-action {
+  width: 168rpx;
+  height: 58rpx;
+  min-height: 58rpx;
+  padding: 0;
+  color: #000000;
+  background: #FFFFFF;
+  border: 3rpx solid #000000;
+  border-radius: 12rpx;
+  box-shadow: 4rpx 4rpx 0 0 #000000;
+  font-size: 22rpx;
+  font-weight: 900;
+  line-height: 52rpx;
+}
+
+.my-event-action--primary {
+  color: #FFFFFF;
+  background: #0C51ED;
 }
 
 .my-events-empty {

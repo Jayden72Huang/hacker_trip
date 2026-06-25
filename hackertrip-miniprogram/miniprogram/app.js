@@ -48,7 +48,7 @@ App({
     // 4. 恢复登录态
     try {
       const auth = wx.getStorageSync('ht_auth');
-      if (auth && auth.userInfo) this.globalData.auth = auth;
+      if (auth && auth.openid && auth.userInfo) this.globalData.auth = auth;
     } catch (e) {}
   },
 });

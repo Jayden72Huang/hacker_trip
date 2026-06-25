@@ -16,51 +16,35 @@ const STORAGE = {
   BOOKMARKS: 'ht_bookmarks', // 收藏的黑客松 id
   REGISTRATIONS: 'ht_registrations', // 报名清单
   SCAN_RESULTS: 'ht_scan_results', // Skills 同步过来的扫描匹配结果
+  AGENT_CONFIG: 'ht_agent_config', // Haki 可读取上下文配置
   PROFILE: 'ht_profile', // 统一用户档案（身份编辑/身份卡/公开主页/分享/设置共享）
   PROFILE_MODE: 'ht_profile_mode', // 我的页角色视图偏好
   ORGANIZER: 'ht_organizer_application', // 组织者申请与审核状态
   HACKATHON_DRAFTS: 'ht_hackathon_drafts', // 组织者提交的赛事草稿
 };
 
+const DEFAULT_AGENT_CONFIG = {
+  projectContext: true,
+  techStack: true,
+  identityCard: true,
+  matchResults: true,
+};
+
 /** 全站统一的用户档案默认值（替代各页面散落的硬编码 mock） */
 const DEFAULT_PROFILE = {
-  nickname: 'Jayden',
-  role: 'AI Builder',
-  city: '上海',
-  bio: '关注 AI 产品原型、Agent 工作流和黑客松快速交付。',
-  skills: ['TypeScript', 'LLM', 'React', 'Prompt'],
-  github: 'github.com/jayden',
+  nickname: '',
+  role: '',
+  city: '',
+  bio: '',
+  skills: [],
+  github: '',
   avatarUrl: '',
   publicId: '',
 };
 
-/** 作品集示例数据（暂为 bundled，将来接真实存储后由此处统一替换） */
-const SAMPLE_PORTFOLIO = [
-  {
-    name: 'Haki Match Agent',
-    subtitle: '根据项目技术栈匹配黑客松和推荐赛道',
-    event: 'AdventureX 2025',
-    status: '已提交',
-    tags: ['LLM', 'TypeScript', '匹配算法'],
-  },
-  {
-    name: 'Pitch Deck Copilot',
-    subtitle: '把 Demo、README 和路演稿整理为评委可读材料',
-    event: 'ETHShanghai',
-    status: '准备中',
-    tags: ['AI Agent', 'Slides', 'Web3'],
-  },
-  {
-    name: 'Realtime Judge Board',
-    subtitle: '黑客松现场评分看板和队伍进度追踪',
-    event: 'XR 黑客松',
-    status: '获奖作品',
-    tags: ['Dashboard', 'Realtime', 'Cloud'],
-  },
-];
-/** 读取作品集列表（个人中心作品数、作品集页面共用同一份数据源） */
+/** 读取作品集列表：未接真实作品提交前保持空状态，不展示示例作品冒充用户数据。 */
 function getPortfolioProjects() {
-  return SAMPLE_PORTFOLIO.slice();
+  return [];
 }
 
 function cloudReady() {
@@ -77,6 +61,42 @@ function callFn(name, data) {
       success: (res) => resolve(res.result),
       fail: (err) => reject(err),
     });
+  });
+}
+
+function getAuth() {
+  const app = getApp();
+  const local = app && app.globalData ? app.globalData.auth : null;
+  if (local && local.openid && local.userInfo) return local;
+  const cached = getStorage('ht_auth', null);
+  if (cached && cached.openid && cached.userInfo) {
+    if (app && app.globalData) app.globalData.auth = cached;
+    return cached;
+  }
+  if (cached || local) clearUserSession();
+  return null;
+}
+
+function setAuth(auth) {
+  const app = getApp();
+  if (app && app.globalData) app.globalData.auth = auth || null;
+  if (auth) setStorage('ht_auth', auth);
+  else {
+    try { wx.removeStorageSync('ht_auth'); } catch (e) {}
+  }
+}
+
+function clearUserSession() {
+  setAuth(null);
+  [
+    STORAGE.CARDS,
+    STORAGE.BOOKMARKS,
+    STORAGE.REGISTRATIONS,
+    STORAGE.SCAN_RESULTS,
+    STORAGE.AGENT_CONFIG,
+    STORAGE.PROFILE,
+  ].forEach((key) => {
+    try { wx.removeStorageSync(key); } catch (e) {}
   });
 }
 
@@ -202,13 +222,24 @@ function getBookmarks() {
 function isBookmarked(id) {
   return getBookmarks().indexOf(id) !== -1;
 }
-function toggleBookmark(id) {
-  const list = getBookmarks();
+async function toggleBookmark(id) {
+  if (!cloudReady()) throw new Error('需要连接云开发后才能同步收藏');
+  const prev = getBookmarks();
+  const list = prev.slice();
   const i = list.indexOf(id);
+  const active = i === -1;
   if (i === -1) list.push(id); else list.splice(i, 1);
   setStorage(STORAGE.BOOKMARKS, list);
-  if (cloudReady()) callFn('toggleBookmark', { id, active: i === -1 }).catch(() => {});
-  return i === -1; // true=已收藏
+  if (cloudReady()) {
+    try {
+      const res = await callFn('toggleBookmark', { id, active });
+      if (!res || !res.ok) throw new Error((res && res.message) || '收藏同步失败');
+    } catch (e) {
+      setStorage(STORAGE.BOOKMARKS, prev);
+      throw e;
+    }
+  }
+  return active; // true=已收藏
 }
 async function getBookmarkedHackathons() {
   const ids = getBookmarks();
@@ -220,12 +251,39 @@ function getRegistrations() {
   const v = getStorage(STORAGE.REGISTRATIONS, []);
   return Array.isArray(v) ? v : [];
 }
-function addRegistration(item) {
-  const list = getRegistrations();
+async function addRegistration(item) {
+  if (!cloudReady()) throw new Error('需要连接云开发后才能加入赛程');
+  const prev = getRegistrations();
+  const list = prev.slice();
   if (!list.find((x) => x.id === item.id)) {
     list.unshift(Object.assign({ registeredAt: Date.now() }, item));
     setStorage(STORAGE.REGISTRATIONS, list);
-    if (cloudReady()) callFn('addRegistration', { item }).catch(() => {});
+    if (cloudReady()) {
+      try {
+        const res = await callFn('addRegistration', { item });
+        if (!res || !res.ok) throw new Error((res && res.message) || '赛程同步失败');
+      } catch (e) {
+        setStorage(STORAGE.REGISTRATIONS, prev);
+        throw e;
+      }
+    }
+  }
+  return list;
+}
+async function removeRegistration(id) {
+  if (!cloudReady()) throw new Error('需要连接云开发后才能取消赛程');
+  const prev = getRegistrations();
+  const list = prev.filter((item) => item.id !== id);
+  if (list.length === prev.length) return list;
+  setStorage(STORAGE.REGISTRATIONS, list);
+  if (cloudReady()) {
+    try {
+      const res = await callFn('addRegistration', { action: 'remove', id });
+      if (!res || !res.ok) throw new Error((res && res.message) || '取消赛程同步失败');
+    } catch (e) {
+      setStorage(STORAGE.REGISTRATIONS, prev);
+      throw e;
+    }
   }
   return list;
 }
@@ -236,13 +294,31 @@ function getCards() {
   const v = getStorage(STORAGE.CARDS, []);
   return Array.isArray(v) ? v : [];
 }
-function saveCard(card) {
-  const list = getCards();
+
+function cacheCard(card) {
+  if (!card || !card.id) return null;
+  const prev = getCards();
+  const list = prev.slice();
   const idx = list.findIndex((c) => c.id === card.id);
   const stamped = Object.assign({ updatedAt: Date.now() }, card);
   if (idx === -1) list.unshift(stamped); else list[idx] = stamped;
   setStorage(STORAGE.CARDS, list);
-  if (cloudReady()) callFn('saveCard', { card: stamped }).catch(() => {});
+  return { prev, stamped };
+}
+
+async function saveCard(card) {
+  if (!card || !card.id) throw new Error('缺少身份卡数据');
+  if (!cloudReady()) throw new Error('需要连接云开发后才能保存身份卡');
+  const { prev, stamped } = cacheCard(card);
+  if (cloudReady()) {
+    try {
+      const res = await callFn('saveCard', { card: stamped });
+      if (!res || !res.ok) throw new Error((res && res.message) || '身份卡同步失败');
+    } catch (e) {
+      setStorage(STORAGE.CARDS, prev);
+      throw e;
+    }
+  }
   return stamped;
 }
 function getCardById(id) {
@@ -261,23 +337,29 @@ function mergeProfile(patch) {
 }
 
 async function saveProfileWithSync(patch, alreadyMerged) {
+  const prev = getProfile();
   let next = alreadyMerged ? Object.assign({}, patch || {}) : mergeProfile(patch);
-  setStorage(STORAGE.PROFILE, next);
-  if (!cloudReady()) return { ok: true, local: true, profile: next };
-
-  next = await uploadAvatarIfNeeded(next);
-  setStorage(STORAGE.PROFILE, next);
-
-  const res = await callFn('saveProfile', { profile: next });
-  if (res && res.ok) {
-    const profile = Object.assign({}, getProfile(), {
-      avatarUrl: next.avatarUrl || '',
-      publicId: res.publicId || next.publicId || '',
-    });
-    setStorage(STORAGE.PROFILE, profile);
-    return { ok: true, profile, result: res };
+  if (!cloudReady()) {
+    return { ok: false, code: 'CLOUD_REQUIRED', message: '需要连接云开发后才能同步身份资料' };
   }
-  return res || { ok: false, message: '身份资料保存失败' };
+
+  try {
+    next = await uploadAvatarIfNeeded(next);
+    const res = await callFn('saveProfile', { profile: next });
+    if (res && res.ok) {
+      const profile = Object.assign({}, prev, next, {
+        avatarUrl: next.avatarUrl || '',
+        publicId: res.publicId || next.publicId || '',
+      });
+      setStorage(STORAGE.PROFILE, profile);
+      return { ok: true, profile, result: res };
+    }
+    setStorage(STORAGE.PROFILE, prev);
+    return res || { ok: false, message: '身份资料保存失败' };
+  } catch (e) {
+    setStorage(STORAGE.PROFILE, prev);
+    throw e;
+  }
 }
 
 /** 合并保存用户档案（patch 部分更新），同步 best-effort 上云 */
@@ -491,6 +573,7 @@ async function aiChat(message, history, focusEventId) {
       const payload = {
         message: text,
         focusEventId: focusEventId || '',
+        agentConfig: getAgentConfig(),
         history: (Array.isArray(history) ? history : [])
           .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && m.text)
           .map((m) => ({ role: m.role, content: m.text })),
@@ -528,51 +611,141 @@ function setScanResults(data) {
   setStorage(STORAGE.SCAN_RESULTS, data);
 }
 
+function getAgentConfig() {
+  const v = getStorage(STORAGE.AGENT_CONFIG, null);
+  return Object.assign({}, DEFAULT_AGENT_CONFIG, v && typeof v === 'object' ? v : {});
+}
+
+function setAgentConfig(patch, options) {
+  const next = Object.assign({}, getAgentConfig(), patch || {});
+  setStorage(STORAGE.AGENT_CONFIG, next);
+  if (!(options && options.skipSync) && cloudReady()) {
+    callFn('saveAgentConfig', { agentConfig: next }).catch((e) => {
+      console.warn('[api] Agent 配置云端同步失败', e);
+    });
+  }
+  return next;
+}
+
+async function saveAgentConfig(patch) {
+  const prev = getAgentConfig();
+  const next = Object.assign({}, getAgentConfig(), patch || {});
+  setStorage(STORAGE.AGENT_CONFIG, next);
+  if (!cloudReady()) {
+    setStorage(STORAGE.AGENT_CONFIG, prev);
+    return { ok: false, code: 'CLOUD_REQUIRED', message: '需要连接云开发后才能同步 Agent 配置' };
+  }
+  try {
+    const res = await callFn('saveAgentConfig', { agentConfig: next });
+    if (res && res.ok && res.agentConfig) {
+      setStorage(STORAGE.AGENT_CONFIG, Object.assign({}, DEFAULT_AGENT_CONFIG, res.agentConfig));
+    } else if (!res || !res.ok) {
+      setStorage(STORAGE.AGENT_CONFIG, prev);
+    }
+    return res || { ok: false, message: 'Agent 配置同步失败' };
+  } catch (e) {
+    setStorage(STORAGE.AGENT_CONFIG, prev);
+    throw e;
+  }
+}
+
+/**
+ * 为当前登录用户创建一次性 Skills 同步配对会话。
+ * 返回 { code, uploadToken, expireAt }，uploadToken 只用于本次桌面端上传。
+ */
+async function createSyncPair() {
+  if (!cloudReady()) {
+    return { ok: false, code: 'CLOUD_REQUIRED', message: '需要连接云开发后才能生成配对码' };
+  }
+  try {
+    const res = await callFn('pairSync', { action: 'create' });
+    return res || { ok: false, message: '配对码生成失败' };
+  } catch (e) {
+    return { ok: false, code: 'PAIR_CREATE_FAILED', message: '配对码生成失败，请稍后重试' };
+  }
+}
+
 /**
  * 提交配对码，从云端拉取 CLI/网页端推送的 Skills 同步内容。
- * 云端不可用时返回一份 mock 扫描结果，便于演示同步落地效果。
+ * 上线产品不再把 mock 当成功；必须云端拉取成功才算同步完成。
  */
 async function pullSyncByCode(code) {
-  if (cloudReady()) {
-    try {
-      const res = await callFn('pairSync', { code, action: 'pull' });
-      if (res && res.ok) {
-        if (res.scan) setScanResults(res.scan);
-        if (res.card) saveCard(res.card);
-        return res;
-      }
-      // 云端明确判定配对码无效/过期：如实返回，不降级
-      return res || { ok: false, message: '配对码无效或已过期' };
-    } catch (e) {
-      // 云函数未部署 / 网络异常：与全站一致降级本地 mock，不阻断同步演示
-      console.warn('[api] pairSync 云端调用失败，降级本地 mock', e);
-    }
+  if (!cloudReady()) {
+    return { ok: false, code: 'CLOUD_REQUIRED', message: '需要连接云开发后才能同步 Skills' };
   }
-  // 本地 mock：演示同步成功落地
-  const mock = require('../data/mock-scan.js');
-  setScanResults(mock);
-  return { ok: true, scan: mock, mock: true };
+  try {
+    const res = await callFn('pairSync', { code, action: 'pull' });
+    if (res && res.ok) {
+      // pairSync 云函数已经把 card 绑定到当前 openid；前端这里只刷新本地缓存。
+      if (res.card) cacheCard(res.card);
+      if (res.scan) setScanResults(res.scan);
+      return res;
+    }
+    return res || { ok: false, message: '配对码无效或已过期' };
+  } catch (e) {
+    return { ok: false, code: 'SYNC_FAILED', message: '同步失败，请确认配对码仍有效并稍后重试' };
+  }
 }
 
 /* ----------------------------- 登录态 / 云同步 ----------------------------- */
 
 /** 是否已登录（globalData.auth 有 userInfo） */
 function isLoggedIn() {
+  const auth = getAuth();
+  return !!(auth && auth.openid);
+}
+
+async function loginWithUserInfo(userInfo) {
   const app = getApp();
-  return !!(app && app.globalData && app.globalData.auth && app.globalData.auth.userInfo);
+  const info = userInfo || {};
+  if (!(app && app.globalData && app.globalData.cloudReady && wx.cloud)) {
+    throw new Error('需要连接云开发后才能微信登录');
+  }
+  const res = await callFn('login', { userInfo: info });
+  if (!res || !res.ok || !res.openid) throw new Error((res && res.message) || '微信登录失败');
+  const openid = res.openid;
+
+  const auth = { openid, userInfo: info, loginAt: Date.now() };
+  setAuth(auth);
+  await saveProfileWithSync({
+    nickname: info.nickName || info.nickname || getProfile().nickname,
+    avatarUrl: info.avatarUrl || getProfile().avatarUrl,
+  }).catch(() => {});
+  await syncFromCloud().catch(() => {});
+  return auth;
 }
 
 /**
- * 写操作前的登录守卫：未登录则跳登录页(带 redirect 回原页)，返回 false 表示已拦截。
- * @param {string} redirectPage 当前页完整路径(含参数)，登录后回跳
+ * 写操作前的登录守卫：优先打开当前页面的 auth-modal，缺少组件时降级弹窗跳登录页。
+ * @param {object|string} pageOrRedirect 当前 Page 实例，兼容旧式 redirect 字符串
+ * @param {string} redirectPage 当前页完整路径(含参数)
+ * @param {string} reason 登录用途说明
  */
-function requireAuth(redirectPage) {
-  if (isLoggedIn()) return true;
-  const url = redirectPage
-    ? '/pages/login/login?redirect=' + encodeURIComponent(redirectPage)
+async function requireAuth(pageOrRedirect, redirectPage, reason) {
+  if (isLoggedIn()) return getAuth();
+  const page = pageOrRedirect && typeof pageOrRedirect === 'object' ? pageOrRedirect : null;
+  const redirect = page ? redirectPage : pageOrRedirect;
+  if (page && page.selectComponent) {
+    const modal = page.selectComponent('#authModal');
+    if (modal && modal.open) {
+      return modal.open({ reason });
+    }
+  }
+  const url = redirect
+    ? '/pages/login/login?redirect=' + encodeURIComponent(redirect)
     : '/pages/login/login';
-  wx.navigateTo({ url });
-  return false;
+  return new Promise((resolve) => {
+    wx.showModal({
+      title: '需要微信登录',
+      content: reason || '登录后可以同步身份信息、赛程和身份卡。',
+      confirmText: '去登录',
+      success: (res) => {
+        if (res.confirm) wx.navigateTo({ url });
+        resolve(null);
+      },
+      fail: () => resolve(null),
+    });
+  });
 }
 
 /** 登录后从云端拉取收藏/报名/卡片/同步结果，合并进本地 storage(云端为准) */
@@ -586,6 +759,9 @@ async function syncFromCloud() {
       if (Array.isArray(res.cards)) setStorage(STORAGE.CARDS, res.cards);
       if (res.profile && typeof res.profile === 'object') {
         setStorage(STORAGE.PROFILE, Object.assign({}, getProfile(), res.profile));
+      }
+      if (res.agentConfig && typeof res.agentConfig === 'object') {
+        setStorage(STORAGE.AGENT_CONFIG, Object.assign({}, DEFAULT_AGENT_CONFIG, res.agentConfig));
       }
       if (res.scan) setScanResults(res.scan);
       if (res.organizerApplication && typeof res.organizerApplication === 'object') {
@@ -602,7 +778,11 @@ async function syncFromCloud() {
 module.exports = {
   STORAGE,
   cloudReady,
+  getAuth,
+  setAuth,
+  clearUserSession,
   isLoggedIn,
+  loginWithUserInfo,
   requireAuth,
   syncFromCloud,
   getHackathons,
@@ -613,6 +793,7 @@ module.exports = {
   getBookmarkedHackathons,
   getRegistrations,
   addRegistration,
+  removeRegistration,
   getCards,
   saveCard,
   getCardById,
@@ -634,6 +815,10 @@ module.exports = {
   getPortfolioProjects,
   getScanResults,
   setScanResults,
+  getAgentConfig,
+  setAgentConfig,
+  saveAgentConfig,
+  createSyncPair,
   pullSyncByCode,
   aiChat,
 };

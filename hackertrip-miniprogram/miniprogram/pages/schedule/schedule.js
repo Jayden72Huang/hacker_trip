@@ -17,7 +17,9 @@ Page({
     aiIntentText: '赛程状态',
     activeEvent: null,
     myEvents: [],
+    bookmarkedEvents: [],
     hasJoined: false,
+    hasBookmarks: false,
     phases: [],
     todos: [],
     loading: true,
@@ -52,25 +54,28 @@ Page({
       myEvents = regs;
     }
 
-    // 活跃赛事：优先我加入的进行中赛事，其次我加入的第一个，最后回退全站演示
-    let fallback = [];
+    let bookmarkedEvents = [];
     try {
-      fallback = await api.getHackathons();
+      bookmarkedEvents = await api.getBookmarkedHackathons();
     } catch (err) {
-      fallback = [];
+      bookmarkedEvents = [];
     }
+
+    // 活跃赛事只来自用户明确加入或收藏的赛事，避免把全站推荐误显示为“正在关注”。
     const activeEvent =
       myEvents.find((item) => item.status === 'ongoing') ||
       myEvents[0] ||
-      fallback.find((item) => item.status === 'ongoing') ||
-      fallback[0] ||
+      bookmarkedEvents.find((item) => item.status === 'ongoing') ||
+      bookmarkedEvents[0] ||
       null;
 
     this.setData({
       activeEvent,
       myEvents,
+      bookmarkedEvents,
       hasJoined: myEvents.length > 0,
-      phases: buildPhases(activeEvent && activeEvent.status === 'upcoming' ? 1 : 4),
+      hasBookmarks: bookmarkedEvents.length > 0,
+      phases: activeEvent ? buildPhases(activeEvent.status === 'upcoming' ? 1 : 4) : [],
       todos: this.buildTodos(activeEvent),
       loading: false,
     });
@@ -102,5 +107,25 @@ Page({
         url: '/pages/identity/identity',
       },
     ];
+  },
+
+  openEvent(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id) return;
+    wx.navigateTo({ url: `/pages/detail/detail?id=${id}` });
+  },
+
+  async removeEvent(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id) return;
+    const auth = await api.requireAuth(this, '/pages/schedule/schedule', '登录后才能从你的赛程中移除比赛。');
+    if (!auth) return;
+    try {
+      await api.removeRegistration(id);
+      wx.showToast({ title: '已移出赛程', icon: 'none' });
+      this.load();
+    } catch (err) {
+      wx.showToast({ title: '取消失败，请重试', icon: 'none' });
+    }
   },
 });

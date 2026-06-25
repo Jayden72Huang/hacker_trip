@@ -50,4 +50,5 @@
     <button class="native-link" open-type="share" hover-class="native-link--active">转发好友</button>
     <button class="native-btn" bindtap="joinSchedule">加入我的赛程</button>
   </view>
+  <auth-modal id="authModal" />
 </view>

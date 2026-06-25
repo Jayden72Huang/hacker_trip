@@ -1,6 +1,14 @@
 const { parseAIEntry } = require('../../utils/ai.js');
 const api = require('../../utils/api.js');
 
+function formatSyncTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 Page({
   data: {
     title: '设置',
@@ -8,7 +16,7 @@ Page({
     aiIntentText: 'settings',
     noticeOn: true,
     loggedIn: false,
-    account: { name: '未登录', login: '点击「微信登录」开始', sync: '' },
+    account: { name: '未登录', login: '请到「我的」页完成微信登录', sync: '' },
     rows: [
       { label: '隐私设置', value: '公开主页展示昵称、城市、技能和作品摘要' },
       { label: '缓存管理', value: '本地缓存赛事、收藏、身份卡和同步结果' },
@@ -26,22 +34,23 @@ Page({
   },
 
   refresh() {
-    const app = getApp();
-    const auth = app.globalData.auth;
+    const auth = api.getAuth();
     const profile = api.getProfile();
+    const scan = api.getScanResults();
+    const syncTime = scan && scan.syncedAt ? formatSyncTime(scan.syncedAt) : '';
     if (auth && auth.userInfo) {
       this.setData({
         loggedIn: true,
         account: {
           name: profile.nickname || auth.userInfo.nickName || '微信用户',
           login: '微信已登录',
-          sync: 'Skills 最近同步：今天',
+          sync: syncTime ? `Skills 最近同步：${syncTime}` : 'Skills 尚未同步',
         },
       });
     } else {
       this.setData({
         loggedIn: false,
-        account: { name: '未登录', login: '点击「微信登录」开始', sync: '' },
+        account: { name: '未登录', login: '请到「我的」页完成微信登录', sync: '' },
       });
     }
   },
@@ -50,9 +59,9 @@ Page({
     this.setData({ noticeOn: e.detail.value });
   },
 
-  goLogin() {
+  goProfileLogin() {
     if (this.data.loggedIn) return;
-    wx.navigateTo({ url: '/pages/login/login' });
+    wx.switchTab({ url: '/pages/profile/profile' });
   },
 
   onRowTap(e) {
@@ -80,9 +89,7 @@ Page({
   },
 
   logout() {
-    const app = getApp();
-    app.globalData.auth = null;
-    try { wx.removeStorageSync('ht_auth'); } catch (e) {}
+    api.clearUserSession();
     wx.showToast({ title: '已退出登录', icon: 'none' });
     this.refresh();
   },

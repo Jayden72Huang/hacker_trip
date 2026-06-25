@@ -41,7 +41,7 @@ AI 落地态    微信AI →?src=ai&intent=… → 任意页 context-free 直达
 | F7 | 收藏 | ⚠️ | onBookmark 仅 toast 占位，**未接 api.toggleBookmark**（建议项，非阻断） |
 | F8 | 赛程进度 | ✅ | 7段进度(开发=当前黄/前4蓝/后2灰) + 今日待办文本化 |
 | F9 | 身份卡 | ✅ | canvas 像素非空[38,37,36,255]确认绘制，canvasReady=true |
-| F10 | Skills同步 | ✅ | 输6位码→降级 mock 成功(synced=true)；**已修复**云失败不降级的 bug |
+| F10 | Skills同步 | ✅ | 输6位码→调用 pairSync 拉取；上线环境不再降级为 mock 成功 |
 | F11 | AI 落地态 | ✅ | detail/index ?src=ai → aiBanner=true + intent文本 + 结果优先渲染 |
 
 ## 3. 页面跳转 J-xx
@@ -74,7 +74,7 @@ AI 落地态    微信AI →?src=ai&intent=… → 任意页 context-free 直达
 | **P0** | 5个赛事(ht-10~14)含 `example.com` 假报名链接，违反 publish 质量门槛禁伪造 | 删除5个虚构占位赛事，保留10个真实链接赛事 |
 | **P1** | 发现页 filter chips 纵向堆叠（微信 wx-button 内置 width 压过 width:auto） | chip 改 inline-flex + width:auto !important + 去 ::after 边框，横排成功(width 184px→50px) |
 | **P1** | custom-tab-bar 高亮永远停在「发现」（pageLifetimes.show 时页面栈未更新） | 4个 tab 页 onShow 调 getTabBar().syncSelected()，高亮正确跟随(selected 0/1/2/3) |
-| **P1** | F10 同步云函数未部署时返回「网络异常」而非降级 mock，违反全站降级原则 | pullSyncByCode catch 改为 fall through 到 mock 兜底（码无效仍如实报错） |
+| **P1** | F10 同步曾在云端失败时降级为 mock 成功，导致“看似同步但未绑定用户” | pullSyncByCode 改为必须云端成功才算同步；已配置 pairSync HTTP endpoint，缺失时仍会提示配置入口 |
 
 ## 6. 误报澄清
 

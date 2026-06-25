@@ -9,6 +9,13 @@
     <view class="focus-title">作品集</view>
     <view class="focus-subtitle">沉淀项目、奖项和黑客松经历，项目标题、赛事、状态与标签都以文本呈现。</view>
 
+    <view wx:if="{{!projects.length}}" class="list-card project-card">
+      <view class="project-main">
+        <view class="list-title">还没有作品</view>
+        <view class="list-subtitle">提交项目作品后，会在这里整理用于报名和分享。</view>
+      </view>
+    </view>
+
     <view wx:for="{{projects}}" wx:key="name" class="list-card project-card">
       <view class="illus">插图</view>
       <view class="project-main">

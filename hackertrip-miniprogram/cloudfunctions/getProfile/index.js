@@ -51,6 +51,9 @@ exports.main = async () => {
         skills: Array.isArray(user.skills) ? user.skills : [],
         publicId: user.publicId || '',
       } : null,
+      agentConfig: user && user.agentConfig && typeof user.agentConfig === 'object'
+        ? user.agentConfig
+        : null,
       organizerApplication,
     };
   } catch (e) {

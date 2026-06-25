@@ -28,6 +28,9 @@
     "backgroundTextStyle": "dark",
     "enablePullDownRefresh": false
   },
+  "usingComponents": {
+    "auth-modal": "/components/auth-modal/index"
+  },
   "tabBar": {
     "custom": true,
     "color": "#7A7A75",

@@ -29,34 +29,21 @@ Page({
         this.finishLogin(res.userInfo);
       },
       fail: () => {
-        wx.showToast({ title: '已取消登录', icon: 'none' });
+        wx.showToast({ title: '未完成登录', icon: 'none' });
       },
     });
   },
 
   finishLogin(userInfo) {
-    const app = getApp();
-    const persist = (openid) => {
-      const auth = { openid: openid || null, userInfo, loginAt: Date.now() };
-      app.globalData.auth = auth;
-      try { wx.setStorageSync('ht_auth', auth); } catch (e) {}
-      // 昵称/头像同步进统一用户档案，身份卡/公开主页/我的页立即生效
-      api.saveProfile({ nickname: userInfo.nickName, avatarUrl: userInfo.avatarUrl });
-      wx.showToast({ title: '登录成功', icon: 'success' });
-      // 登录后从云端拉取收藏/报名/卡片合并到本地，完成后回原任务（失败也回）
-      Promise.resolve(api.syncFromCloud()).catch(() => {}).then(() => setTimeout(() => this.goBack(), 400));
-    };
-
-    if (app.globalData.cloudReady && wx.cloud) {
-      wx.cloud.callFunction({
-        name: 'login',
-        data: { userInfo },
-        success: (r) => persist(r.result && r.result.openid),
-        fail: () => persist(null), // 云端失败降级本地登录态，不阻断
+    api.loginWithUserInfo(userInfo)
+      .then(() => {
+        wx.showToast({ title: '登录成功', icon: 'success' });
+        setTimeout(() => this.goBack(), 400);
+      })
+      .catch(() => {
+        this.setData({ logging: false });
+        wx.showToast({ title: '登录失败，请重试', icon: 'none' });
       });
-    } else {
-      persist(null);
-    }
   },
 
   goBack() {

@@ -20,7 +20,7 @@ module.exports = {
     playStyle: 'solo',
     lookingFor: 'teammate',
     hackathons: 4,
-    awards: 1,
+    awards: 0,
     projects: 6,
   },
   // Top5 黑客松匹配

@@ -49,11 +49,17 @@
     <view class="chip-row">
       <text wx:for="{{profile.skills}}" wx:key="*this" class="focus-chip">{{item}}</text>
     </view>
+    <view wx:if="{{!profile.skills.length}}" class="list-card">
+      <view class="list-subtitle">还没有公开技能，编辑身份后会显示在这里。</view>
+    </view>
 
     <view class="section-head">项目</view>
     <view wx:for="{{projects}}" wx:key="name" class="list-card">
       <view class="list-title">{{item.name}}</view>
       <view class="list-subtitle">{{item.desc}}</view>
+    </view>
+    <view wx:if="{{!projects.length}}" class="list-card">
+      <view class="list-subtitle">还没有公开项目，作品提交后会显示在这里。</view>
     </view>
 
     <view class="section-head">参赛历史</view>
@@ -67,6 +73,9 @@
       <view class="list-title">{{item.name}}</view>
       <view class="list-subtitle">日期 {{item.dateText}} · 城市 {{item.cityText}} · 形式 {{item.modeText}}</view>
     </navigator>
+    <view wx:if="{{!history.length}}" class="list-card">
+      <view class="list-subtitle">还没有加入赛程的赛事。</view>
+    </view>
     </block>
     </block>
   </view>

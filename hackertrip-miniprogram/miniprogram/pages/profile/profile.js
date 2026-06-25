@@ -9,12 +9,14 @@ Page({
     avatarChar: 'H',
     activeCount: 0,
     savedCount: 0,
-    // 卡内数据指标：进行中赛事 + vibe coding 作品数（初始占位，load 后填真实值）
+    // 卡内数据指标：进行中赛事 + 身份卡数（初始占位，load 后填真实值）
     assetStats: [
       { label: '进行中', value: '—' },
-      { label: 'vibe 作品', value: '—' },
+      { label: '身份卡', value: '—' },
     ],
     loading: true,
+    isLoggedIn: false,
+    authAccount: { name: '未登录', avatarUrl: '', copy: '登录后同步身份卡、赛程、收藏和 Skills 结果' },
     // 个人资料卡：filled=是否已填写过(决定高亮 or 引导)
     profileCard: { filled: false, avatarUrl: '', avatarChar: 'H', nickname: '', role: '', city: '', skills: [], skillsText: '' },
     profileMode: 'participant',
@@ -53,6 +55,7 @@ Page({
   async load() {
     const stats = api.getUserStats();
     const profile = api.getProfile();
+    const auth = api.getAuth();
     const profileMode = api.getProfileMode();
     const organizer = api.getOrganizerApplication();
     // 我加入的进行中赛事数（用 api 取最新状态）
@@ -66,7 +69,7 @@ Page({
       joined = regs;
     }
     const ongoing = joined.filter((item) => item && item.status === 'ongoing').length;
-    const worksCount = api.getPortfolioProjects().length;
+    const cardsCount = api.getCards().length;
 
     const avatarChar = (profile.nickname || 'H').trim().charAt(0).toUpperCase() || 'H';
     // 编辑过资料 或 已登录 → storage 有 ht_profile，视为"已填写"，高亮展示；否则引导完善
@@ -74,6 +77,14 @@ Page({
 
     this.setData({
       loading: false,
+      isLoggedIn: !!auth,
+      authAccount: auth
+        ? {
+          name: profile.nickname || auth.userInfo.nickName || '微信用户',
+          avatarUrl: profile.avatarUrl || auth.userInfo.avatarUrl || '',
+          copy: '微信已登录，身份卡和赛程会同步到当前账号',
+        }
+        : { name: '未登录', avatarUrl: '', copy: '登录后同步身份卡、赛程、收藏和 Skills 结果' },
       avatarChar,
       activeCount: ongoing,
       savedCount: stats.bookmarks,
@@ -90,12 +101,27 @@ Page({
       profileMode,
       assetStats: [
         { label: '进行中', value: `${ongoing}` },
-        { label: 'vibe 作品', value: `${worksCount}` },
+        { label: '身份卡', value: `${cardsCount}` },
       ],
       organizerStatus: organizer.status,
       organizerStatusText: this.getOrganizerStatusText(organizer.status),
       organizerTools: this.buildOrganizerTools(organizer.status),
     });
+  },
+
+  async openLogin() {
+    if (api.isLoggedIn()) {
+      wx.showToast({ title: '微信已登录', icon: 'none' });
+      return;
+    }
+    const modal = this.selectComponent('#authModal');
+    if (!modal || !modal.open) return;
+    const auth = await modal.open({ reason: '登录后可以同步你的身份卡、赛程、收藏和 Skills 结果。' });
+    if (auth) this.load();
+  },
+
+  onAuthLogin() {
+    this.load();
   },
 
   getOrganizerStatusText(status) {

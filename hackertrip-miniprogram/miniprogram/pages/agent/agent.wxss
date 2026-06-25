@@ -1,23 +1,184 @@
 @import "../focus.wxss";
 
+.agent-source--ready {
+  background: #FFFFFF;
+}
+
+.sync-entry {
+  margin-top: 22rpx;
+}
+
+.agent-guide {
+  margin: 24rpx 0;
+  padding: 22rpx;
+  background: #FFFFFF;
+  border: 4rpx solid #000000;
+  border-radius: 16rpx;
+  box-shadow: 8rpx 8rpx 0 0 #000000;
+}
+
+.guide-title {
+  color: #000000;
+  font-size: 30rpx;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.guide-row {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 18rpx;
+}
+
+.guide-index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 48rpx;
+  width: 48rpx;
+  height: 48rpx;
+  color: #000000;
+  background: #FBD902;
+  border: 3rpx solid #000000;
+  border-radius: 10rpx;
+  font-size: 24rpx;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.guide-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.guide-name {
+  color: #000000;
+  font-size: 25rpx;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.guide-desc {
+  margin-top: 6rpx;
+  color: #3D3D3D;
+  font-size: 22rpx;
+  font-weight: 700;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.agent-source-map {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16rpx;
+  margin-bottom: 10rpx;
+}
+
+.source-card {
+  padding: 20rpx;
+  background: #FFFFFF;
+  border: 4rpx solid #000000;
+  border-radius: 16rpx;
+  box-shadow: 6rpx 6rpx 0 0 #000000;
+}
+
+.source-card--ready {
+  background: #F4F1E8;
+}
+
+.source-status {
+  display: inline-flex;
+  padding: 5rpx 12rpx;
+  color: #FFFFFF;
+  background: #000000;
+  border: 2rpx solid #000000;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.source-card--ready .source-status {
+  color: #000000;
+  background: #FBD902;
+}
+
+.source-title {
+  margin-top: 12rpx;
+  color: #000000;
+  font-size: 28rpx;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.source-desc {
+  margin-top: 8rpx;
+  color: #3D3D3D;
+  font-size: 23rpx;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
 .agent-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 18rpx;
 }
 
-.agent-status {
-  flex-shrink: 0;
-  padding: 8rpx 14rpx;
+.agent-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.agent-ready {
+  display: inline-flex;
+  margin-top: 14rpx;
+  padding: 6rpx 12rpx;
   color: #FFFFFF;
-  background: #0C51ED;
-  border: 3rpx solid #000000;
+  background: #000000;
+  border: 2rpx solid #000000;
   border-radius: 999rpx;
-  font-size: 21rpx;
+  font-size: 20rpx;
   font-weight: 900;
 }
 
-.agent-skills {
-  margin-top: 22rpx;
+.agent-ready--ok {
+  color: #000000;
+  background: #FBD902;
+}
+
+.agent-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 96rpx;
+  height: 54rpx;
+  background: #ECE8DB;
+  border: 3rpx solid #000000;
+  border-radius: 999rpx;
+  box-shadow: 4rpx 4rpx 0 0 #000000;
+}
+
+.agent-switch--on {
+  background: #0C51ED;
+}
+
+.agent-switch-dot {
+  position: absolute;
+  top: 7rpx;
+  left: 8rpx;
+  width: 34rpx;
+  height: 34rpx;
+  background: #FFFFFF;
+  border: 3rpx solid #000000;
+  border-radius: 999rpx;
+}
+
+.agent-switch--on .agent-switch-dot {
+  left: 48rpx;
+  background: #FBD902;
+}
+
+.agent-chat {
+  margin-top: 28rpx;
 }

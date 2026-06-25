@@ -13,7 +13,9 @@
 
     <view class="identity-card blue-box brutal-box">
       <view class="identity-emoji">{{role.emoji}}</view>
+      <view wx:if="{{profileName}}" class="share-owner">{{profileName}}</view>
       <view class="focus-title share-role">{{role.name}}</view>
+      <view wx:if="{{profileMeta}}" class="share-meta">{{profileMeta}}</view>
       <view class="box-copy">{{role.tagline}}</view>
       <view class="stat-grid share-stats">
         <view class="stat-item"><text class="stat-num">{{stats.hackathons}}</text><text class="stat-label">参赛</text></view>
@@ -26,5 +28,6 @@
     </view>
 
     <button class="native-btn native-btn--yellow" bindtap="generateCard">生成我的身份卡</button>
+    <button wx:if="{{uid}}" class="native-btn share-profile-btn" bindtap="openPublicSite">查看 TA 的主页</button>
   </view>
 </view>

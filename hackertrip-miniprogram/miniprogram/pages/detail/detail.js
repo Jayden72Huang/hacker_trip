@@ -67,8 +67,13 @@ Page({
     });
   },
 
-  joinSchedule() {
-    if (!api.requireAuth('/pages/detail/detail?id=' + (this.data.item && this.data.item.id || ''))) return;
+  async joinSchedule() {
+    const auth = await api.requireAuth(
+      this,
+      '/pages/detail/detail?id=' + (this.data.item && this.data.item.id || ''),
+      '登录后才能把比赛保存到你的赛程，并在「赛程」Tab 中同步查看。',
+    );
+    if (!auth) return;
     const item = this.data.item;
     if (!item) return;
     const already = api.getRegistrations().some((r) => r.id === item.id);
@@ -76,8 +81,12 @@ Page({
       wx.showToast({ title: '已在你的赛程中', icon: 'none' });
       return;
     }
-    api.addRegistration(item);
-    wx.showToast({ title: '已加入赛程', icon: 'success' });
+    try {
+      await api.addRegistration(item);
+      wx.showToast({ title: '已加入赛程', icon: 'success' });
+    } catch (e) {
+      wx.showToast({ title: '赛程同步失败，请重试', icon: 'none' });
+    }
   },
 
   askAI() {

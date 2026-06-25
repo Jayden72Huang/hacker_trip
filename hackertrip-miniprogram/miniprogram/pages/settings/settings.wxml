@@ -9,7 +9,7 @@
     <view class="focus-title">设置</view>
     <view class="focus-subtitle">管理账号、通知、隐私和缓存。</view>
 
-    <view class="brutal-box blue-box" bindtap="goLogin">
+    <view class="brutal-box blue-box" bindtap="goProfileLogin">
       <view class="box-title">{{account.name}}</view>
       <view class="box-copy">{{account.login}}</view>
       <view wx:if="{{account.sync}}" class="box-copy">{{account.sync}}</view>
@@ -29,6 +29,6 @@
     </view>
 
     <button wx:if="{{loggedIn}}" class="native-btn native-btn--danger logout-btn" bindtap="logout">退出登录</button>
-    <button wx:else class="native-btn logout-btn" bindtap="goLogin">微信登录</button>
+    <button wx:else class="native-btn logout-btn" bindtap="goProfileLogin">去我的页登录</button>
   </view>
 </view>

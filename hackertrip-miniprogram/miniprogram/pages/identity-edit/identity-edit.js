@@ -7,6 +7,7 @@ Page({
     aiBanner: false,
     aiIntentText: 'identity.edit',
     avatarUrl: '',
+    isLoggedIn: false,
     form: {
       nickname: '',
       role: '',
@@ -20,9 +21,11 @@ Page({
   onLoad(options) {
     const ai = parseAIEntry(options);
     const profile = api.getProfile();
+    const auth = api.getAuth();
     this.setData({
       aiBanner: ai.fromAI,
       aiIntentText: ai.intent || 'identity.edit',
+      isLoggedIn: !!auth,
       avatarUrl: profile.avatarUrl || '',
       form: {
         nickname: profile.nickname,
@@ -31,6 +34,27 @@ Page({
         skills: (profile.skills || []).join(', '),
         github: profile.github,
       },
+    });
+  },
+
+  async openLogin() {
+    const modal = this.selectComponent('#authModal');
+    if (!modal || !modal.open) return;
+    const auth = await modal.open({ reason: '登录后会把微信昵称和头像同步到身份卡资料。' });
+    if (auth) this.applyAuthProfile(auth);
+  },
+
+  onAuthLogin(e) {
+    this.applyAuthProfile(e.detail);
+  },
+
+  applyAuthProfile(auth) {
+    const userInfo = auth && auth.userInfo ? auth.userInfo : {};
+    const profile = api.getProfile();
+    this.setData({
+      isLoggedIn: true,
+      avatarUrl: profile.avatarUrl || userInfo.avatarUrl || this.data.avatarUrl,
+      'form.nickname': profile.nickname || userInfo.nickName || this.data.form.nickname,
     });
   },
 
@@ -45,6 +69,8 @@ Page({
 
   async saveProfile() {
     if (this.data.saving) return;
+    const auth = await api.requireAuth(this, '/pages/identity-edit/identity-edit', '登录后才能把身份资料同步到当前微信账号。');
+    if (!auth) return;
     const { nickname, role, city, github, skills } = this.data.form;
     const skillList = (skills || '')
       .split(',')
@@ -71,7 +97,7 @@ Page({
         });
         return;
       }
-      wx.showToast({ title: res.local ? '已保存到本地' : '身份已保存', icon: 'success' });
+      wx.showToast({ title: '身份已保存', icon: 'success' });
       setTimeout(() => wx.navigateBack(), 600);
     } catch (e) {
       this.setData({ saving: false });
