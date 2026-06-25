@@ -53,9 +53,10 @@ Page({
   },
 
   async load() {
+    const auth = api.getAuth();
+    if (auth) await api.syncUserDataIfLoggedIn().catch(() => {});
     const stats = api.getUserStats();
     const profile = api.getProfile();
-    const auth = api.getAuth();
     const profileMode = api.getProfileMode();
     const organizer = api.getOrganizerApplication();
     // 我加入的进行中赛事数（用 api 取最新状态）
@@ -73,7 +74,7 @@ Page({
 
     const avatarChar = (profile.nickname || 'H').trim().charAt(0).toUpperCase() || 'H';
     // 编辑过资料 或 已登录 → storage 有 ht_profile，视为"已填写"，高亮展示；否则引导完善
-    const hasProfile = !!wx.getStorageSync('ht_profile');
+    const hasProfile = !!(auth && wx.getStorageSync(api.STORAGE.PROFILE));
 
     this.setData({
       loading: false,

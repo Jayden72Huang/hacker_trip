@@ -57,6 +57,7 @@ Page({
       }
     }
 
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
     const stats = api.getUserStats();
     const profile = api.getProfile();
     this.setData({

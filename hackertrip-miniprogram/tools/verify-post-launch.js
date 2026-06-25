@@ -114,6 +114,46 @@ function verifyScheduleOwnership() {
   contains('miniprogram/pages/schedule/schedule.wxml', '已加入赛程', 'schedule page must show joined-event section');
   contains('miniprogram/pages/schedule/schedule.wxml', '已收藏赛事', 'schedule page must show bookmark section');
   contains('miniprogram/pages/schedule/schedule.js', 'activeEvent =', 'schedule page must derive active event from user-owned data');
+  assertInOrder('miniprogram/pages/schedule/schedule.js', ['api.isLoggedIn()', 'api.syncUserDataIfLoggedIn()', 'api.getRegistrations()', 'api.getBookmarkedHackathons()'], 'schedule must sync current user data before reading joined/bookmarked events');
+  contains('miniprogram/pages/schedule/schedule.wxml', '登录后查看你已加入和收藏的赛事', 'schedule page must show logged-out login prompt instead of stale personal data');
+}
+
+function verifyUserBoundDataSync() {
+  [
+    'function getBookmarks() {\n  if (!hasUserSession()) return [];',
+    'function getRegistrations() {\n  if (!hasUserSession()) return [];',
+    'function getCards() {\n  if (!hasUserSession()) return [];',
+    'function getProfile() {\n  if (!hasUserSession()) return Object.assign({}, DEFAULT_PROFILE);',
+    'function getOrganizerApplication() {\n  if (!hasUserSession()) {',
+    'function getHackathonDrafts() {\n  if (!hasUserSession()) return [];',
+    'function getScanResults() {\n  if (!hasUserSession()) return null;',
+    'function getAgentConfig() {\n  if (!hasUserSession()) return Object.assign({}, DEFAULT_AGENT_CONFIG);',
+  ].forEach((snippet) => {
+    contains('miniprogram/utils/api.js', snippet, 'user-bound getters must not read stale local user cache while logged out');
+  });
+  contains('miniprogram/utils/api.js', /async function syncUserDataIfLoggedIn\(\)[\s\S]*isLoggedIn\(\)[\s\S]*syncFromCloud\(\)/, 'api must expose a logged-in-only sync helper');
+  contains('miniprogram/utils/api.js', /async function syncFromCloud\(\)[\s\S]*!cloudReady\(\) \|\| !isLoggedIn\(\)/, 'syncFromCloud must skip when there is no current login session');
+  [
+    'miniprogram/pages/profile/profile.js',
+    'miniprogram/pages/inbox/inbox.js',
+    'miniprogram/pages/index/index.js',
+    'miniprogram/pages/hackathon-list/hackathon-list.js',
+    'miniprogram/pages/detail/detail.js',
+    'miniprogram/pages/public-site/public-site.js',
+    'miniprogram/pages/identity/identity.js',
+    'miniprogram/pages/identity-edit/identity-edit.js',
+    'miniprogram/pages/agent/agent.js',
+    'miniprogram/pages/match/match.js',
+    'miniprogram/pages/settings/settings.js',
+    'miniprogram/pages/organizer/organizer.js',
+    'miniprogram/pages/hackathon-create/hackathon-create.js',
+  ].forEach((rel) => {
+    contains(rel, 'api.syncUserDataIfLoggedIn()', `${rel} must refresh current-user cloud cache before showing user-bound data`);
+  });
+  const pageFiles = walk('miniprogram/pages', []).filter((rel) => rel.endsWith('.js'));
+  for (const rel of pageFiles) {
+    assert(!read(rel).includes('api.syncFromCloud()'), `${rel} must use syncUserDataIfLoggedIn instead of raw syncFromCloud`);
+  }
 }
 
 function verifyIdentityAndShare() {
@@ -159,6 +199,7 @@ function main() {
   verifyAuthContract();
   verifyAuthModalCoverage();
   verifyScheduleOwnership();
+  verifyUserBoundDataSync();
   verifyIdentityAndShare();
   verifyAgentAndSkills();
   console.log('post-launch verification passed');

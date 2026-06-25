@@ -98,9 +98,7 @@ Page({
       this.getTabBar().syncSelected();
     }
     // 报名/登录状态可能在其它页变化，每次进入重算提醒
-    if (!this.data.loading) {
-      this.setData({ groups: buildGroups(api.getRegistrations()) });
-    }
+    if (!this.data.loading) this.loadMessages();
   },
 
   onLoad(options) {
@@ -108,6 +106,14 @@ Page({
     this.setData({
       aiBanner: !!ai.fromAI,
       aiIntentText: ai.intent || '消息提醒',
+    });
+    this.loadMessages();
+  },
+
+  async loadMessages() {
+    this.setData({ loading: true });
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
+    this.setData({
       groups: buildGroups(api.getRegistrations()),
       loading: false,
     });

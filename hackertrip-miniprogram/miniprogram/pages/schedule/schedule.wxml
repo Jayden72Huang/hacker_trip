@@ -25,6 +25,11 @@
     </view>
 
     <block wx:else>
+    <view wx:if="{{!isLoggedIn}}" class="login-empty">
+      <view class="empty-text">登录后查看你已加入和收藏的赛事。</view>
+      <button class="native-btn empty-cta empty-cta--button" bindtap="openLogin">微信登录</button>
+    </view>
+
     <view wx:if="{{activeEvent}}" class="active-card">
       <view class="active-kicker">正在关注</view>
       <view class="active-title">{{activeEvent.name}}</view>
@@ -71,7 +76,7 @@
         </view>
       </view>
     </view>
-    <view wx:else class="my-events-empty">
+    <view wx:elif="{{isLoggedIn}}" class="my-events-empty">
       <view class="empty-text">还没有加入的赛事，去发现页找一场报名吧。</view>
       <navigator class="empty-cta" url="/pages/index/index" open-type="switchTab" hover-class="empty-cta--active">去发现页逛逛</navigator>
     </view>
@@ -93,7 +98,7 @@
         <view class="my-event-note">收藏后会在这里集中管理，加入后会进入上方赛程。</view>
       </view>
     </view>
-    <view wx:else class="my-events-empty">
+    <view wx:elif="{{isLoggedIn}}" class="my-events-empty">
       <view class="empty-text">还没有收藏的赛事，发现页点星标后会汇总到这里。</view>
     </view>
 
@@ -126,5 +131,5 @@
     </block>
     </block>
   </view>
-  <auth-modal id="authModal" />
+  <auth-modal id="authModal" bind:login="onAuthLogin" />
 </view>

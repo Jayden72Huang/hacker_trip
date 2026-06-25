@@ -34,9 +34,7 @@ Page({
   },
 
   async refresh() {
-    if (api.cloudReady()) {
-      await api.syncFromCloud().catch(() => {});
-    }
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
     const app = api.getOrganizerApplication();
     this.setData({
       status: app.status,

@@ -76,6 +76,7 @@ Page({
     if (!auth) return;
     const item = this.data.item;
     if (!item) return;
+    await api.syncUserDataIfLoggedIn().catch(() => {});
     const already = api.getRegistrations().some((r) => r.id === item.id);
     if (already) {
       wx.showToast({ title: '已在你的赛程中', icon: 'none' });

@@ -32,9 +32,7 @@ Page({
   },
 
   async refreshAllowed() {
-    if (api.cloudReady()) {
-      await api.syncFromCloud().catch(() => {});
-    }
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
     this.setData({ allowed: api.isOrganizerApproved() });
   },
 
@@ -55,9 +53,7 @@ Page({
   async submitHackathon() {
     if (this.data.submitting) return;
     this.setData({ submitting: true });
-    if (api.cloudReady()) {
-      await api.syncFromCloud().catch(() => {});
-    }
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
     if (!api.isOrganizerApproved()) {
       this.setData({ allowed: false, submitting: false });
       wx.showToast({ title: '需先通过组织者认证', icon: 'none' });

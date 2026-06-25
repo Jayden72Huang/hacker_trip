@@ -313,6 +313,7 @@
   background: #0C51ED;
 }
 
+.login-empty,
 .my-events-empty {
   display: flex;
   flex-direction: column;
@@ -348,4 +349,10 @@
 .empty-cta--active {
   transform: translate(3rpx, 3rpx);
   box-shadow: 2rpx 2rpx 0 0 #000000;
+}
+
+.empty-cta--button {
+  min-width: 220rpx;
+  padding: 0 32rpx;
+  line-height: 62rpx;
 }

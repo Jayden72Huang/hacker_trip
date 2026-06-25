@@ -43,6 +43,7 @@ Page({
     const initialCity = options && options.city ? decodeURIComponent(options.city) : '全国';
     const initialQuery = options && options.q ? decodeURIComponent(options.q) : '';
     const initialFilter = options && options.filter ? decodeURIComponent(options.filter) : 'all';
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
     let all = [];
     try {
       all = await api.getHackathons();
@@ -64,8 +65,11 @@ Page({
     this.applyFilters(all);
   },
 
-  onShow() {
-    if (this.allEvents.length) this.applyFilters();
+  async onShow() {
+    if (this.allEvents.length) {
+      if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
+      this.applyFilters();
+    }
   },
 
   openCityPicker() {

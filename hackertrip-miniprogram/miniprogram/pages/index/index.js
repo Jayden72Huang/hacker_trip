@@ -60,12 +60,15 @@ Page({
   // 云端拉取的全量赛事，applyFilters 基于此做内存过滤
   allEvents: [],
 
-  onShow() {
+  async onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().syncSelected();
     }
     // 从详情等页返回时同步收藏态（用已缓存的 allEvents，不重复请求云端）
-    if (this.allEvents.length) this.applyFilters();
+    if (this.allEvents.length) {
+      if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
+      this.applyFilters();
+    }
   },
 
   async onLoad(options) {
@@ -74,6 +77,7 @@ Page({
       aiBanner: !!ai.fromAI,
       aiIntentText: ai.intent || '发现黑客松',
     });
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
 
     let all = [];
     try {

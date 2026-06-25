@@ -112,6 +112,10 @@ function setStorage(key, val) {
   try { wx.setStorageSync(key, val); } catch (e) {}
 }
 
+function hasUserSession() {
+  return !!getAuth();
+}
+
 function needsAvatarUpload(url) {
   const value = String(url || '');
   if (!value) return false;
@@ -216,6 +220,7 @@ async function getHackathonDetail(id) {
 /* ----------------------------- 收藏 / 报名 ----------------------------- */
 
 function getBookmarks() {
+  if (!hasUserSession()) return [];
   const v = getStorage(STORAGE.BOOKMARKS, []);
   return Array.isArray(v) ? v : [];
 }
@@ -248,6 +253,7 @@ async function getBookmarkedHackathons() {
 }
 
 function getRegistrations() {
+  if (!hasUserSession()) return [];
   const v = getStorage(STORAGE.REGISTRATIONS, []);
   return Array.isArray(v) ? v : [];
 }
@@ -291,6 +297,7 @@ async function removeRegistration(id) {
 /* ----------------------------- 卡片 ----------------------------- */
 
 function getCards() {
+  if (!hasUserSession()) return [];
   const v = getStorage(STORAGE.CARDS, []);
   return Array.isArray(v) ? v : [];
 }
@@ -329,6 +336,7 @@ function getCardById(id) {
 
 /** 读取统一用户档案，缺字段用默认值补齐，永不返回 null */
 function getProfile() {
+  if (!hasUserSession()) return Object.assign({}, DEFAULT_PROFILE);
   const v = getStorage(STORAGE.PROFILE, null);
   return Object.assign({}, DEFAULT_PROFILE, v && typeof v === 'object' ? v : {});
 }
@@ -451,6 +459,19 @@ function setProfileMode(mode) {
 }
 
 function getOrganizerApplication() {
+  if (!hasUserSession()) {
+    return {
+      status: 'none',
+      orgName: '',
+      role: '',
+      contact: '',
+      website: '',
+      note: '',
+      submittedAt: 0,
+      reviewedAt: 0,
+      approvalSource: '',
+    };
+  }
   const v = getStorage(STORAGE.ORGANIZER, null);
   const base = {
     status: 'none',
@@ -514,6 +535,7 @@ function isOrganizerApproved() {
 }
 
 function getHackathonDrafts() {
+  if (!hasUserSession()) return [];
   const v = getStorage(STORAGE.HACKATHON_DRAFTS, []);
   return Array.isArray(v) ? v : [];
 }
@@ -596,6 +618,7 @@ async function aiChat(message, history, focusEventId) {
 /* ----------------------- Skills 同步（扫描结果） ----------------------- */
 
 function getScanResults() {
+  if (!hasUserSession()) return null;
   const v = getStorage(STORAGE.SCAN_RESULTS, null);
   if (!v || typeof v !== 'object') return null;
   // 归一化：保证 project / matches / identity 结构完整，避免页面空引用崩溃
@@ -612,6 +635,7 @@ function setScanResults(data) {
 }
 
 function getAgentConfig() {
+  if (!hasUserSession()) return Object.assign({}, DEFAULT_AGENT_CONFIG);
   const v = getStorage(STORAGE.AGENT_CONFIG, null);
   return Object.assign({}, DEFAULT_AGENT_CONFIG, v && typeof v === 'object' ? v : {});
 }
@@ -750,7 +774,7 @@ async function requireAuth(pageOrRedirect, redirectPage, reason) {
 
 /** 登录后从云端拉取收藏/报名/卡片/同步结果，合并进本地 storage(云端为准) */
 async function syncFromCloud() {
-  if (!cloudReady()) return { ok: false };
+  if (!cloudReady() || !isLoggedIn()) return { ok: false, skipped: true };
   try {
     const res = await callFn('getProfile', {});
     if (res && res.ok) {
@@ -775,6 +799,11 @@ async function syncFromCloud() {
   return { ok: false };
 }
 
+async function syncUserDataIfLoggedIn() {
+  if (!isLoggedIn()) return { ok: false, skipped: true };
+  return syncFromCloud();
+}
+
 module.exports = {
   STORAGE,
   cloudReady,
@@ -785,6 +814,7 @@ module.exports = {
   loginWithUserInfo,
   requireAuth,
   syncFromCloud,
+  syncUserDataIfLoggedIn,
   getHackathons,
   getHackathonDetail,
   getBookmarks,

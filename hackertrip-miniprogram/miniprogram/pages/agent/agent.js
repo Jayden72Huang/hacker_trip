@@ -64,7 +64,8 @@ Page({
     this.load();
   },
 
-  load() {
+  async load() {
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
     const config = api.getAgentConfig();
     const scan = api.getScanResults();
     const profile = api.getProfile();

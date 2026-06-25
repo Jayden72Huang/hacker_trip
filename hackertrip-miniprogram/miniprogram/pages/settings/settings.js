@@ -33,7 +33,8 @@ Page({
     this.refresh();
   },
 
-  refresh() {
+  async refresh() {
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
     const auth = api.getAuth();
     const profile = api.getProfile();
     const scan = api.getScanResults();

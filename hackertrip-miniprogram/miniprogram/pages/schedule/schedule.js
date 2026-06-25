@@ -23,6 +23,7 @@ Page({
     phases: [],
     todos: [],
     loading: true,
+    isLoggedIn: false,
   },
 
   onShow() {
@@ -43,8 +44,12 @@ Page({
   },
 
   async load() {
+    const isLoggedIn = api.isLoggedIn();
+    this.setData({ loading: true, isLoggedIn });
+    if (isLoggedIn) await api.syncUserDataIfLoggedIn().catch(() => {});
+
     // 我加入的赛事（用 api 取最新状态，已删除的赛事回退到报名快照）
-    const regs = api.getRegistrations();
+    const regs = isLoggedIn ? api.getRegistrations() : [];
     let myEvents = [];
     try {
       myEvents = await Promise.all(
@@ -56,7 +61,7 @@ Page({
 
     let bookmarkedEvents = [];
     try {
-      bookmarkedEvents = await api.getBookmarkedHackathons();
+      bookmarkedEvents = isLoggedIn ? await api.getBookmarkedHackathons() : [];
     } catch (err) {
       bookmarkedEvents = [];
     }
@@ -79,6 +84,21 @@ Page({
       todos: this.buildTodos(activeEvent),
       loading: false,
     });
+  },
+
+  async openLogin() {
+    if (api.isLoggedIn()) {
+      wx.showToast({ title: '微信已登录', icon: 'none' });
+      return;
+    }
+    const modal = this.selectComponent('#authModal');
+    if (!modal || !modal.open) return;
+    const auth = await modal.open({ reason: '登录后可以同步你的赛程和收藏赛事。' });
+    if (auth) this.load();
+  },
+
+  onAuthLogin() {
+    this.load();
   },
 
   buildTodos(event) {

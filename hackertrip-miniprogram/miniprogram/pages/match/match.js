@@ -44,6 +44,7 @@ Page({
 
   async onLoad(options) {
     const ai = parseAIEntry(options);
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
     const scan = api.getScanResults();
     const project = scan && scan.project && scan.project.name ? scan.project : DEFAULT_PROJECT;
     const stack = Array.isArray(project.techStack) ? project.techStack : DEFAULT_PROJECT.techStack;

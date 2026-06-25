@@ -63,6 +63,7 @@ Page({
       return;
     }
 
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
     const p = api.getProfile();
     const stats = api.getUserStats();
     const avatarChar = (p.nickname || 'H').trim().charAt(0).toUpperCase() || 'H';

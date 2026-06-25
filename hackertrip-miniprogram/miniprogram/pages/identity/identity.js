@@ -46,9 +46,10 @@ Page({
     configPanelOpen: false,
   },
 
-  onLoad(options) {
+  async onLoad(options) {
     const ai = parseAIEntry(options);
     this.setData({ aiBanner: ai.fromAI, aiIntent: ai.intent, aiIntentText: ai.intent || '生成身份卡', aiSource: ai.source });
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
     // 数据来源基线：统一用户档案的 skills + 真实资产统计
     const profile = api.getProfile();
     const userStats = api.getUserStats();

@@ -18,8 +18,9 @@ Page({
     saving: false,
   },
 
-  onLoad(options) {
+  async onLoad(options) {
     const ai = parseAIEntry(options);
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
     const profile = api.getProfile();
     const auth = api.getAuth();
     this.setData({
