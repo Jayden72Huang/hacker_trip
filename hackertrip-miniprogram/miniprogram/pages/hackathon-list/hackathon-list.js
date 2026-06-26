@@ -1,5 +1,6 @@
 const api = require('../../utils/api.js');
 const { buildCityOptions, matchHackathonCity, matchHackathonQuery } = require('../../utils/hackathon-search.js');
+const share = require('../../utils/share.js');
 
 const FILTERS = [
   { key: 'all', label: '全部' },
@@ -40,6 +41,7 @@ Page({
   allEvents: [],
 
   async onLoad(options) {
+    share.enableShareMenu();
     const initialCity = options && options.city ? decodeURIComponent(options.city) : '全国';
     const initialQuery = options && options.q ? decodeURIComponent(options.q) : '';
     const initialFilter = options && options.filter ? decodeURIComponent(options.filter) : 'all';
@@ -145,5 +147,21 @@ Page({
   goDetail(e) {
     const id = (e.detail && e.detail.id) || (e.currentTarget && e.currentTarget.dataset.id);
     if (id) wx.navigateTo({ url: `/pages/detail/detail?id=${id}` });
+  },
+
+  buildSharePayload() {
+    return share.buildListShare({
+      city: this.data.city,
+      q: this.data.query.trim(),
+      filter: this.data.activeFilter,
+    });
+  },
+
+  onShareAppMessage() {
+    return this.buildSharePayload();
+  },
+
+  onShareTimeline() {
+    return share.timelinePayload(this.buildSharePayload());
   },
 });

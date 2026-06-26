@@ -1,6 +1,7 @@
 const api = require('../../utils/api.js');
 const { parseAIEntry } = require('../../utils/ai.js');
 const { buildCityOptions, matchHackathonCity, matchHackathonQuery } = require('../../utils/hackathon-search.js');
+const share = require('../../utils/share.js');
 
 const FILTERS = [
   { key: 'all', label: '全部' },
@@ -72,6 +73,7 @@ Page({
   },
 
   async onLoad(options) {
+    share.enableShareMenu();
     const ai = parseAIEntry(options);
     this.setData({
       aiBanner: !!ai.fromAI,
@@ -183,5 +185,13 @@ Page({
     } catch (err) {
       wx.showToast({ title: '收藏同步失败，请重试', icon: 'none' });
     }
+  },
+
+  onShareAppMessage() {
+    return share.buildHomeShare();
+  },
+
+  onShareTimeline() {
+    return share.timelinePayload(share.buildHomeShare());
   },
 });

@@ -76,7 +76,7 @@
       {{bookmarked ? '取消收藏' : '收藏赛事'}}
     </button>
     <button
-      wx:if="{{item.canRegister && item.website}}"
+      wx:if="{{item}}"
       class="native-link native-link--yellow"
       hover-class="native-link--active"
       bindtap="copyOfficialUrl"

@@ -1,6 +1,7 @@
 const catalog = require('../../utils/catalog.js');
 const api = require('../../utils/api.js');
 const { parseAIEntry } = require('../../utils/ai.js');
+const share = require('../../utils/share.js');
 
 function joinText(list) {
   return Array.isArray(list) && list.length ? list.join(' / ') : '待确认';
@@ -36,6 +37,7 @@ Page({
   },
 
   async onLoad(options) {
+    share.enableShareMenu();
     const ai = parseAIEntry(options);
     const key = options.id || options.slug;
     this.setData({
@@ -161,28 +163,25 @@ Page({
 
   // 复制官网报名链接到剪贴板（替代 web-view 加载外部域名，规避业务域名校验）
   copyOfficialUrl() {
-    const url = this.data.item && this.data.item.website;
-    if (!url) {
-      wx.showToast({ title: '暂无官网链接', icon: 'none' });
+    const item = this.data.item;
+    if (!item) {
+      wx.showToast({ title: '暂无可复制内容', icon: 'none' });
       return;
     }
     wx.setClipboardData({
-      data: url,
+      data: share.copyShareText(item),
       success: () => {
-        wx.showToast({ title: '链接已复制，去浏览器打开', icon: 'none' });
+        wx.showToast({ title: '链接已复制', icon: 'none' });
       },
     });
   },
 
   onShareAppMessage() {
     const item = this.data.item || {};
-    const fans = this.data.heat && this.data.heat.fans;
-    const title = item.name
-      ? (fans ? `已有 ${fans} 位开发者关注「${item.name}」，一起来打这场黑客松` : `${item.name} · ${item.dateText || ''}`)
-      : 'HackerTrip 黑客松';
-    return {
-      title,
-      path: `/pages/detail/detail?id=${item.id || ''}`,
-    };
+    return share.buildDetailShare(item);
+  },
+
+  onShareTimeline() {
+    return share.timelinePayload(share.buildDetailShare(this.data.item || {}));
   },
 });
