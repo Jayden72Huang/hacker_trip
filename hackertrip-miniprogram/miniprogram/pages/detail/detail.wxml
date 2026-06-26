@@ -63,7 +63,15 @@
     </view>
   </view>
 
-  <view class="fixed-actions">
+  <view wx:elif="{{notFound}}" class="focus-content">
+    <view class="brutal-box">
+      <view class="box-title">赛事不存在或已下线</view>
+      <view class="box-copy">这场赛事暂时不可访问，可以回到发现页查看正在开放的黑客松。</view>
+      <navigator class="native-link native-link--yellow detail-empty-link" url="/pages/index/index" open-type="switchTab">去发现页</navigator>
+    </view>
+  </view>
+
+  <view wx:if="{{item}}" class="fixed-actions">
     <button class="native-link" hover-class="native-link--active" bindtap="toggleBookmark">
       {{bookmarked ? '取消收藏' : '收藏赛事'}}
     </button>

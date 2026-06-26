@@ -7,8 +7,8 @@ function joinText(list) {
 }
 
 function buildDetail(raw) {
-  const fallback = catalog.getAll({ includeEnded: true })[0];
-  const item = raw || fallback;
+  const item = raw;
+  if (!item) return null;
 
   return Object.assign({}, item, {
     dateText: `${item.startDate || '待确认'} - ${item.endDate || '待确认'}`,
@@ -32,6 +32,7 @@ Page({
     loading: true,
     bookmarked: false,
     heat: { heat: 0, fans: 0, registrations: 0, bookmarks: 0, pct: 0, empty: true }, // F3 赛事热度
+    notFound: false,
   },
 
   async onLoad(options) {
@@ -51,12 +52,22 @@ Page({
       raw = null;
     }
     const item = buildDetail(raw);
+    if (!item) {
+      this.setData({
+        loading: false,
+        item: null,
+        notFound: true,
+        metaRows: [],
+      });
+      return;
+    }
 
     if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
 
     this.setData({
       loading: false,
       item,
+      notFound: false,
       bookmarked: api.isBookmarked(item.id),
       metaRows: [
         { label: '名称', value: item.name },

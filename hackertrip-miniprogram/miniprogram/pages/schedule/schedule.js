@@ -52,11 +52,10 @@ Page({
     const regs = isLoggedIn ? api.getRegistrations() : [];
     let myEvents = [];
     try {
-      myEvents = await Promise.all(
-        regs.map(async (reg) => (await api.getHackathonDetail(reg.id)) || reg),
-      );
+      const resolved = await Promise.all(regs.map(async (reg) => api.getHackathonDetail(reg.id)));
+      myEvents = resolved.filter(Boolean);
     } catch (err) {
-      myEvents = regs;
+      myEvents = [];
     }
 
     let bookmarkedEvents = [];

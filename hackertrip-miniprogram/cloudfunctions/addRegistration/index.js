@@ -2,6 +2,21 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const _ = db.command;
+
+async function getPublishedHackathon(id) {
+  const clean = String(id || '').trim();
+  if (!clean) return null;
+  const col = db.collection('hackathons');
+  const byBizId = await col.where({ id: clean, isPublished: _.neq(false) }).limit(1).get();
+  if (byBizId.data && byBizId.data[0]) return byBizId.data[0];
+  try {
+    const byDocId = await col.doc(clean).get();
+    return byDocId.data && byDocId.data.isPublished !== false ? byDocId.data : null;
+  } catch (e) {
+    return null;
+  }
+}
 
 exports.main = async (event) => {
   const { item, action, id } = event || {};
@@ -16,9 +31,11 @@ exports.main = async (event) => {
     }
 
     if (!item || !item.id) return { ok: false, message: '缺少赛事信息' };
-    const exist = await col.where({ openid, id: item.id }).limit(1).get();
+    const published = await getPublishedHackathon(item.id);
+    if (!published) return { ok: false, code: 'HACKATHON_NOT_AVAILABLE', message: '赛事不存在或已下线' };
+    const exist = await col.where({ openid, id: published.id }).limit(1).get();
     if (!(exist.data && exist.data[0])) {
-      await col.add({ data: Object.assign({}, item, { openid, registeredAt: Date.now() }) });
+      await col.add({ data: Object.assign({}, published, { openid, registeredAt: Date.now() }) });
     }
     return { ok: true };
   } catch (e) {

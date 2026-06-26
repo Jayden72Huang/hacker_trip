@@ -228,15 +228,18 @@ async function getHackathons(params) {
 async function getHackathonDetail(id) {
   const today = catalog.formatDate(new Date());
   let raw = null;
+  let cloudResponded = false;
 
   if (cloudReady()) {
     try {
       const res = await callFn('getHackathonDetail', { id });
+      cloudResponded = !!(res && typeof res.ok === 'boolean');
       if (res && res.hackathon) raw = res.hackathon;
     } catch (e) {
       console.warn('[api] getHackathonDetail 云端失败，降级本地', e);
     }
   }
+  if (cloudResponded && !raw) return null;
   if (!raw) raw = LOCAL_HACKATHONS.find((h) => h.id === id) || null;
 
   return raw ? catalog.decorate(raw, today) : null;

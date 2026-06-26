@@ -17,8 +17,6 @@
 2. 或在 CloudBase 数据库添加 `admin_users` 集合文档：
    - `openid`: 管理员 openid
    - `active`: `true`
-3. 或在 `users` 集合中把用户角色设为：
-   - `role`: `admin` / `owner` / `operator`
 
 推荐生产环境使用 `admin_users` 集合，便于随时增删管理员。
 
@@ -64,5 +62,4 @@
 - `hackathon_drafts`: 组织者提交的待审核草稿
 - `hackathons`: 正式展示给用户的赛事
 - `admin_users`: 管理员白名单
-- `users`: 用户资料，可选 role 授权
-
+- `users`: 用户资料，不用于管理员授权

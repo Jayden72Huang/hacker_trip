@@ -26,12 +26,13 @@ function modeText(mode) {
   return map[mode] || '线下';
 }
 
-function buildHackathonId(name) {
+function buildHackathonId(name, draftId) {
   const seed = cleanText(name, 40).toLowerCase()
     .replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 30);
-  return `ht-${seed || Date.now()}`;
+  const suffix = cleanText(draftId, 80).slice(-8) || String(Date.now()).slice(-8);
+  return `ht-${seed || 'event'}-${suffix}`;
 }
 
 async function isAdmin(openid) {
@@ -50,21 +51,13 @@ async function isAdmin(openid) {
     if (admins.data && admins.data[0]) return true;
   } catch (e) {}
 
-  try {
-    const users = await db.collection('users')
-      .where({ openid, role: _.in(['admin', 'owner', 'operator']) })
-      .limit(1)
-      .get();
-    return !!(users.data && users.data[0]);
-  } catch (e) {
-    return false;
-  }
+  return false;
 }
 
-function publicDraftFields(draft) {
+function publicDraftFields(draft, draftId) {
   const mode = normalizeMode(draft.mode);
   return {
-    id: draft.hackathonId || buildHackathonId(draft.name),
+    id: draft.hackathonId || buildHackathonId(draft.name, draftId),
     name: cleanText(draft.name, 100),
     shortName: cleanText(draft.shortName || draft.name, 40),
     city: cleanText(draft.city, 60),
@@ -117,7 +110,7 @@ async function approveDraft(event, openid) {
   if (!draft) return { ok: false, code: 'DRAFT_NOT_FOUND', message: '草稿不存在' };
 
   const now = Date.now();
-  const item = Object.assign(publicDraftFields(draft), {
+  const item = Object.assign(publicDraftFields(draft, draftId), {
     sourceDraftId: draftId,
     organizerId: draft.organizerId || '',
     organizerName: draft.organizerName || '',
