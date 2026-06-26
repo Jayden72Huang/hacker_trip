@@ -1,0 +1,103 @@
+<view class="focus-page admin-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view class="focus-title">赛事管理</view>
+    <view class="focus-subtitle">仅管理员可访问。草稿通过人工审核后才会发布到正式赛事列表。</view>
+
+    <view wx:if="{{loading}}" class="brutal-box">
+      <view class="box-title">加载中</view>
+      <view class="box-copy">正在读取赛事审核队列。</view>
+    </view>
+
+    <view wx:elif="{{!isAdmin}}" class="brutal-box">
+      <view class="box-title">无管理权限</view>
+      <view class="box-copy">{{error || '当前账号不是管理员。'}}</view>
+    </view>
+
+    <block wx:else>
+      <view class="admin-tabs">
+        <button class="admin-tab {{activeTab === 'drafts' ? 'admin-tab--active' : ''}}" data-tab="drafts" bindtap="switchTab">待审核 {{drafts.length}}</button>
+        <button class="admin-tab {{activeTab === 'live' ? 'admin-tab--active' : ''}}" data-tab="live" bindtap="switchTab">正式赛事 {{hackathons.length}}</button>
+      </view>
+
+      <view wx:if="{{activeTab === 'drafts'}}">
+        <view wx:if="{{drafts.length === 0}}" class="brutal-box">
+          <view class="box-title">暂无待审核赛事</view>
+          <view class="box-copy">组织者提交的新赛事会出现在这里。</view>
+        </view>
+        <view wx:for="{{drafts}}" wx:key="_id" class="admin-card">
+          <view class="admin-card-head">
+            <view>
+              <view class="admin-title">{{item.name}}</view>
+              <view class="admin-meta">{{item.city}} · {{item.startDate}} - {{item.endDate}}</view>
+            </view>
+            <text class="status-pill">{{item.statusText}}</text>
+          </view>
+          <view class="admin-copy">{{item.summary || '暂无简介'}}</view>
+          <view class="admin-row">
+            <text class="admin-label">模式</text>
+            <text>{{item.mode}}</text>
+          </view>
+          <view class="admin-row">
+            <text class="admin-label">奖金</text>
+            <text>{{item.prizePool || '未填写'}}</text>
+          </view>
+          <view class="admin-row">
+            <text class="admin-label">赛道</text>
+            <text>{{item.tracksText || '未填写'}}</text>
+          </view>
+          <view class="admin-row">
+            <text class="admin-label">链接</text>
+            <text>{{item.website}}</text>
+          </view>
+          <view class="admin-actions">
+            <button class="small-btn small-btn--blue" data-id="{{item._id}}" bindtap="approveDraft">发布</button>
+            <button class="small-btn small-btn--white" data-id="{{item._id}}" bindtap="openReject">拒绝</button>
+          </view>
+        </view>
+      </view>
+
+      <view wx:else>
+        <view wx:if="{{hackathons.length === 0}}" class="brutal-box">
+          <view class="box-title">暂无正式赛事</view>
+          <view class="box-copy">审核发布后的赛事会出现在这里。</view>
+        </view>
+        <view wx:for="{{hackathons}}" wx:key="_id" class="admin-card">
+          <view class="admin-card-head">
+            <view>
+              <view class="admin-title">{{item.name}}</view>
+              <view class="admin-meta">{{item.city}} · {{item.startDate}} - {{item.endDate}}</view>
+            </view>
+            <text class="status-pill {{item.isPublished === false ? 'status-pill--off' : ''}}">{{item.publishedText}}</text>
+          </view>
+          <view class="admin-row">
+            <text class="admin-label">模式</text>
+            <text>{{item.modeText}}</text>
+          </view>
+          <view class="admin-row">
+            <text class="admin-label">奖金</text>
+            <text>{{item.prizePool || '未填写'}}</text>
+          </view>
+          <view class="admin-row">
+            <text class="admin-label">赛道</text>
+            <text>{{item.tracksText || '未填写'}}</text>
+          </view>
+          <view class="admin-actions">
+            <button class="small-btn {{item.isPublished === false ? 'small-btn--blue' : 'small-btn--danger'}}" data-index="{{index}}" bindtap="togglePublished">{{item.isPublished === false ? '上线' : '下线'}}</button>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <view wx:if="{{rejectDraftId}}" class="modal-mask">
+    <view class="reject-modal">
+      <view class="box-title">拒绝原因</view>
+      <textarea class="reject-textarea" value="{{rejectReason}}" placeholder="例如：缺少官网、时间不明确、主办方信息不足" bindinput="onRejectReason" />
+      <view class="admin-actions">
+        <button class="small-btn small-btn--white" bindtap="closeReject">取消</button>
+        <button class="small-btn small-btn--danger" bindtap="confirmReject">确认拒绝</button>
+      </view>
+    </view>
+  </view>
+</view>

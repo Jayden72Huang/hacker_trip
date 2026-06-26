@@ -12,7 +12,7 @@ function escapeRegExp(value) {
 exports.main = async (event) => {
   const { q, mode, status, sort, limit = 50 } = event || {};
   const col = db.collection('hackathons');
-  let query = {};
+  let query = { isPublished: _.neq(false) };
 
   if (mode && mode !== 'all') query.mode = mode;
   if (status === 'upcoming') query.isPast = _.neq(true);

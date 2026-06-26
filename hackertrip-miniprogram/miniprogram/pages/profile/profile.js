@@ -30,10 +30,7 @@ Page({
       { title: 'Agent 技能库', sub: '管理 Haki 可读取的项目能力', url: '/pages/agent/agent' },
       { title: 'Skills 同步', sub: '从 GitHub/本地项目同步技术栈', url: '/pages/sync/sync' },
     ],
-    settings: [
-      { title: '账号设置', sub: '登录方式、通知和隐私', url: '/pages/settings/settings' },
-      { title: '公开主页', sub: '预览你的 HackerTrip 主页', url: '/pages/public-site/public-site' },
-    ],
+    settings: [],
   },
 
   onShow() {
@@ -60,6 +57,9 @@ Page({
     const profile = api.getProfile();
     const profileMode = api.getProfileMode();
     const organizer = api.getOrganizerApplication();
+    const adminState = auth && api.cloudReady()
+      ? await api.checkHackathonAdmin().catch(() => ({ isAdmin: false }))
+      : { isAdmin: false };
     // 我加入的进行中赛事数（用 api 取最新状态）
     const regs = api.getRegistrations();
     let joined = [];
@@ -108,7 +108,23 @@ Page({
       organizerStatus: organizer.status,
       organizerStatusText: this.getOrganizerStatusText(organizer.status),
       organizerTools: this.buildOrganizerTools(organizer.status),
+      settings: this.buildSettings(!!(adminState && adminState.isAdmin)),
     });
+  },
+
+  buildSettings(isAdmin) {
+    const list = [
+      { title: '账号设置', sub: '登录方式、通知和隐私', url: '/pages/settings/settings' },
+      { title: '公开主页', sub: '预览你的 HackerTrip 主页', url: '/pages/public-site/public-site' },
+    ];
+    if (isAdmin) {
+      list.unshift({
+        title: '赛事管理',
+        sub: '审核赛事草稿，上线或下线正式赛事',
+        url: '/pages/admin-hackathons/admin-hackathons',
+      });
+    }
+    return list;
   },
 
   async openLogin() {

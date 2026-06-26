@@ -185,7 +185,7 @@ async function uploadAvatarIfNeeded(profile) {
 /** 本地筛选/排序，模拟云函数行为 */
 function filterLocal(list, params) {
   params = params || {};
-  let r = list.slice();
+  let r = list.filter((h) => h && h.isPublished !== false);
   const q = (params.q || '').trim().toLowerCase();
   if (q) {
     r = r.filter((h) =>
@@ -628,6 +628,25 @@ async function submitHackathonDraft(form) {
   }
 }
 
+/* ----------------------------- 管理员赛事管理 ----------------------------- */
+
+async function adminHackathonManage(action, payload) {
+  if (!cloudReady()) {
+    return { ok: false, code: 'CLOUD_REQUIRED', message: '需要连接云开发后才能管理赛事' };
+  }
+  try {
+    return await callFn('adminHackathonManage', Object.assign({ action }, payload || {}));
+  } catch (e) {
+    return { ok: false, code: 'ADMIN_MANAGE_FAILED', message: String(e) };
+  }
+}
+
+async function checkHackathonAdmin() {
+  if (!cloudReady() || !isLoggedIn()) return { ok: false, isAdmin: false, skipped: true };
+  const res = await adminHackathonManage('check', {});
+  return res || { ok: false, isAdmin: false };
+}
+
 /* --------------------- 裂变成长态 / 暗号（F1） --------------------- */
 
 function getGrowth() {
@@ -986,6 +1005,8 @@ module.exports = {
   getHackathonDrafts,
   saveHackathonDraft,
   submitHackathonDraft,
+  adminHackathonManage,
+  checkHackathonAdmin,
   getPortfolioProjects,
   getScanResults,
   setScanResults,
