@@ -23,6 +23,15 @@
       <view class="skeleton-hint">正在匹配赛事…</view>
     </view>
 
+    <block wx:elif="{{!hasProject}}">
+    <view class="brutal-box">
+      <view class="box-title">还没有项目画像</view>
+      <view class="box-copy">同步一次 Skills，或和 Haki 聊聊你的项目方向，这里就会出现按你技术栈精准匹配的黑客松。</view>
+      <button class="native-btn match-identity" bindtap="goSync">同步 Skills</button>
+      <button class="native-btn native-btn--yellow match-identity" bindtap="goChat">问 Haki 推荐赛事</button>
+    </view>
+    </block>
+
     <block wx:else>
     <view class="brutal-box blue-box">
       <view class="box-title">项目卡</view>

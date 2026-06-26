@@ -14,12 +14,21 @@
 
     <!-- 赛事热度（F3）：选手端关注沉淀 → 主办方获客钩子 -->
     <view class="brutal-box heat-box">
-      <view class="heat-head">
-        <view class="heat-num">🔥 {{heat.heat}}</view>
-        <view class="heat-label">热度值</view>
-      </view>
-      <view class="heat-sub">{{heat.fans}} 位开发者已关注 · {{heat.registrations}} 人想参加 · {{heat.bookmarks}} 人收藏</view>
-      <view class="heat-bar"><view class="heat-bar-fill" style="width: {{heat.pct}}%;"></view></view>
+      <block wx:if="{{heat.empty}}">
+        <view class="heat-head">
+          <view class="heat-num heat-num--new">🆕</view>
+          <view class="heat-label">新赛事 · 抢先关注</view>
+        </view>
+        <view class="heat-sub">还没有人关注这场。收藏或报名，点亮它的热度，帮更多开发者发现 👇</view>
+      </block>
+      <block wx:else>
+        <view class="heat-head">
+          <view class="heat-num">🔥 {{heat.heat}}</view>
+          <view class="heat-label">热度值</view>
+        </view>
+        <view class="heat-sub">{{heat.fans}} 位开发者已关注 · {{heat.registrations}} 人想参加 · {{heat.bookmarks}} 人收藏</view>
+        <view class="heat-bar"><view class="heat-bar-fill" style="width: {{heat.pct}}%;"></view></view>
+      </block>
       <view class="heat-actions">
         <button class="heat-btn heat-btn--call" open-type="share" hover-class="native-link--active">📣 为它打 call</button>
         <button class="heat-btn heat-btn--claim" bindtap="claimHackathon" hover-class="native-link--active">这是你的赛事？认领</button>

@@ -56,6 +56,7 @@
       </navigator>
     </view>
 
+    <block wx:if="{{isLoggedIn}}">
     <view class="section-title">已加入赛程</view>
     <view wx:if="{{hasJoined}}" class="my-events">
       <view
@@ -104,6 +105,7 @@
     <view wx:elif="{{isLoggedIn}}" class="my-events-empty">
       <view class="empty-text">还没有收藏的赛事，发现页点星标后会汇总到这里。</view>
     </view>
+    </block>
 
     <block wx:if="{{activeEvent}}">
       <view class="section-title">7 段进度</view>

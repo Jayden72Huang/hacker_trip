@@ -63,3 +63,6 @@
 .heat-btn--call { color: #FFFFFF; background: #0C51ED; }
 .heat-btn--claim { color: #000000; background: #FBD902; }
 .heat-btn:active { transform: translate(2rpx, 2rpx); box-shadow: 2rpx 2rpx 0 0 #000000; }
+
+/* 热度 0 态（新赛事） */
+.heat-num--new { font-size: 44rpx; color: #0C51ED; }

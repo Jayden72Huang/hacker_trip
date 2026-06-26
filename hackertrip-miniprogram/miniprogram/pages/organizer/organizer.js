@@ -30,6 +30,10 @@ Page({
       aiBanner: ai.fromAI,
       aiIntentText: ai.intent || 'organizer.apply',
     });
+    // 从赛事详情「认领」跳转而来：提示用户先完成组织者认证
+    if (options && options.claim) {
+      wx.showToast({ title: '先完成组织者认证即可认领', icon: 'none', duration: 2400 });
+    }
     this.refresh();
   },
 

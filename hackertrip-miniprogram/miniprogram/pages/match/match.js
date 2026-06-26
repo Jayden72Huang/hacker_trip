@@ -1,13 +1,6 @@
 const api = require('../../utils/api.js');
 const { parseAIEntry } = require('../../utils/ai.js');
 
-const DEFAULT_PROJECT = {
-  name: 'AI Prototype Builder',
-  domain: 'AI 开发工具 / 协作效率',
-  summary: '用 TypeScript、LLM 和前端组件快速生成可展示产品原型。',
-  techStack: ['TypeScript', 'React', 'LLM', 'Node.js'],
-};
-
 function scoreItem(item, stack, index) {
   const text = [
     item.name,
@@ -37,7 +30,8 @@ Page({
     title: '匹配结果',
     aiBanner: false,
     aiIntentText: '项目匹配',
-    project: DEFAULT_PROJECT,
+    project: null,
+    hasProject: false, // 仅当有真实 Skills 同步项目画像时才展示匹配，避免假数据误导
     matches: [],
     loading: true,
   },
@@ -46,25 +40,30 @@ Page({
     const ai = parseAIEntry(options);
     if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
     const scan = api.getScanResults();
-    const project = scan && scan.project && scan.project.name ? scan.project : DEFAULT_PROJECT;
-    const stack = Array.isArray(project.techStack) ? project.techStack : DEFAULT_PROJECT.techStack;
+    const project = scan && scan.project && scan.project.name ? scan.project : null;
+    const hasProject = !!project;
 
-    let source = [];
-    try {
-      source = await api.getHackathons();
-      if (!source.length) source = await api.getHackathons({ includeEnded: true });
-    } catch (err) {
-      source = [];
+    let matches = [];
+    if (hasProject) {
+      const stack = Array.isArray(project.techStack) && project.techStack.length ? project.techStack : [];
+      let source = [];
+      try {
+        source = await api.getHackathons();
+        if (!source.length) source = await api.getHackathons({ includeEnded: true });
+      } catch (err) {
+        source = [];
+      }
+      matches = source
+        .map((item, index) => scoreItem(item, stack, index))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
     }
-    const matches = source
-      .map((item, index) => scoreItem(item, stack, index))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 5);
 
     this.setData({
       aiBanner: ai.fromAI,
       aiIntentText: ai.intent || '项目匹配',
       project,
+      hasProject,
       matches,
       loading: false,
     });
@@ -72,5 +71,13 @@ Page({
 
   makeCard() {
     wx.navigateTo({ url: '/pages/identity/identity' });
+  },
+
+  goSync() {
+    wx.navigateTo({ url: '/pages/sync/sync' });
+  },
+
+  goChat() {
+    wx.navigateTo({ url: '/pages/chat/chat' });
   },
 });

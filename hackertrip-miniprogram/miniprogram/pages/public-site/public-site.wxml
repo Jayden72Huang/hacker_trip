@@ -33,8 +33,8 @@
         <text wx:else>{{profile.avatarChar}}</text>
       </view>
       <view class="public-info">
-        <view class="focus-title public-name">{{profile.name}}</view>
-        <view class="public-role">{{profile.role}} · {{profile.city}}</view>
+        <view class="focus-title public-name">{{profile.name || 'HackerTrip 用户'}}</view>
+        <view wx:if="{{profile.role || profile.city}}" class="public-role">{{profile.role}}{{profile.role && profile.city ? ' · ' : ''}}{{profile.city}}</view>
         <view class="box-copy">{{profile.bio}}</view>
       </view>
     </view>

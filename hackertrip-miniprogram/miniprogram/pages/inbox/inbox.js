@@ -72,11 +72,11 @@ function buildGroups(registrations) {
     items: [
       {
         level: 'system',
-        title: 'HackerTrip 已启用微信 AI 入口',
-        sub: '从微信 AI 进入页面时，会保留任务来源和 intent 参数',
+        title: '欢迎来到 HackerTrip 👋',
+        sub: '报名或收藏赛事后，报名截止和赛程提醒会自动出现在这里',
         time: '',
-        tag: 'AI',
-        url: '/pages/settings/settings',
+        tag: '提示',
+        url: '/pages/index/index',
       },
     ],
   });

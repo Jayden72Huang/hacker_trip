@@ -31,7 +31,7 @@ Page({
     metaRows: [],
     loading: true,
     bookmarked: false,
-    heat: { heat: 0, fans: 0, registrations: 0, bookmarks: 0, pct: 0 }, // F3 赛事热度
+    heat: { heat: 0, fans: 0, registrations: 0, bookmarks: 0, pct: 0, empty: true }, // F3 赛事热度
   },
 
   async onLoad(options) {
@@ -80,7 +80,8 @@ Page({
       if (res && res.ok) {
         // pct：相对一个软上限(300)的进度条，纯视觉，封顶 100
         const pct = Math.max(6, Math.min(100, Math.round((res.heat / 300) * 100)));
-        this.setData({ heat: { heat: res.heat, fans: res.fans, registrations: res.registrations, bookmarks: res.bookmarks, pct } });
+        const empty = (res.fans || 0) === 0; // 0 热度 → 走「新赛事·抢先关注」鼓励态，避免冷启动一排 0
+        this.setData({ heat: { heat: res.heat, fans: res.fans, registrations: res.registrations, bookmarks: res.bookmarks, pct, empty } });
       }
     } catch (e) { /* 热度失败不阻断详情 */ }
   },
