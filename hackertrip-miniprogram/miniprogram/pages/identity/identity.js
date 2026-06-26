@@ -44,6 +44,7 @@ Page({
     fromSync: false,
     rolePanelOpen: false,
     configPanelOpen: false,
+    growth: { inviteCode: '', recruitScore: 0, redeemCount: 0 }, // F1 暗号裂变
   },
 
   async onLoad(options) {
@@ -71,10 +72,45 @@ Page({
       });
     }
     this.recompute();
+    this.loadInvite();
   },
 
   onReady() {
     this.initCanvas();
+  },
+
+  /* ---------------- 暗号裂变（F1） ---------------- */
+  async loadInvite() {
+    try {
+      const g = api.getGrowth();
+      this.setData({ growth: { inviteCode: g.inviteCode, recruitScore: g.recruitScore, redeemCount: g.redeemCount } });
+      const res = await api.getInviteCode();
+      if (res && res.ok) {
+        this.setData({ growth: { inviteCode: res.code, recruitScore: res.recruitScore || 0, redeemCount: res.redeemCount || 0 } });
+      }
+    } catch (e) { /* 静默：暗号区块降级显示「生成中」 */ }
+  },
+
+  buildInviteText() {
+    const code = this.data.growth.inviteCode;
+    const role = this.data.roleMeta || ROLE_MAP.zero_to_one;
+    return `我在 HackerTrip 是「${role.name}」${role.emoji}，暗号 ${code}。\n把这串暗号发给小程序里的 Haki，它会帮我俩做「组队雷达」，你还能解锁专属身份卡 👉 微信搜「HackerTrip」`;
+  },
+
+  copyInviteCode() {
+    if (!this.data.growth.inviteCode) return;
+    wx.setClipboardData({ data: this.data.growth.inviteCode, success: () => wx.showToast({ title: '暗号已复制', icon: 'none' }) });
+  },
+
+  copyInvite() {
+    if (!this.data.growth.inviteCode) {
+      wx.showToast({ title: '暗号生成中，稍等', icon: 'none' });
+      return;
+    }
+    wx.setClipboardData({
+      data: this.buildInviteText(),
+      success: () => wx.showToast({ title: '邀请语已复制，去群里发吧', icon: 'none' }),
+    });
   },
 
   /* ---------------- 角色判定 ---------------- */

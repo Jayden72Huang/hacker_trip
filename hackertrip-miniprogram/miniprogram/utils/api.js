@@ -21,6 +21,16 @@ const STORAGE = {
   PROFILE_MODE: 'ht_profile_mode', // 我的页角色视图偏好
   ORGANIZER: 'ht_organizer_application', // 组织者申请与审核状态
   HACKATHON_DRAFTS: 'ht_hackathon_drafts', // 组织者提交的赛事草稿
+  GROWTH: 'ht_growth', // 裂变成长态：暗号 / 招募值 / 被邀请 / 已解锁卡面
+};
+
+/** 裂变成长态默认值（F1 暗号 + F2 集卡共用） */
+const DEFAULT_GROWTH = {
+  inviteCode: '',
+  recruitScore: 0,
+  redeemCount: 0,
+  invitedBy: '',
+  unlockedCards: [], // 服务端授予的限定卡面 key（如 invited_limited / recruiter）
 };
 
 const DEFAULT_AGENT_CONFIG = {
@@ -109,6 +119,7 @@ function clearUserSession() {
     STORAGE.SCAN_RESULTS,
     STORAGE.AGENT_CONFIG,
     STORAGE.PROFILE,
+    STORAGE.GROWTH,
   ].forEach((key) => {
     try { wx.removeStorageSync(key); } catch (e) {}
   });
@@ -229,6 +240,31 @@ async function getHackathonDetail(id) {
   if (!raw) raw = LOCAL_HACKATHONS.find((h) => h.id === id) || null;
 
   return raw ? catalog.decorate(raw, today) : null;
+}
+
+/** 赛事热度（F3）：报名/收藏聚合。mock 时用 id 派生稳定的拟真数值 + 叠加本人行为 */
+async function getHackathonHeat(id) {
+  const key = String(id || '').trim();
+  if (!key) return { ok: false, message: '缺少赛事 id' };
+  if (cloudReady()) {
+    try {
+      const res = await callFn('getHackathonHeat', { id: key });
+      if (res && res.ok) return res;
+    } catch (e) {
+      console.warn('[api] getHackathonHeat 云端失败，降级本地', e);
+    }
+  }
+  // 本地派生：稳定 hash → 拟真热度，叠加本人收藏/报名，使开发者工具可演示
+  let hash = 0;
+  for (let i = 0; i < key.length; i += 1) { hash = ((hash << 5) - hash) + key.charCodeAt(i); hash |= 0; }
+  hash = Math.abs(hash);
+  const baseRegs = 6 + (hash % 40);
+  const baseMarks = 10 + ((hash >> 3) % 80);
+  const mineReg = getRegistrations().some((r) => r.id === key) ? 1 : 0;
+  const mineMark = isBookmarked(key) ? 1 : 0;
+  const registrations = baseRegs + mineReg;
+  const bookmarks = baseMarks + mineMark;
+  return { ok: true, local: true, id: key, registrations, bookmarks, fans: registrations + bookmarks, heat: registrations * 3 + bookmarks };
 }
 
 /* ----------------------------- 收藏 / 报名 ----------------------------- */
@@ -592,6 +628,98 @@ async function submitHackathonDraft(form) {
   }
 }
 
+/* --------------------- 裂变成长态 / 暗号（F1） --------------------- */
+
+function getGrowth() {
+  if (!hasUserSession()) return Object.assign({}, DEFAULT_GROWTH);
+  const v = getStorage(STORAGE.GROWTH, null);
+  return Object.assign({}, DEFAULT_GROWTH, v && typeof v === 'object' ? v : {});
+}
+
+function setGrowth(patch) {
+  const next = Object.assign({}, getGrowth(), patch || {});
+  setStorage(STORAGE.GROWTH, next);
+  return next;
+}
+
+/** 本地兜底暗号：未连云开发时，由 publicId/openid 派生一个稳定的 HT-XXXX */
+function localInviteCode() {
+  const ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+  const seed = (getProfile().publicId || (getAuth() && getAuth().openid) || 'guest') + '';
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+    hash |= 0;
+  }
+  hash = Math.abs(hash);
+  let s = '';
+  for (let i = 0; i < 4; i += 1) {
+    s += ALPHABET[hash % ALPHABET.length];
+    hash = Math.floor(hash / ALPHABET.length) + 7;
+  }
+  return `HT-${s}`;
+}
+
+/** 取/建当前用户的专属暗号；返回 { ok, code, recruitScore, redeemCount } */
+async function getInviteCode() {
+  if (cloudReady() && isLoggedIn()) {
+    try {
+      const res = await callFn('inviteCode', {});
+      if (res && res.ok && res.code) {
+        setGrowth({ inviteCode: res.code, recruitScore: res.recruitScore || 0, redeemCount: res.redeemCount || 0 });
+        return res;
+      }
+    } catch (e) {
+      console.warn('[api] inviteCode 云端失败，降级本地', e);
+    }
+  }
+  const code = getGrowth().inviteCode || localInviteCode();
+  const g = setGrowth({ inviteCode: code });
+  return { ok: true, local: true, code, recruitScore: g.recruitScore, redeemCount: g.redeemCount };
+}
+
+/**
+ * 核销好友暗号：绑定 referral + 双向解锁，返回邀请人画像（供 Haki 组队雷达）。
+ * @returns {Promise<{ok, firstTime?, alreadyRedeemed?, inviter?, unlocked?, ownerUnlocked?, message?}>}
+ */
+async function redeemInvite(code) {
+  const clean = String(code || '').toUpperCase().trim();
+  if (cloudReady() && isLoggedIn()) {
+    try {
+      const res = await callFn('redeemInvite', { code: clean });
+      // 云函数返回了结构化结果（含校验失败 NOT_FOUND/SELF 等）→ 直接透出
+      if (res && typeof res.ok === 'boolean') {
+        if (res.ok && res.firstTime && Array.isArray(res.unlocked) && res.unlocked.length) {
+          const g = getGrowth();
+          const merged = Array.from(new Set((g.unlockedCards || []).concat(res.unlocked)));
+          setGrowth({ unlockedCards: merged });
+        }
+        return res;
+      }
+      // 无结构化结果 → 落到下方 mock 演示
+    } catch (e) {
+      // 云函数未部署/网络异常 → 落到下方 mock 演示，保证体验不中断
+      console.warn('[api] redeemInvite 云端不可用，降级演示', e);
+    }
+  }
+  // mock 降级：构造一个示例邀请人，保证开发者工具可演示完整体验
+  if (clean === getGrowth().inviteCode) {
+    return { ok: false, code: 'SELF', message: '这是你自己的暗号，发给朋友才有用～' };
+  }
+  if (!/^HT-?[0-9A-Z]{4}$/.test(clean)) {
+    return { ok: false, code: 'BAD_FORMAT', message: '暗号格式不对，应该像 HT-7K3D' };
+  }
+  setGrowth({ unlockedCards: Array.from(new Set(getGrowth().unlockedCards.concat('invited_limited'))) });
+  return {
+    ok: true,
+    local: true,
+    firstTime: true,
+    inviter: { name: '示例队友 Neo', role: 'model_alchemist', city: '上海', skills: ['PyTorch', 'LangChain', 'RAG'], recruitScore: 2 },
+    unlocked: ['invited_limited'],
+    ownerUnlocked: [],
+  };
+}
+
 /* ----------------------------- AI 聊天 ----------------------------- */
 
 /**
@@ -600,7 +728,7 @@ async function submitHackathonDraft(form) {
  * @param {Array<{role,text}>} history 对话历史（仅 user/assistant）
  * @returns {Promise<{ok:boolean, reply:string, fallback?:boolean}>}
  */
-async function aiChat(message, history, focusEventId) {
+async function aiChat(message, history, focusEventId, extra) {
   const text = String(message || '').trim();
   if (!text) return { ok: false, reply: '说点什么吧，比如"我会 React，适合参加哪个？"', fallback: true };
 
@@ -610,6 +738,7 @@ async function aiChat(message, history, focusEventId) {
         message: text,
         focusEventId: focusEventId || '',
         agentConfig: getAgentConfig(),
+        inviteContext: (extra && extra.inviteContext) || null,
         history: (Array.isArray(history) ? history : [])
           .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && m.text)
           .map((m) => ({ role: m.role, content: m.text })),
@@ -831,6 +960,7 @@ module.exports = {
   syncUserDataIfLoggedIn,
   getHackathons,
   getHackathonDetail,
+  getHackathonHeat,
   getBookmarks,
   isBookmarked,
   toggleBookmark,
@@ -865,4 +995,8 @@ module.exports = {
   createSyncPair,
   pullSyncByCode,
   aiChat,
+  getGrowth,
+  setGrowth,
+  getInviteCode,
+  redeemInvite,
 };

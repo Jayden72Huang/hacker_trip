@@ -10,6 +10,7 @@
     "pages/hackathon-list/hackathon-list",
     "pages/identity/identity",
     "pages/identity-edit/identity-edit",
+    "pages/cardbook/cardbook",
     "pages/sync/sync",
     "pages/organizer/organizer",
     "pages/hackathon-create/hackathon-create",

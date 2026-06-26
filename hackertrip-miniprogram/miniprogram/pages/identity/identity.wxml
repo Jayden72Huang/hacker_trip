@@ -56,6 +56,21 @@
     </view>
   </view>
 
+  <!-- 我的暗号：F1 裂变邀请起点 -->
+  <view class="invite-card glass">
+    <view class="invite-head">
+      <view class="invite-head-text">
+        <view class="invite-title">🔑 我的暗号</view>
+        <view class="invite-sub">朋友把它发给 Haki，就能解锁你俩的「组队雷达」</view>
+      </view>
+      <view class="invite-score">招募 {{growth.recruitScore}} 人</view>
+    </view>
+    <view class="invite-coderow">
+      <text class="invite-code" bindtap="copyInviteCode">{{growth.inviteCode || '生成中…'}}</text>
+      <button class="invite-copy" bindtap="copyInvite">复制邀请语</button>
+    </view>
+  </view>
+
   <view class="section-head identity-section-head">配置卡片内容</view>
 
   <!-- 角色判定面板 -->

@@ -44,3 +44,22 @@
 .detail-ai-btn {
   margin-top: 24rpx;
 }
+
+/* 赛事热度看板（F3） */
+.heat-box { background: #FFFFFF; }
+.heat-head { display: flex; align-items: baseline; gap: 14rpx; }
+.heat-num { font-size: 52rpx; font-weight: 900; color: #FF4D2E; line-height: 1; }
+.heat-label { font-size: 24rpx; font-weight: 700; color: #7A7A75; }
+.heat-sub { margin-top: 12rpx; font-size: 24rpx; font-weight: 700; color: #3D3D3D; line-height: 1.5; }
+.heat-bar { margin: 16rpx 0 20rpx; height: 18rpx; background: #ECE8DB; border: 2rpx solid #000000; border-radius: 999rpx; overflow: hidden; }
+.heat-bar-fill { height: 100%; background: linear-gradient(90deg, #FBD902, #FF4D2E); border-right: 2rpx solid #000000; transition: width .4s; }
+.heat-actions { display: flex; gap: 16rpx; }
+.heat-btn {
+  flex: 1; height: 80rpx; line-height: 80rpx;
+  font-size: 26rpx; font-weight: 800;
+  border: 3rpx solid #000000; border-radius: 12rpx;
+  box-shadow: 4rpx 4rpx 0 0 #000000;
+}
+.heat-btn--call { color: #FFFFFF; background: #0C51ED; }
+.heat-btn--claim { color: #000000; background: #FBD902; }
+.heat-btn:active { transform: translate(2rpx, 2rpx); box-shadow: 2rpx 2rpx 0 0 #000000; }

@@ -50,4 +50,6 @@
     />
     <button class="send-btn" bindtap="sendMessage" disabled="{{sending}}">{{sending ? '…' : '发送'}}</button>
   </view>
+
+  <auth-modal id="authModal" bind:login="onAuthLogin" />
 </view>

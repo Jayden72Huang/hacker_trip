@@ -1,0 +1,45 @@
+<navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+<view class="page-title migrated-title">{{title}}</view>
+
+<view class="page">
+  <!-- 当前角色卡 -->
+  <view wx:if="{{role}}" class="cb-hero">
+    <view class="cb-hero-emoji">{{role.emoji}}</view>
+    <view class="cb-hero-body">
+      <view class="cb-hero-name">{{role.name}}</view>
+      <view class="cb-hero-tag">{{role.tagline}}</view>
+    </view>
+    <button class="cb-hero-btn" bindtap="goIdentity">我的卡</button>
+  </view>
+
+  <!-- 进度条 -->
+  <view class="cb-progress">
+    <view class="cb-progress-head">
+      <text class="cb-progress-title">成就卡册</text>
+      <text class="cb-progress-count">已解锁 {{unlockedCount}}/{{total}}</text>
+    </view>
+    <view class="cb-bar"><view class="cb-bar-fill" style="width: {{total ? (unlockedCount * 100 / total) : 0}}%;"></view></view>
+    <view class="cb-progress-sub">招募值 {{recruitScore}} · 邀请越多解锁越多稀有卡</view>
+  </view>
+
+  <!-- 卡片网格 -->
+  <view class="cb-grid">
+    <view
+      wx:for="{{cards}}"
+      wx:key="key"
+      class="cb-card {{item.unlocked ? 'cb-card--on' : 'cb-card--off'}}"
+      data-idx="{{index}}"
+      bindtap="tapCard"
+    >
+      <view class="cb-rarity" style="background: {{item.rarityColor}};">{{item.rarity}}</view>
+      <view class="cb-card-emoji">{{item.unlocked ? item.emoji : '🔒'}}</view>
+      <view class="cb-card-name">{{item.name}}</view>
+      <view class="cb-card-desc">{{item.unlocked ? item.desc : item.cond}}</view>
+    </view>
+  </view>
+
+  <view class="cb-cta">
+    <button class="cb-cta-btn" bindtap="goChat">🔑 用好友暗号解锁限定卡</button>
+  </view>
+  <view style="height: 60rpx;" />
+</view>

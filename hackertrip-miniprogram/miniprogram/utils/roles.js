@@ -141,4 +141,5 @@ module.exports = {
   LOOKING_FOR_META,
   decideRole,
   buildShareCaptions,
+  countTechCategories,
 };

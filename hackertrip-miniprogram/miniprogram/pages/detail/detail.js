@@ -31,6 +31,7 @@ Page({
     metaRows: [],
     loading: true,
     bookmarked: false,
+    heat: { heat: 0, fans: 0, registrations: 0, bookmarks: 0, pct: 0 }, // F3 赛事热度
   },
 
   async onLoad(options) {
@@ -68,6 +69,33 @@ Page({
         { label: '技术栈', value: item.stackText },
         { label: '官网', value: item.website || '待确认' },
       ],
+    });
+    this.loadHeat(item.id);
+  },
+
+  async loadHeat(id) {
+    if (!id) return;
+    try {
+      const res = await api.getHackathonHeat(id);
+      if (res && res.ok) {
+        // pct：相对一个软上限(300)的进度条，纯视觉，封顶 100
+        const pct = Math.max(6, Math.min(100, Math.round((res.heat / 300) * 100)));
+        this.setData({ heat: { heat: res.heat, fans: res.fans, registrations: res.registrations, bookmarks: res.bookmarks, pct } });
+      }
+    } catch (e) { /* 热度失败不阻断详情 */ }
+  },
+
+  // 主办方一键认领：引导进入组织者认领/申请流（B 端获客入口）
+  claimHackathon() {
+    const item = this.data.item || {};
+    wx.showModal({
+      title: '认领这场赛事',
+      content: `「${item.name || '该赛事'}」已有 ${this.data.heat.fans} 位开发者关注。认领后可查看完整选手画像、补全赛事信息并获得官方曝光位。`,
+      confirmText: '去认领',
+      cancelText: '再看看',
+      success: (r) => {
+        if (r.confirm) wx.navigateTo({ url: '/pages/organizer/organizer?claim=' + encodeURIComponent(item.id || '') });
+      },
     });
   },
 
@@ -136,8 +164,12 @@ Page({
 
   onShareAppMessage() {
     const item = this.data.item || {};
+    const fans = this.data.heat && this.data.heat.fans;
+    const title = item.name
+      ? (fans ? `已有 ${fans} 位开发者关注「${item.name}」，一起来打这场黑客松` : `${item.name} · ${item.dateText || ''}`)
+      : 'HackerTrip 黑客松';
     return {
-      title: item.name ? `${item.name} · ${item.dateText || ''}` : 'HackerTrip 黑客松',
+      title,
       path: `/pages/detail/detail?id=${item.id || ''}`,
     };
   },

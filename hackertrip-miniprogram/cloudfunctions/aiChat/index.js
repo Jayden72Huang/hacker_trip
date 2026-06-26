@@ -94,6 +94,30 @@ async function loadLatestSync(openid) {
   }
 }
 
+/**
+ * 组队雷达 prompt（F1 Haki 暗号）：用户用好友暗号入场时，
+ * 注入邀请人画像，让 Haki 生成「识别 + 契合度 + 一起打哪个赛 + 锐评」的惊喜反馈。
+ */
+function buildInviteRadar(inviteContext) {
+  if (!inviteContext || typeof inviteContext !== 'object') return '';
+  const a = inviteContext.inviter || {};
+  const me = inviteContext.me || {};
+  const aSkills = Array.isArray(a.skills) && a.skills.length ? a.skills.join('、') : '未知';
+  const meSkills = Array.isArray(me.skills) && me.skills.length ? me.skills.join('、') : '未知';
+  return [
+    '【组队雷达任务（最高优先级，本轮必须照此回答）】',
+    `用户刚用好友「${a.name || '一位队友'}」的专属暗号进入 HackerTrip。`,
+    `邀请人画像：角色「${a.role || '未知'}」｜城市「${a.city || '未知'}」｜技术栈：${aSkills}。`,
+    `当前用户画像：角色「${me.role || '未知'}」｜城市「${me.city || '未知'}」｜技术栈：${meSkills}。`,
+    '请按这个结构生成一段热情、有梗、像老黑客松搭子的话（全程简体中文，180 字内）：',
+    `1) 一句话点名是「${a.name || '这位朋友'}」把 ta 邀来的，欢迎入坑；`,
+    '2) 对比两人技术栈，给一个「组队契合度 X%」(自行合理估算)，点出 1 个互补点或共同点；',
+    '3) 从下方赛事清单里挑 1 个最适合两人一起打的，给出具体理由（赛道/城市/时间任一）；',
+    '4) 结尾一句俏皮锐评 + 鼓励 ta 也生成自己的暗号去拉人。',
+    '即使画像信息少，也要顺势发挥，不要追问、不要说"信息不足"。',
+  ].join('\n');
+}
+
 function buildAgentContext(scan, config) {
   if (!scan || typeof scan !== 'object') return '';
   const cfg = Object.assign({
@@ -158,7 +182,7 @@ function normalizeHistory(history) {
  * 组装注入了真实赛事 context 的完整 messages 数组。
  * 赛事过滤(isPublished)只能在云端做，所以 prompt 装配必须留在云函数。
  */
-async function buildMessages(message, history, focusEventId, openid, agentConfig) {
+async function buildMessages(message, history, focusEventId, openid, agentConfig, inviteContext) {
   let context = '（暂无可用赛事数据）';
   let focusName = '';
   let agentContext = '';
@@ -177,9 +201,10 @@ async function buildMessages(message, history, focusEventId, openid, agentConfig
   } catch (e) {
     agentContext = '';
   }
-  const system = agentContext
-    ? `${buildSystemPrompt(context, focusName)}\n\n${agentContext}`
-    : buildSystemPrompt(context, focusName);
+  const inviteRadar = buildInviteRadar(inviteContext);
+  let system = buildSystemPrompt(context, focusName);
+  if (agentContext) system += `\n\n${agentContext}`;
+  if (inviteRadar) system += `\n\n${inviteRadar}`;
   return [
     { role: 'system', content: system },
     ...normalizeHistory(history),
@@ -203,6 +228,7 @@ exports.main = async (event) => {
     event && event.focusEventId,
     openid,
     event && event.agentConfig,
+    event && event.inviteContext,
   );
 
   // mode=prepare：仅返回装配好的 messages，由小程序端用 wx.cloud.extend.AI 做流式生成
