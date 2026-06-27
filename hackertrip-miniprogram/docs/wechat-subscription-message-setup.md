@@ -10,9 +10,9 @@ HackerTrip 已在小程序侧接入订阅授权、授权结果保存和后台发
 
 | 用途 | 代码类型 | 建议内容 |
 | --- | --- | --- |
-| 黑客松上新 | `new_hackathon` | 新赛事名称、地点/形式、简介或备注 |
-| 智能推荐 | `smart_recommendation` | 推荐赛事名称、推荐理由、匹配标签 |
-| 截止提醒 | `deadline_reminder` | 赛事名称、报名截止时间、备注 |
+| 黑客松上新 | `new_hackathon` | 新活动通知：新赛事名称、地点/形式、简介或备注 |
+| 智能推荐 | `smart_recommendation` | 智能推荐：推荐赛事名称、推荐理由、匹配标签 |
+| 截止提醒 | `deadline_reminder` | 活动报名截止提醒：赛事名称、报名截止时间、备注 |
 
 注意：微信模板关键词以后台实际选择为准。发送云函数支持通过 `event.data` 传入真实模板字段。
 
@@ -22,9 +22,9 @@ HackerTrip 已在小程序侧接入订阅授权、授权结果保存和后台发
 
 ```js
 subscribeTemplates: {
-  newHackathon: '你的上新模板 ID',
-  smartRecommendation: '你的智能推荐模板 ID',
-  deadlineReminder: '你的截止提醒模板 ID',
+  newHackathon: 'OGH7Fhna7wcRgOLkEfDcFiBk78In5MM7Ch6SBX5LTRg',
+  smartRecommendation: 'QlPVQ62U_JPoslrAvsKzGVtjQoUbgPY-9e_NzTPztvA',
+  deadlineReminder: '7eqO_KPQ0NtrGFvztJNvfn01GXWV5R3tHeTUJLIrF44',
 }
 ```
 
@@ -35,9 +35,9 @@ subscribeTemplates: {
 在云开发控制台给 `sendHackathonNotifications` 配置：
 
 ```text
-NEW_HACKATHON_TEMPLATE_ID=你的上新模板 ID
-SMART_RECOMMENDATION_TEMPLATE_ID=你的智能推荐模板 ID
-DEADLINE_REMINDER_TEMPLATE_ID=你的截止提醒模板 ID
+NEW_HACKATHON_TEMPLATE_ID=OGH7Fhna7wcRgOLkEfDcFiBk78In5MM7Ch6SBX5LTRg
+SMART_RECOMMENDATION_TEMPLATE_ID=QlPVQ62U_JPoslrAvsKzGVtjQoUbgPY-9e_NzTPztvA
+DEADLINE_REMINDER_TEMPLATE_ID=7eqO_KPQ0NtrGFvztJNvfn01GXWV5R3tHeTUJLIrF44
 ```
 
 如果你在调用发送函数时直接传 `templateId`，也可以不依赖环境变量。

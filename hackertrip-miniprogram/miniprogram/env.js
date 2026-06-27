@@ -20,8 +20,8 @@ module.exports = {
   syncUrl: 'https://test-1-d8gn28apcbf409627-1445960691.ap-shanghai.app.tcloudbase.com/pairSync',
   // 微信订阅消息模板 ID：你在微信公众平台添加模板后，把 ID 填到这里
   subscribeTemplates: {
-    newHackathon: '',
-    smartRecommendation: '',
-    deadlineReminder: '',
+    newHackathon: 'OGH7Fhna7wcRgOLkEfDcFiBk78In5MM7Ch6SBX5LTRg',
+    smartRecommendation: 'QlPVQ62U_JPoslrAvsKzGVtjQoUbgPY-9e_NzTPztvA',
+    deadlineReminder: '7eqO_KPQ0NtrGFvztJNvfn01GXWV5R3tHeTUJLIrF44',
   },
 };
