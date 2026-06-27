@@ -51,7 +51,12 @@ Page({
     query: '',
     activeFilter: 'all',
     filters: FILTERS,
+    activeFeaturedTab: 'featured',
     featured: [],
+    curatedFeatured: [],
+    recommendedFeatured: [],
+    recommendationHint: '',
+    recommendationState: 'ready',
     hackathons: [],
     filteredCount: 0,
     totalCount: 0,
@@ -92,6 +97,7 @@ Page({
 
     this.setData({
       cities,
+      curatedFeatured: decorateFeatured(all),
       featured: decorateFeatured(all),
       totalCount: all.length,
       loading: false,
@@ -132,6 +138,62 @@ Page({
     this.applyFilters();
   },
 
+  async refreshRecommended(source) {
+    const all = source || this.allEvents;
+    if (!api.isLoggedIn()) {
+      const next = {
+        recommendedFeatured: [],
+        recommendationHint: '登录后基于你的技能、GitHub、作品和 Skills 同步结果推荐赛事。',
+        recommendationState: 'login',
+      };
+      if (this.data.activeFeaturedTab === 'mine') next.featured = [];
+      this.setData(next);
+      return;
+    }
+
+    const res = await api.getRecommendedHackathons({
+      source: all,
+      city: this.data.city,
+      limit: 4,
+    });
+    const recommendedFeatured = decorateFeatured((res && res.list) || []);
+    const next = {
+      recommendedFeatured: res && res.needsProfile ? [] : recommendedFeatured,
+      recommendationHint: res && res.message ? res.message : '',
+      recommendationState: res && res.needsProfile ? 'profile' : 'ready',
+    };
+    if (this.data.activeFeaturedTab === 'mine') {
+      next.featured = next.recommendedFeatured;
+    }
+    this.setData(next);
+  },
+
+  onFeaturedTabTap(e) {
+    const tab = e.currentTarget.dataset.tab || 'featured';
+    const featured = tab === 'mine'
+      ? this.data.recommendedFeatured
+      : this.data.curatedFeatured;
+    this.setData({ activeFeaturedTab: tab, featured });
+    if (tab === 'mine') {
+      this.refreshRecommended();
+    }
+  },
+
+  async openRecommendationLogin() {
+    const auth = await api.requireAuth(this, '/pages/index/index', '登录后生成适合你的黑客松推荐。');
+    if (!auth) return;
+    await api.syncUserDataIfLoggedIn().catch(() => {});
+    this.refreshRecommended();
+  },
+
+  goEditProfile() {
+    wx.navigateTo({ url: '/pages/identity-edit/identity-edit' });
+  },
+
+  goSyncSkills() {
+    wx.navigateTo({ url: '/pages/sync/sync' });
+  },
+
   applyFilters(source) {
     const all = source || this.allEvents;
     const query = this.data.query.trim();
@@ -149,10 +211,14 @@ Page({
     }));
 
     this.setData({
-      featured: decorateFeatured(cityEvents),
+      curatedFeatured: decorateFeatured(cityEvents),
+      featured: this.data.activeFeaturedTab === 'mine'
+        ? this.data.recommendedFeatured
+        : decorateFeatured(cityEvents),
       hackathons: marked.slice(0, 4),
       filteredCount: marked.length,
     });
+    this.refreshRecommended(cityEvents);
   },
 
   goMore() {
@@ -185,27 +251,6 @@ Page({
     } catch (err) {
       wx.showToast({ title: '收藏同步失败，请重试', icon: 'none' });
     }
-  },
-
-  async subscribeNewHackathons() {
-    const auth = await api.requireAuth(this, '/pages/index/index', '登录后订阅黑客松上新提醒。');
-    if (!auth) return;
-    const res = await api.requestMessageSubscriptions(
-      [api.SUBSCRIBE_TYPES.NEW_HACKATHON],
-      'discover_featured',
-      { city: this.data.city, filter: this.data.activeFilter },
-    );
-    if (!res.ok) {
-      wx.showModal({
-        title: '订阅暂不可用',
-        content: res.code === 'TEMPLATE_NOT_CONFIGURED'
-          ? '还没有配置微信订阅消息模板 ID。请先在微信公众平台添加模板，再填入 miniprogram/env.js。'
-          : (res.message || '请稍后再试'),
-        showCancel: false,
-      });
-      return;
-    }
-    wx.showToast({ title: res.acceptedTypes.length ? '已订阅上新' : '未授权提醒', icon: 'none' });
   },
 
   onShareAppMessage() {

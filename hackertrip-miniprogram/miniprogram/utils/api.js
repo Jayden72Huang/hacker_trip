@@ -285,6 +285,114 @@ async function getHackathonHeat(id) {
   return { ok: true, local: true, id: key, registrations, bookmarks, fans: registrations + bookmarks, heat: registrations * 3 + bookmarks };
 }
 
+function collectRecommendationSignals() {
+  const profile = getProfile();
+  const scan = getScanResults();
+  const project = scan && scan.project && typeof scan.project === 'object' ? scan.project : null;
+  const values = [];
+
+  if (Array.isArray(profile.skills)) values.push(...profile.skills);
+  if (profile.role) values.push(profile.role);
+  if (project) {
+    if (Array.isArray(project.techStack)) values.push(...project.techStack);
+    if (Array.isArray(project.tags)) values.push(...project.tags);
+    if (project.summary) values.push(project.summary);
+    if (project.description) values.push(project.description);
+  }
+
+  return Array.from(new Set(values
+    .map((item) => String(item || '').trim())
+    .filter(Boolean)))
+    .slice(0, 16);
+}
+
+function scoreHackathonForSignals(item, signals) {
+  const haystack = [
+    item.name,
+    item.shortName,
+    item.theme,
+    item.summary,
+    ...(item.tracks || []),
+    ...(item.techStack || []),
+    ...(item.tags || []),
+  ].join(' ').toLowerCase();
+  let score = 0;
+  const hits = [];
+  signals.forEach((signal) => {
+    const key = String(signal || '').trim();
+    if (!key) return;
+    if (haystack.indexOf(key.toLowerCase()) !== -1) {
+      score += 1;
+      hits.push(key);
+    }
+  });
+  return { score, hits: hits.slice(0, 3) };
+}
+
+async function getRecommendedHackathons(options) {
+  const opts = options || {};
+  const signals = collectRecommendationSignals();
+  const profile = getProfile();
+  const city = opts.city && opts.city !== '全国' ? opts.city : (profile.city || '');
+  const limit = Math.max(1, Math.min(Number(opts.limit) || 4, 10));
+
+  if (signals.length && cloudReady()) {
+    try {
+      const res = await callFn('matchHackathonsByStack', {
+        techStack: signals,
+        city,
+        limit,
+        onlyUpcoming: true,
+      });
+      const raw = res && res.ok && res.data && Array.isArray(res.data.list) ? res.data.list : [];
+      if (raw.length) {
+        const today = catalog.formatDate(new Date());
+        return {
+          ok: true,
+          personalized: true,
+          signals,
+          list: raw.map((item) => catalog.decorate(item, today)),
+        };
+      }
+    } catch (e) {
+      console.warn('[api] matchHackathonsByStack 云端失败，降级本地', e);
+    }
+  }
+
+  const all = Array.isArray(opts.source) && opts.source.length ? opts.source : await getHackathons({});
+  if (!signals.length) {
+    return {
+      ok: true,
+      personalized: false,
+      needsProfile: true,
+      signals,
+      message: '完善技能、GitHub 或完成 Skills 同步后，会生成更精准推荐。',
+      list: all.slice(0, limit),
+    };
+  }
+
+  const scored = all
+    .map((item) => {
+      const result = scoreHackathonForSignals(item, signals);
+      return Object.assign({}, item, {
+        matchScore: result.score,
+        matchedTags: result.hits,
+        fitReason: result.hits.length ? `匹配你的 ${result.hits.join(' / ')} 方向` : '',
+      });
+    })
+    .filter((item) => item.matchScore > 0)
+    .sort((a, b) => b.matchScore - a.matchScore);
+
+  return {
+    ok: true,
+    personalized: scored.length > 0,
+    needsProfile: false,
+    signals,
+    message: scored.length ? '' : '暂时没有明显匹配，先展示近期可报名赛事。',
+    list: (scored.length ? scored : all).slice(0, limit),
+  };
+}
+
 /* ----------------------------- 收藏 / 报名 ----------------------------- */
 
 function getBookmarks() {
@@ -1119,6 +1227,7 @@ module.exports = {
   getHackathons,
   getHackathonDetail,
   getHackathonHeat,
+  getRecommendedHackathons,
   getBookmarks,
   isBookmarked,
   toggleBookmark,

@@ -34,11 +34,38 @@
 
     <!-- 内容区 -->
     <block wx:else>
-    <view class="featured-head">
-      <view class="section-title featured-head-title">精选推荐</view>
-      <view class="featured-head-line"></view>
+    <view class="featured-switch">
+        <button
+          class="featured-switch-item {{activeFeaturedTab === 'featured' ? 'featured-switch-item--active' : ''}}"
+          data-tab="featured"
+          bindtap="onFeaturedTabTap"
+        >精选推荐</button>
+        <button
+          class="featured-switch-item {{activeFeaturedTab === 'mine' ? 'featured-switch-item--active' : ''}}"
+          data-tab="mine"
+          bindtap="onFeaturedTabTap"
+        >适合我的</button>
     </view>
-    <scroll-view class="featured-scroll" scroll-x enable-flex>
+    <view class="featured-head-line"></view>
+    <view wx:if="{{activeFeaturedTab === 'mine' && recommendationState === 'login'}}" class="recommendation-guide">
+      <view class="recommendation-guide-copy">
+        <view class="recommendation-guide-title">登录后生成个人推荐</view>
+        <view class="recommendation-guide-text">用你的技能、GitHub、作品和 Skills 同步结果匹配更适合的黑客松。</view>
+      </view>
+      <button class="recommendation-guide-btn" bindtap="openRecommendationLogin">微信登录</button>
+    </view>
+    <view wx:elif="{{activeFeaturedTab === 'mine' && recommendationState === 'profile'}}" class="recommendation-guide">
+      <view class="recommendation-guide-copy">
+        <view class="recommendation-guide-title">补充资料后更准确</view>
+        <view class="recommendation-guide-text">完善技能、GitHub 或同步 Skills，推荐会更贴合你的阶段和能力。</view>
+      </view>
+      <view class="recommendation-guide-actions">
+        <button class="recommendation-guide-btn recommendation-guide-btn--ghost" bindtap="goEditProfile">编辑资料</button>
+        <button class="recommendation-guide-btn" bindtap="goSyncSkills">同步 Skills</button>
+      </view>
+    </view>
+    <view wx:if="{{activeFeaturedTab === 'mine' && recommendationState === 'ready' && recommendationHint}}" class="recommendation-hint">{{recommendationHint}}</view>
+    <scroll-view wx:if="{{featured.length}}" class="featured-scroll" scroll-x enable-flex>
       <navigator
         wx:for="{{featured}}"
         wx:key="id"
@@ -47,6 +74,7 @@
         hover-class="featured-card--active"
       >
         <view class="featured-title">{{item.shortName || item.name}}</view>
+        <view wx:if="{{activeFeaturedTab === 'mine' && item.fitReason}}" class="featured-reason">{{item.fitReason}}</view>
         <view class="featured-info">
           <view class="featured-info-row">
             <text class="featured-info-label">时间</text>
@@ -69,13 +97,8 @@
         </view>
       </navigator>
     </scroll-view>
-
-    <view class="subscribe-card">
-      <view class="subscribe-copy">
-        <view class="subscribe-title">订阅黑客松上新</view>
-        <view class="subscribe-text">有新赛事或适合你的推荐时，第一时间收到提醒。</view>
-      </view>
-      <button class="subscribe-btn" bindtap="subscribeNewHackathons">开启提醒</button>
+    <view wx:elif="{{activeFeaturedTab === 'mine'}}" class="recommendation-empty">
+      完成上方操作后，这里只展示真正适合你的黑客松。
     </view>
 
     <view class="list-head">

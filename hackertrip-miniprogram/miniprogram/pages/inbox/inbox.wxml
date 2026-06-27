@@ -23,6 +23,14 @@
       <view class="haki-entry-cta">去问</view>
     </navigator>
 
+    <view class="subscribe-card">
+      <view class="subscribe-copy">
+        <view class="subscribe-title">订阅黑客松提醒</view>
+        <view class="subscribe-text">上新、智能推荐和报名截止提醒会集中发送到这里。</view>
+      </view>
+      <button class="subscribe-btn" bindtap="subscribeHackathonMessages">开启提醒</button>
+    </view>
+
     <!-- loading 骨架屏 -->
     <view wx:if="{{loading}}" class="skeleton">
       <view class="skeleton-card">
@@ -58,4 +66,5 @@
       </view>
     </block>
   </view>
+  <auth-modal id="authModal" />
 </view>

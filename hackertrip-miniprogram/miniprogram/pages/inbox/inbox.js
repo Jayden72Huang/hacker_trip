@@ -118,4 +118,29 @@ Page({
       loading: false,
     });
   },
+
+  async subscribeHackathonMessages() {
+    const auth = await api.requireAuth(this, '/pages/inbox/inbox', '登录后订阅黑客松上新、智能推荐和报名截止提醒。');
+    if (!auth) return;
+    const res = await api.requestMessageSubscriptions(
+      [
+        api.SUBSCRIBE_TYPES.NEW_HACKATHON,
+        api.SUBSCRIBE_TYPES.SMART_RECOMMENDATION,
+        api.SUBSCRIBE_TYPES.DEADLINE_REMINDER,
+      ],
+      'inbox_notifications',
+      { page: 'inbox' },
+    );
+    if (!res.ok) {
+      wx.showModal({
+        title: '订阅暂不可用',
+        content: res.code === 'TEMPLATE_NOT_CONFIGURED'
+          ? '还没有配置微信订阅消息模板 ID。请先在微信公众平台添加模板，再填入 miniprogram/env.js。'
+          : (res.message || '请稍后再试'),
+        showCancel: false,
+      });
+      return;
+    }
+    wx.showToast({ title: res.acceptedTypes.length ? '已开启提醒' : '未授权提醒', icon: 'none' });
+  },
 });
