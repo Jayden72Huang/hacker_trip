@@ -8,11 +8,29 @@ function buildCommand(code, uploadToken) {
   return [
     `HACKERTRIP_SYNC_URL=${env.syncUrl}`,
     `HACKERTRIP_SYNC_TOKEN=${uploadToken}`,
-    'hackertrip',
-    '--path /你的项目',
+    'npx hackertrip match',
+    '--path .',
     '--sync',
     `--sync-code ${code}`,
   ].join(' ');
+}
+
+function buildAgentPrompt(code, uploadToken) {
+  if (!code || !uploadToken || !env.syncUrl) {
+    return '先点击“生成同步码”，再复制给电脑端 Agent。';
+  }
+  return [
+    '请在当前打开的项目根目录执行 HackerTrip Skills 同步，把项目画像同步到我的 HackerTrip 小程序账号。',
+    '',
+    '操作要求：',
+    '1. 确认当前目录就是要扫描的项目根目录。',
+    '2. 执行下面的命令；如果没有安装 hackertrip，请用 npx 自动拉起。',
+    '3. 只同步项目画像、技术栈、作品摘要和赛事匹配结果，不上传源码文件。',
+    '',
+    buildCommand(code, uploadToken),
+    '',
+    '执行成功后告诉我：已经推送完成，我再回小程序点击“拉取结果”。',
+  ].join('\n');
 }
 
 Page({
@@ -27,15 +45,11 @@ Page({
     synced: false,
     commandReady: false,
     syncEndpointReady: hasSyncUrl,
-    statusText: hasSyncUrl ? '先生成一次性同步命令，或输入已有 6 位配对码' : '同步入口未配置，暂时只能拉取已有配对码',
-    desktopCommand: hasSyncUrl ? '点击生成后显示桌面端命令' : '需要先配置 pairSync HTTP 入口',
+    statusText: hasSyncUrl ? '先生成同步码，再让 Agent 或 CLI 推送结果' : '同步入口未配置，暂时只能拉取已有配对码',
+    desktopCommand: hasSyncUrl ? '生成同步码后显示 CLI 命令' : '需要先配置 pairSync HTTP 入口',
+    agentPrompt: '先点击“生成同步码”，再复制给电脑端 Agent。',
     result: null,
     resultSkills: [],
-    steps: [
-      { title: '小程序生成命令', desc: '登录后生成一次性配对码和上传 token，只绑定当前账号。' },
-      { title: '桌面端扫描项目', desc: 'HackerTrip CLI 读取技术栈、项目简介和可公开的作品信息。' },
-      { title: '小程序拉取结果', desc: '同步后可生成匹配结果、身份卡和公开主页。' },
-    ],
   },
 
   onLoad(options) {
@@ -71,9 +85,10 @@ Page({
         uploadToken: res.uploadToken,
         commandReady: true,
         desktopCommand: buildCommand(res.code, res.uploadToken),
-        statusText: '已生成命令：在电脑端执行后回到这里同步',
+        agentPrompt: buildAgentPrompt(res.code, res.uploadToken),
+        statusText: '已生成同步码：让 Agent 或 CLI 执行后，回到这里拉取结果',
       });
-      wx.showToast({ title: '配对码已生成', icon: 'success' });
+      wx.showToast({ title: '同步码已生成', icon: 'success' });
     } else {
       this.setData({
         commandReady: false,
@@ -92,6 +107,17 @@ Page({
     wx.setClipboardData({
       data: this.data.desktopCommand,
       success: () => wx.showToast({ title: '命令已复制', icon: 'success' }),
+    });
+  },
+
+  copyAgentPrompt() {
+    if (!this.data.commandReady) {
+      wx.showToast({ title: '请先生成同步码', icon: 'none' });
+      return;
+    }
+    wx.setClipboardData({
+      data: this.data.agentPrompt,
+      success: () => wx.showToast({ title: 'Agent Prompt 已复制', icon: 'success' }),
     });
   },
 
