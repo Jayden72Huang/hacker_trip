@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "审核工作台"
+  "navigationBarTitleText": "审核工作台",
+  "usingComponents": {
+    "navbar": "/components/navbar/index"
+  }
 }
