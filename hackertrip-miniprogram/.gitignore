@@ -10,3 +10,9 @@ miniprogram_npm/
 # 本地
 *.log
 miniprogram/screenshots/
+
+# 本地赛事/增长调研与导入中间产物，线上入库后不进仓库
+docs/growth/
+docs/*黑客松*2026-06-27*.json
+docs/*黑客松*2026-06-27*.md
+tools/prepare-hackathon-import.js
