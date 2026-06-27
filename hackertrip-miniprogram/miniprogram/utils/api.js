@@ -10,6 +10,7 @@
 
 const LOCAL_HACKATHONS = require('../data/hackathons.js');
 const catalog = require('./catalog.js');
+const ENV = require('../env.js');
 
 const STORAGE = {
   CARDS: 'ht_cards', // 我保存的卡片
@@ -22,6 +23,19 @@ const STORAGE = {
   ORGANIZER: 'ht_organizer_application', // 组织者申请与审核状态
   HACKATHON_DRAFTS: 'ht_hackathon_drafts', // 组织者提交的赛事草稿
   GROWTH: 'ht_growth', // 裂变成长态：暗号 / 招募值 / 被邀请 / 已解锁卡面
+  SUBSCRIPTIONS: 'ht_message_subscriptions', // 微信订阅消息授权记录
+};
+
+const SUBSCRIBE_TYPES = {
+  NEW_HACKATHON: 'new_hackathon',
+  SMART_RECOMMENDATION: 'smart_recommendation',
+  DEADLINE_REMINDER: 'deadline_reminder',
+};
+
+const SUBSCRIBE_TYPE_LABELS = {
+  [SUBSCRIBE_TYPES.NEW_HACKATHON]: '黑客松上新',
+  [SUBSCRIBE_TYPES.SMART_RECOMMENDATION]: '智能推荐',
+  [SUBSCRIBE_TYPES.DEADLINE_REMINDER]: '截止提醒',
 };
 
 /** 裂变成长态默认值（F1 暗号 + F2 集卡共用） */
@@ -120,6 +134,7 @@ function clearUserSession() {
     STORAGE.AGENT_CONFIG,
     STORAGE.PROFILE,
     STORAGE.GROWTH,
+    STORAGE.SUBSCRIPTIONS,
   ].forEach((key) => {
     try { wx.removeStorageSync(key); } catch (e) {}
   });
@@ -876,6 +891,104 @@ async function pullSyncByCode(code) {
   }
 }
 
+/* ----------------------------- 订阅消息 ----------------------------- */
+
+function getSubscribeTemplates() {
+  const cfg = (ENV && ENV.subscribeTemplates) || {};
+  return {
+    [SUBSCRIBE_TYPES.NEW_HACKATHON]: cfg.newHackathon || '',
+    [SUBSCRIBE_TYPES.SMART_RECOMMENDATION]: cfg.smartRecommendation || '',
+    [SUBSCRIBE_TYPES.DEADLINE_REMINDER]: cfg.deadlineReminder || '',
+  };
+}
+
+function getSubscriptionCache() {
+  const cached = getStorage(STORAGE.SUBSCRIPTIONS, []);
+  return Array.isArray(cached) ? cached : [];
+}
+
+function setSubscriptionCache(records) {
+  const incoming = Array.isArray(records) ? records : [];
+  const map = {};
+  getSubscriptionCache().forEach((item) => {
+    const key = item && item.type ? item.type : '';
+    if (key) map[key] = item;
+  });
+  incoming.forEach((item) => {
+    const key = item && item.type ? item.type : '';
+    if (key) map[key] = Object.assign({}, map[key] || {}, item);
+  });
+  const next = Object.keys(map).map((key) => map[key]);
+  setStorage(STORAGE.SUBSCRIPTIONS, next);
+  return next;
+}
+
+function requestSubscribeMessage(tmplIds) {
+  return new Promise((resolve) => {
+    if (!wx.requestSubscribeMessage) {
+      resolve({ errMsg: 'requestSubscribeMessage:fail unsupported' });
+      return;
+    }
+    wx.requestSubscribeMessage({
+      tmplIds,
+      success: resolve,
+      fail: resolve,
+    });
+  });
+}
+
+async function requestMessageSubscriptions(types, source, preferences) {
+  if (!isLoggedIn()) {
+    return { ok: false, code: 'LOGIN_REQUIRED', message: '登录后才能订阅消息提醒' };
+  }
+
+  const uniqueTypes = Array.from(new Set((Array.isArray(types) ? types : [types]).filter(Boolean)));
+  const templates = getSubscribeTemplates();
+  const missingTypes = uniqueTypes.filter((type) => !templates[type]);
+  if (!uniqueTypes.length || missingTypes.length) {
+    return {
+      ok: false,
+      code: 'TEMPLATE_NOT_CONFIGURED',
+      message: '订阅消息模板 ID 还没有配置',
+      missingTypes,
+    };
+  }
+
+  const templateMap = {};
+  const tmplIds = uniqueTypes.map((type) => {
+    templateMap[templates[type]] = type;
+    return templates[type];
+  });
+  const result = await requestSubscribeMessage(tmplIds);
+  const now = Date.now();
+  const records = tmplIds.map((templateId) => {
+    const type = templateMap[templateId];
+    return {
+      type,
+      label: SUBSCRIBE_TYPE_LABELS[type] || type,
+      templateId,
+      status: result[templateId] || 'unknown',
+      source: source || 'unknown',
+      updatedAt: now,
+    };
+  });
+  setSubscriptionCache(records);
+
+  if (cloudReady()) {
+    callFn('saveSubscription', {
+      source: source || 'unknown',
+      preferences: preferences || {},
+      records,
+    }).catch((e) => {
+      console.warn('[api] 订阅状态云端同步失败', e);
+    });
+  }
+
+  const acceptedTypes = records.filter((item) => item.status === 'accept').map((item) => item.type);
+  const rejectedTypes = records.filter((item) => item.status !== 'accept').map((item) => item.type);
+  return { ok: true, records, acceptedTypes, rejectedTypes, raw: result };
+}
+
 /* ----------------------------- 登录态 / 云同步 ----------------------------- */
 
 /** 是否已登录（globalData.auth 有 userInfo） */
@@ -971,6 +1084,7 @@ async function syncUserDataIfLoggedIn() {
 
 module.exports = {
   STORAGE,
+  SUBSCRIBE_TYPES,
   cloudReady,
   getAuth,
   setAuth,
@@ -1018,6 +1132,9 @@ module.exports = {
   saveAgentConfig,
   createSyncPair,
   pullSyncByCode,
+  getSubscribeTemplates,
+  getSubscriptionCache,
+  requestMessageSubscriptions,
   aiChat,
   getGrowth,
   setGrowth,

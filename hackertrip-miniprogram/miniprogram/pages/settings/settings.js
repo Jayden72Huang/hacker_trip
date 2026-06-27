@@ -14,7 +14,6 @@ Page({
     title: '设置',
     aiBanner: false,
     aiIntentText: 'settings',
-    noticeOn: true,
     loggedIn: false,
     account: { name: '未登录', login: '请到「我的」页完成微信登录', sync: '' },
     rows: [
@@ -56,13 +55,55 @@ Page({
     }
   },
 
-  onNoticeChange(e) {
-    this.setData({ noticeOn: e.detail.value });
-  },
-
   goProfileLogin() {
     if (this.data.loggedIn) return;
     wx.switchTab({ url: '/pages/profile/profile' });
+  },
+
+  ensureLoggedInForSubscribe() {
+    if (api.isLoggedIn()) return Promise.resolve(true);
+    return new Promise((resolve) => {
+      wx.showModal({
+        title: '需要微信登录',
+        content: '登录后才能订阅黑客松提醒。',
+        confirmText: '去我的页',
+        success: (res) => {
+          if (res.confirm) wx.switchTab({ url: '/pages/profile/profile' });
+          resolve(false);
+        },
+        fail: () => resolve(false),
+      });
+    });
+  },
+
+  async subscribeByType(type, source) {
+    const loggedIn = await this.ensureLoggedInForSubscribe();
+    if (!loggedIn) return;
+    const res = await api.requestMessageSubscriptions([type], source || 'settings');
+    if (!res.ok) {
+      wx.showModal({
+        title: '订阅暂不可用',
+        content: res.code === 'TEMPLATE_NOT_CONFIGURED'
+          ? '还没有配置微信订阅消息模板 ID。请先在微信公众平台添加模板，再填入 miniprogram/env.js。'
+          : (res.message || '请稍后再试'),
+        showCancel: false,
+      });
+      return;
+    }
+    const accepted = res.acceptedTypes && res.acceptedTypes.length;
+    wx.showToast({ title: accepted ? '已开启提醒' : '未授权提醒', icon: 'none' });
+  },
+
+  subscribeNewHackathons() {
+    return this.subscribeByType(api.SUBSCRIBE_TYPES.NEW_HACKATHON, 'settings_new_hackathon');
+  },
+
+  subscribeSmartRecommendation() {
+    return this.subscribeByType(api.SUBSCRIBE_TYPES.SMART_RECOMMENDATION, 'settings_smart_recommendation');
+  },
+
+  subscribeDeadlineReminder() {
+    return this.subscribeByType(api.SUBSCRIBE_TYPES.DEADLINE_REMINDER, 'settings_deadline_reminder');
   },
 
   onRowTap(e) {

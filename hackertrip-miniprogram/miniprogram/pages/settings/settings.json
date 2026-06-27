@@ -1,8 +1,6 @@
 {
   "navigationBarTitleText": "设置",
   "usingComponents": {
-    "navbar": "/components/navbar/index",
-    "t-switch": "tdesign-miniprogram/switch/switch",
-    "t-icon": "tdesign-miniprogram/icon/icon"
+    "navbar": "/components/navbar/index"
   }
 }

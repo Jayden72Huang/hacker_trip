@@ -187,6 +187,27 @@ Page({
     }
   },
 
+  async subscribeNewHackathons() {
+    const auth = await api.requireAuth(this, '/pages/index/index', '登录后订阅黑客松上新提醒。');
+    if (!auth) return;
+    const res = await api.requestMessageSubscriptions(
+      [api.SUBSCRIBE_TYPES.NEW_HACKATHON],
+      'discover_featured',
+      { city: this.data.city, filter: this.data.activeFilter },
+    );
+    if (!res.ok) {
+      wx.showModal({
+        title: '订阅暂不可用',
+        content: res.code === 'TEMPLATE_NOT_CONFIGURED'
+          ? '还没有配置微信订阅消息模板 ID。请先在微信公众平台添加模板，再填入 miniprogram/env.js。'
+          : (res.message || '请稍后再试'),
+        showCancel: false,
+      });
+      return;
+    }
+    wx.showToast({ title: res.acceptedTypes.length ? '已订阅上新' : '未授权提醒', icon: 'none' });
+  },
+
   onShareAppMessage() {
     return share.buildHomeShare();
   },

@@ -15,12 +15,16 @@
       <view wx:if="{{account.sync}}" class="box-copy">{{account.sync}}</view>
     </view>
 
-    <view class="list-card setting-row">
+    <view class="list-card setting-row setting-row--stack">
       <view>
         <view class="list-title">通知提醒</view>
-        <view class="list-subtitle">报名截止、赛程变更和匹配结果更新</view>
+        <view class="list-subtitle">订阅后，HackerTrip 可在你授权的次数内发送上新、智能推荐和截止提醒。</view>
       </view>
-      <t-switch value="{{noticeOn}}" bind:change="onNoticeChange" />
+      <view class="subscription-actions">
+        <button class="subscription-btn subscription-btn--blue" bindtap="subscribeNewHackathons">上新提醒</button>
+        <button class="subscription-btn" bindtap="subscribeSmartRecommendation">智能推荐</button>
+        <button class="subscription-btn" bindtap="subscribeDeadlineReminder">截止提醒</button>
+      </view>
     </view>
 
     <view wx:for="{{rows}}" wx:key="label" class="list-card setting-line" data-label="{{item.label}}" bindtap="onRowTap">

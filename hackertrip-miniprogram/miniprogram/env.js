@@ -18,4 +18,10 @@ module.exports = {
   shareBase: 'https://hackertrip.space/u',
   // pairSync HTTP 入口；用于桌面端 CLI 把项目扫描结果推送回小程序
   syncUrl: 'https://test-1-d8gn28apcbf409627-1445960691.ap-shanghai.app.tcloudbase.com/pairSync',
+  // 微信订阅消息模板 ID：你在微信公众平台添加模板后，把 ID 填到这里
+  subscribeTemplates: {
+    newHackathon: '',
+    smartRecommendation: '',
+    deadlineReminder: '',
+  },
 };

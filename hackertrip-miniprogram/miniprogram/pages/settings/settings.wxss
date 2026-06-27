@@ -7,6 +7,51 @@
   gap: 22rpx;
 }
 
+.setting-row--stack {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.subscription-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  margin-top: 16rpx;
+}
+
+.subscription-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: auto !important;
+  min-width: 168rpx;
+  height: 62rpx;
+  padding: 0 20rpx;
+  margin: 0;
+  color: #000000;
+  background: #FFFFFF;
+  border: 3rpx solid #000000;
+  border-radius: 12rpx;
+  box-shadow: 4rpx 4rpx 0 0 #000000;
+  font-size: 23rpx;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.subscription-btn::after {
+  border: none;
+}
+
+.subscription-btn--blue {
+  color: #FFFFFF;
+  background: #0C51ED;
+}
+
+.subscription-btn:active {
+  transform: translate(2rpx, 2rpx);
+  box-shadow: 2rpx 2rpx 0 0 #000000;
+}
+
 .setting-line {
   padding-right: 32rpx;
 }

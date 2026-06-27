@@ -70,6 +70,14 @@
       </navigator>
     </scroll-view>
 
+    <view class="subscribe-card">
+      <view class="subscribe-copy">
+        <view class="subscribe-title">订阅黑客松上新</view>
+        <view class="subscribe-text">有新赛事或适合你的推荐时，第一时间收到提醒。</view>
+      </view>
+      <button class="subscribe-btn" bindtap="subscribeNewHackathons">开启提醒</button>
+    </view>
+
     <view class="list-head">
       <view class="section-title list-head-title">更多黑客松</view>
       <view class="list-head-line"></view>
