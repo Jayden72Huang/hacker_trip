@@ -12,6 +12,11 @@ function cleanId(v) {
   return String(v == null ? '' : v).trim().slice(0, 80);
 }
 
+function isCollectionNotFound(error) {
+  const message = String((error && (error.errMsg || error.message)) || error || '');
+  return /COLLECTION_NOT_EXIST|collection not exists|Db or Table not exist|Table not exist/i.test(message);
+}
+
 exports.main = async (event) => {
   const openid = (cloud.getWXContext() || {}).OPENID || '';
   if (!openid) return { ok: false, code: 'NO_OPENID', message: '缺少用户身份' };
@@ -26,6 +31,7 @@ exports.main = async (event) => {
       const res = await col.where({ openid }).orderBy('createdAt', 'desc').limit(100).get();
       return { ok: true, works: res.data || [] };
     } catch (e) {
+      if (isCollectionNotFound(e)) return { ok: true, works: [] };
       return { ok: false, code: 'LIST_FAILED', message: String(e) };
     }
   }
@@ -39,6 +45,9 @@ exports.main = async (event) => {
     const res = await col.doc(workId).get();
     work = res.data;
   } catch (e) {
+    if (isCollectionNotFound(e)) {
+      return { ok: false, code: 'WORK_NOT_FOUND', message: '作品不存在' };
+    }
     return { ok: false, code: 'WORK_NOT_FOUND', message: '作品不存在' };
   }
   if (!work) return { ok: false, code: 'WORK_NOT_FOUND', message: '作品不存在' };
