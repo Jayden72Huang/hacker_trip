@@ -1,0 +1,9 @@
+{
+  "name": "reviewWork",
+  "version": "1.0.0",
+  "description": "HackerTrip 用户自审作品（发布/下架/删除）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

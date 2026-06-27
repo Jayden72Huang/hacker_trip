@@ -31,12 +31,24 @@ exports.main = async (event) => {
     const user = users.data && users.data[0];
     if (!user) return { ok: false, message: '用户不存在' };
 
-    const [pairs, regs] = await Promise.all([
+    const [pairs, regs, worksRes] = await Promise.all([
       db.collection('sync_pairs').where({ openid: user.openid, bound: true }).orderBy('boundAt', 'desc').limit(1).get(),
       db.collection('registrations').where({ openid: user.openid }).orderBy('registeredAt', 'desc').get(),
+      // 只取用户自审通过(已发布)的作品，pending/rejected 不对外公开
+      db.collection('works').where({ openid: user.openid, status: 'published' }).orderBy('updatedAt', 'desc').limit(50).get().catch(() => ({ data: [] })),
     ]);
 
     const lastPair = pairs.data && pairs.data[0];
+    const works = (worksRes.data || []).map((w) => ({
+      id: w._id,
+      name: w.name || '未命名作品',
+      desc: w.summary || '',
+      repo: w.repo || '',
+      demo: w.demo || '',
+      cover: w.cover || '',
+      awards: w.awards || '',
+      tags: Array.isArray(w.techStack) ? w.techStack.slice(0, 6) : [],
+    }));
     const projects = buildProjects(lastPair ? lastPair.scan : null);
     const skills = Array.isArray(user.skills) ? user.skills : [];
     return {
@@ -52,11 +64,12 @@ exports.main = async (event) => {
         skills,
         stats: {
           hackathons: (regs.data || []).length,
-          projects: projects.length,
+          projects: projects.length + works.length,
           skills: skills.length,
         },
       },
       projects,
+      works,
     };
   } catch (e) {
     return { ok: false, message: String(e) };

@@ -41,23 +41,32 @@ function cleanTechStack(value) {
     .slice(0, 12);
 }
 
-// 选手作品 works[]：每项清洗限长，过滤空项，整体限 20 条
+function isHttpUrl(value) {
+  return /^https?:\/\//i.test(String(value || '').trim());
+}
+
+// 选手作品 works[]：每项清洗限长 + 格式校验（链接须 http(s)），过滤非法项，整体限 20 条
+// 合格作品的硬标准：必须有 name 且至少一个有效链接(repo 或 demo)
 function cleanWorks(value) {
   if (!Array.isArray(value)) return [];
   return value
     .map((item) => {
       const src = item && typeof item === 'object' ? item : {};
+      const repo = cleanText(src.repo, 300);
+      const demo = cleanText(src.demo, 300);
+      const cover = cleanText(src.cover, 300);
       return {
         name: cleanText(src.name, 80),
         summary: cleanText(src.summary, 500),
-        repo: cleanText(src.repo, 300),
-        demo: cleanText(src.demo, 300),
-        cover: cleanText(src.cover, 300),
+        // 链接必须是 http(s)，非法链接置空（避免脏数据/钓鱼链接）
+        repo: isHttpUrl(repo) ? repo : '',
+        demo: isHttpUrl(demo) ? demo : '',
+        cover: isHttpUrl(cover) ? cover : '',
         techStack: cleanTechStack(src.techStack),
         awards: cleanText(src.awards, 120),
       };
     })
-    .filter((w) => w.name || w.summary || w.repo || w.demo)
+    .filter((w) => w.name && (w.repo || w.demo))
     .slice(0, 20);
 }
 
@@ -153,11 +162,17 @@ exports.main = async (rawEvent, context) => {
       if (doc && doc.expireAt && doc.expireAt < now) return { ok: false, message: '配对码已过期，请重新生成' };
       if (doc && doc.bound) return { ok: false, message: '配对码已被使用，请重新生成' };
 
+      // 作品格式硬校验：传了 works 但全部不合格（缺名称或无有效链接）则直接拒绝，不写库
+      const cleanedWorks = cleanWorks(event.works);
+      if (Array.isArray(event.works) && event.works.length && !cleanedWorks.length) {
+        return { ok: false, code: 'INVALID_WORK', message: '作品需含名称和有效的 repo/demo 链接(http/https)' };
+      }
+
       const payload = {
         code: c,
         scan,
         card: card || null,
-        works: cleanWorks(event.works),
+        works: cleanedWorks,
         bound: false,
         pushedAt: now,
         expireAt: doc && doc.expireAt ? doc.expireAt : now + TTL_MS,
@@ -211,6 +226,7 @@ exports.main = async (rawEvent, context) => {
               data: Object.assign({}, works[i], {
                 openid,
                 source: 'cli',
+                status: 'pending', // 进待审核，用户在小程序「我的→作品」确认发布后才公开
                 createdAt: now,
                 updatedAt: now,
               }),

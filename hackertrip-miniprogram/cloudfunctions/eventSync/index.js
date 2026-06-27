@@ -1,11 +1,12 @@
 // 云函数：主办方活动提交（外部 CLI / HTTP 触发器入口）。
-//   action='submit' —— 主办方通过 CLI / 网页端提交活动信息，写入 hackathon_drafts 草稿箱。
+//   action='submit' —— 主办方通过 CLI 提交活动信息，写入 hackathon_drafts 草稿箱。
 //
-// 安全边界：
-//   1) 若配置环境变量 EVENT_SUBMIT_TOKEN，则校验 header x-sync-token 或 body.submitToken；未配置则放行（靠人工审核兜底）。
-//   2) 所有文本 cleanText 限长，防止超长内容。
-//   3) 有 openid 时调用微信内容安全 msgSecCheck（scene 3, version 2），risky 拒绝；
-//      纯 HTTP（无 openid）跳过安全检查，但标记 needsSecurityReview:true，交人工复核。
+// 安全边界（防垃圾 + 绑账号 + 格式校验）：
+//   1) 必须带 pairCode + uploadToken：主办方先在小程序「主办方后台」生成配对码(pairSync create)，
+//      eventSync 校验 sync_pairs(code+token+未过期+有 openid)，把赛事绑定到主办方 openid。取消匿名入口。
+//   2) 必填齐全 + 格式硬校验（日期 YYYY-MM-DD、起止先后、官网 http(s)），不过直接拒绝、不写库。
+//   3) 用主办方 openid 调微信内容安全 msgSecCheck，risky 拒绝。
+//   4) 配对码一次性：提交后标记 eventBound，防重复刷。
 //
 // 草稿字段对齐 adminHackathonManage 的 publicDraftFields，审核通过后可直接转入 hackathons。
 const cloud = require('wx-server-sdk');
@@ -14,7 +15,8 @@ const db = cloud.database();
 
 const REQUIRED_FIELDS = ['name', 'city', 'startDate', 'endDate', 'website'];
 const RECOMMENDED_FIELDS = ['summary', 'prizePool', 'registrationDeadline', 'organizerContact', 'tracks'];
-const EVENT_SUBMIT_TOKEN = process.env.EVENT_SUBMIT_TOKEN || '';
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const PAIR_RE = /^\d{6}$/;
 
 function cleanText(value, maxLength) {
   return String(value == null ? '' : value).trim().slice(0, maxLength || 500);
@@ -71,7 +73,7 @@ function getHeader(headers, name) {
 }
 
 function readSubmitToken(rawEvent, event) {
-  const bodyToken = event && event.submitToken ? String(event.submitToken) : '';
+  const bodyToken = event && (event.submitToken || event.syncToken) ? String(event.submitToken || event.syncToken) : '';
   const headers = (rawEvent && rawEvent.headers) || (event && event.headers) || {};
   const direct = getHeader(headers, 'x-sync-token');
   const auth = getHeader(headers, 'authorization');
@@ -135,6 +137,21 @@ function findRecommendedMissing(form) {
   });
 }
 
+// 格式硬校验：日期格式 / 起止先后 / 官网协议
+function validateFormats(form) {
+  const errors = [];
+  if (!DATE_RE.test(form.startDate)) errors.push('startDate 需为 YYYY-MM-DD 格式');
+  if (!DATE_RE.test(form.endDate)) errors.push('endDate 需为 YYYY-MM-DD 格式');
+  if (DATE_RE.test(form.startDate) && DATE_RE.test(form.endDate) && form.startDate > form.endDate) {
+    errors.push('startDate 不能晚于 endDate');
+  }
+  if (form.registrationDeadline && !DATE_RE.test(form.registrationDeadline)) {
+    errors.push('registrationDeadline 需为 YYYY-MM-DD 格式');
+  }
+  if (!/^https?:\/\//i.test(form.website)) errors.push('website 需为 http(s):// 链接');
+  return errors;
+}
+
 function buildSecurityText(form) {
   return [form.name, form.shortName, form.summary, form.theme, form.tracks.join(' '), form.organizerName]
     .filter(Boolean)
@@ -145,49 +162,68 @@ function buildSecurityText(form) {
 exports.main = async (rawEvent, context) => {
   const event = normalizeEvent(rawEvent);
   const action = cleanText((event || {}).action || 'submit', 40);
-  const openid = (cloud.getWXContext() || {}).OPENID || '';
 
   if (action !== 'submit') {
     return { ok: false, code: 'UNKNOWN_ACTION', message: '未知 action' };
   }
 
-  // ---- 防滥用 ①：提交 token 校验（仅在配置了环境变量时生效）----
-  if (EVENT_SUBMIT_TOKEN) {
-    const token = readSubmitToken(rawEvent, event);
-    if (!token || token !== EVENT_SUBMIT_TOKEN) {
-      return { ok: false, code: 'BAD_TOKEN', message: '提交凭证无效' };
-    }
+  // ---- 防滥用①：配对码 + token，绑定主办方小程序账号（取消匿名提交）----
+  const pairCode = cleanText(event.pairCode || event.code, 10);
+  const uploadToken = readSubmitToken(rawEvent, event);
+  if (!PAIR_RE.test(pairCode)) {
+    return { ok: false, code: 'BAD_PAIR', message: '请在小程序「主办方后台」生成 6 位提交配对码' };
   }
+  if (!uploadToken) {
+    return { ok: false, code: 'BAD_PAIR', message: '缺少提交凭证(uploadToken)，请在小程序生成配对码时一并获取' };
+  }
+
+  const now = Date.now();
+  let pairDoc = null;
+  try {
+    const pairRes = await db.collection('sync_pairs').where({ code: pairCode }).limit(1).get();
+    pairDoc = pairRes.data && pairRes.data[0];
+  } catch (e) {
+    return { ok: false, code: 'PAIR_LOOKUP_FAILED', message: String(e) };
+  }
+  if (!pairDoc || pairDoc.uploadToken !== uploadToken) {
+    return { ok: false, code: 'BAD_PAIR', message: '配对码无效或凭证不匹配，请在小程序重新生成' };
+  }
+  if (pairDoc.expireAt && pairDoc.expireAt < now) {
+    return { ok: false, code: 'BAD_PAIR', message: '配对码已过期，请在小程序重新生成' };
+  }
+  if (!pairDoc.openid) {
+    return { ok: false, code: 'BAD_PAIR', message: '配对会话未绑定账号，请在小程序重新生成' };
+  }
+  if (pairDoc.eventBound) {
+    return { ok: false, code: 'BAD_PAIR', message: '该配对码已用于提交赛事，请重新生成' };
+  }
+  const organizerOpenid = pairDoc.openid;
 
   const form = normalizeForm(readForm(event));
 
-  // ---- 必填校验 ----
+  // ---- 防滥用②：必填齐全 ----
   const missing = findMissing(form);
   if (missing.length) {
-    return {
-      ok: false,
-      code: 'INVALID_FORM',
-      message: '请补全名称、城市、起止日期和官网',
-      missing,
-    };
+    return { ok: false, code: 'INVALID_FORM', message: '请补全名称、城市、起止日期和官网', missing };
   }
 
-  // ---- 防滥用 ③：内容安全检测（有 openid 才走 msgSecCheck）----
+  // ---- 防滥用②：格式正确 ----
+  const formatErrors = validateFormats(form);
+  if (formatErrors.length) {
+    return { ok: false, code: 'INVALID_FORMAT', message: '字段格式有误', errors: formatErrors };
+  }
+
+  // ---- 防滥用③：内容安全（用主办方 openid 做 msgSecCheck）----
   let needsSecurityReview = false;
   let securityResult = null;
   let securityTraceId = '';
-  if (openid) {
-    let security = null;
-    try {
-      security = await cloud.openapi.security.msgSecCheck({
-        openid,
-        scene: 3,
-        version: 2,
-        content: buildSecurityText(form),
-      });
-    } catch (e) {
-      return { ok: false, code: 'SECURITY_CHECK_FAILED', message: String(e) };
-    }
+  try {
+    const security = await cloud.openapi.security.msgSecCheck({
+      openid: organizerOpenid,
+      scene: 3,
+      version: 2,
+      content: buildSecurityText(form),
+    });
     if (security && security.errcode && security.errcode !== 0) {
       return {
         ok: false,
@@ -208,27 +244,25 @@ exports.main = async (rawEvent, context) => {
     securityResult = (security && security.result) || null;
     securityTraceId = (security && security.trace_id) || '';
     if (suggest === 'review') needsSecurityReview = true;
-  } else {
-    // 纯 HTTP 提交无法过内容安全，交人工复核
+  } catch (e) {
+    // 内容安全调用失败不阻断提交，但标记待人工复核
     needsSecurityReview = true;
   }
 
-  // ---- 写入草稿箱 ----
-  const now = Date.now();
+  // ---- 写入草稿箱（绑定主办方 openid）----
   const recommendedMissing = findRecommendedMissing(form);
   const draft = Object.assign({}, form, {
-    openid: openid || '',
+    openid: organizerOpenid,
+    organizerOpenid,
     status: 'pending_manual_review',
     source: 'organizer_cli',
-    organizerName: form.organizerName,
-    organizerContact: form.organizerContact,
     needsSecurityReview,
     securityResult,
     securityTraceId,
     admissionCheck: {
       passed: false,
       missing: recommendedMissing,
-      note: '外部提交待人工核实',
+      note: '外部提交·已绑主办方账号·待人工核实',
     },
     submittedAt: now,
     updatedAt: now,
@@ -236,6 +270,10 @@ exports.main = async (rawEvent, context) => {
 
   try {
     const saved = await db.collection('hackathon_drafts').add({ data: draft });
+    // 配对码一次性：标记已用于赛事提交，防重复刷
+    try {
+      await db.collection('sync_pairs').doc(pairDoc._id).update({ data: { eventBound: true, eventBoundAt: now } });
+    } catch (e) {}
     return { ok: true, id: saved._id, status: 'pending_manual_review' };
   } catch (e) {
     return { ok: false, code: 'DRAFT_SAVE_FAILED', message: String(e) };
