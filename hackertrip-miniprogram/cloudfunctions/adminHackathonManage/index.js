@@ -1,4 +1,4 @@
-// 云函数：管理员赛事管理。
+// 云函数：管理员审核工作台。
 // 安全边界：管理员身份只在服务端用 OPENID 校验，前端不能绕过权限直接发布赛事。
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
@@ -82,9 +82,15 @@ function publicDraftFields(draft, draftId) {
 }
 
 async function listData() {
-  const [drafts, hackathons] = await Promise.all([
+  const [drafts, organizers, hackathons] = await Promise.all([
     db.collection('hackathon_drafts')
       .where({ status: _.in(['pending_review', 'pending_manual_review', 'security_review']) })
+      .orderBy('submittedAt', 'desc')
+      .limit(50)
+      .get()
+      .catch(() => ({ data: [] })),
+    db.collection('organizer_applications')
+      .where({ status: _.in(['pending', 'security_review']) })
       .orderBy('submittedAt', 'desc')
       .limit(50)
       .get()
@@ -97,6 +103,7 @@ async function listData() {
   ]);
   return {
     drafts: drafts.data || [],
+    organizers: organizers.data || [],
     hackathons: hackathons.data || [],
   };
 }
@@ -156,6 +163,38 @@ async function rejectDraft(event, openid) {
   return { ok: true, action: 'rejectDraft', id: draftId };
 }
 
+async function approveOrganizer(event, openid) {
+  const applicationId = cleanText(event.applicationId, 80);
+  if (!applicationId) return { ok: false, code: 'INVALID_APPLICATION', message: '缺少组织者申请 id' };
+  const now = Date.now();
+  await db.collection('organizer_applications').doc(applicationId).update({
+    data: {
+      status: 'approved',
+      approvalSource: 'server',
+      reviewedBy: openid,
+      reviewedAt: now,
+      updatedAt: now,
+    },
+  });
+  return { ok: true, action: 'approveOrganizer', id: applicationId };
+}
+
+async function rejectOrganizer(event, openid) {
+  const applicationId = cleanText(event.applicationId, 80);
+  if (!applicationId) return { ok: false, code: 'INVALID_APPLICATION', message: '缺少组织者申请 id' };
+  const now = Date.now();
+  await db.collection('organizer_applications').doc(applicationId).update({
+    data: {
+      status: 'rejected',
+      rejectReason: cleanText(event.reason || '组织者信息需要补充或未通过人工审核', 300),
+      reviewedBy: openid,
+      reviewedAt: now,
+      updatedAt: now,
+    },
+  });
+  return { ok: true, action: 'rejectOrganizer', id: applicationId };
+}
+
 async function setPublished(event, openid) {
   const docId = cleanText(event.docId, 80);
   const id = cleanText(event.id, 80);
@@ -195,6 +234,8 @@ exports.main = async (event) => {
     if (action === 'list') return Object.assign({ ok: true, isAdmin: true }, await listData());
     if (action === 'approveDraft') return await approveDraft(event || {}, openid);
     if (action === 'rejectDraft') return await rejectDraft(event || {}, openid);
+    if (action === 'approveOrganizer') return await approveOrganizer(event || {}, openid);
+    if (action === 'rejectOrganizer') return await rejectOrganizer(event || {}, openid);
     if (action === 'setPublished') return await setPublished(event || {}, openid);
     return { ok: false, code: 'UNKNOWN_ACTION', message: '未知管理动作' };
   } catch (e) {

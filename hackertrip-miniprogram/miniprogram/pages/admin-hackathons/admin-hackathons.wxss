@@ -10,6 +10,10 @@
   margin: 18rpx 0 26rpx;
 }
 
+.admin-tabs--three {
+  gap: 10rpx;
+}
+
 .admin-tab {
   display: flex;
   align-items: center;
@@ -26,6 +30,10 @@
   font-size: 25rpx;
   font-weight: 900;
   line-height: 1.2;
+}
+
+.admin-tabs--three .admin-tab {
+  font-size: 22rpx;
 }
 
 .admin-tab::after,

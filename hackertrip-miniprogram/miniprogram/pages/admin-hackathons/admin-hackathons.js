@@ -2,14 +2,16 @@ const api = require('../../utils/api.js');
 
 Page({
   data: {
-    title: '赛事管理',
+    title: '审核工作台',
     loading: true,
     isAdmin: false,
     error: '',
     activeTab: 'drafts',
     drafts: [],
+    organizers: [],
     hackathons: [],
-    rejectDraftId: '',
+    rejectTargetId: '',
+    rejectTargetType: '',
     rejectReason: '',
   },
 
@@ -26,6 +28,7 @@ Page({
         isAdmin: false,
         error: (res && res.message) || '无法读取赛事管理数据',
         drafts: [],
+        organizers: [],
         hackathons: [],
       });
       return;
@@ -35,6 +38,7 @@ Page({
       loading: false,
       isAdmin: true,
       drafts: (res.drafts || []).map((item) => this.decorateDraft(item)),
+      organizers: (res.organizers || []).map((item) => this.decorateOrganizer(item)),
       hackathons: (res.hackathons || []).map((item) => this.decorateHackathon(item)),
     });
   },
@@ -60,6 +64,16 @@ Page({
     });
   },
 
+  decorateOrganizer(item) {
+    const statusMap = {
+      pending: '待审核',
+      security_review: '安全复核',
+    };
+    return Object.assign({}, item, {
+      statusText: statusMap[item.status] || item.status || '待审核',
+    });
+  },
+
   switchTab(e) {
     this.setData({ activeTab: e.currentTarget.dataset.tab || 'drafts' });
   },
@@ -80,13 +94,14 @@ Page({
 
   openReject(e) {
     this.setData({
-      rejectDraftId: e.currentTarget.dataset.id || '',
+      rejectTargetId: e.currentTarget.dataset.id || '',
+      rejectTargetType: e.currentTarget.dataset.type || 'draft',
       rejectReason: '',
     });
   },
 
   closeReject() {
-    this.setData({ rejectDraftId: '', rejectReason: '' });
+    this.setData({ rejectTargetId: '', rejectTargetType: '', rejectReason: '' });
   },
 
   onRejectReason(e) {
@@ -94,13 +109,34 @@ Page({
   },
 
   async confirmReject() {
-    const draftId = this.data.rejectDraftId;
-    if (!draftId) return;
-    await this.runAction('rejectDraft', {
-      draftId,
-      reason: this.data.rejectReason || '信息需要补充或未通过人工审核',
-    }, '已拒绝');
+    const targetId = this.data.rejectTargetId;
+    if (!targetId) return;
+    if (this.data.rejectTargetType === 'organizer') {
+      await this.runAction('rejectOrganizer', {
+        applicationId: targetId,
+        reason: this.data.rejectReason || '组织者信息需要补充或未通过人工审核',
+      }, '已拒绝');
+    } else {
+      await this.runAction('rejectDraft', {
+        draftId: targetId,
+        reason: this.data.rejectReason || '信息需要补充或未通过人工审核',
+      }, '已拒绝');
+    }
     this.closeReject();
+  },
+
+  approveOrganizer(e) {
+    const applicationId = e.currentTarget.dataset.id;
+    if (!applicationId) return;
+    wx.showModal({
+      title: '通过组织者',
+      content: '确认该申请方通过组织者认证？通过后可以提交黑客松赛事草稿。',
+      confirmText: '通过',
+      success: async (res) => {
+        if (!res.confirm) return;
+        await this.runAction('approveOrganizer', { applicationId }, '已通过');
+      },
+    });
   },
 
   togglePublished(e) {

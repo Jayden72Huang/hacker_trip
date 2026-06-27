@@ -1,8 +1,8 @@
 <view class="focus-page admin-page">
   <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
   <view class="focus-content">
-    <view class="focus-title">赛事管理</view>
-    <view class="focus-subtitle">仅管理员可访问。草稿通过人工审核后才会发布到正式赛事列表。</view>
+    <view class="focus-title">审核工作台</view>
+    <view class="focus-subtitle">仅管理员可访问，用于组织者审核、赛事审核和正式赛事上下线。</view>
 
     <view wx:if="{{loading}}" class="brutal-box">
       <view class="box-title">加载中</view>
@@ -15,8 +15,9 @@
     </view>
 
     <block wx:else>
-      <view class="admin-tabs">
-        <button class="admin-tab {{activeTab === 'drafts' ? 'admin-tab--active' : ''}}" data-tab="drafts" bindtap="switchTab">待审核 {{drafts.length}}</button>
+      <view class="admin-tabs admin-tabs--three">
+        <button class="admin-tab {{activeTab === 'drafts' ? 'admin-tab--active' : ''}}" data-tab="drafts" bindtap="switchTab">赛事审核 {{drafts.length}}</button>
+        <button class="admin-tab {{activeTab === 'organizers' ? 'admin-tab--active' : ''}}" data-tab="organizers" bindtap="switchTab">组织者审核 {{organizers.length}}</button>
         <button class="admin-tab {{activeTab === 'live' ? 'admin-tab--active' : ''}}" data-tab="live" bindtap="switchTab">正式赛事 {{hackathons.length}}</button>
       </view>
 
@@ -52,7 +53,32 @@
           </view>
           <view class="admin-actions">
             <button class="small-btn small-btn--blue" data-id="{{item._id}}" bindtap="approveDraft">发布</button>
-            <button class="small-btn small-btn--white" data-id="{{item._id}}" bindtap="openReject">拒绝</button>
+            <button class="small-btn small-btn--white" data-id="{{item._id}}" data-type="draft" bindtap="openReject">拒绝</button>
+          </view>
+        </view>
+      </view>
+
+      <view wx:elif="{{activeTab === 'organizers'}}">
+        <view wx:if="{{organizers.length === 0}}" class="brutal-box">
+          <view class="box-title">暂无待审核组织者</view>
+          <view class="box-copy">用户提交的组织者认证申请会出现在这里。</view>
+        </view>
+        <view wx:for="{{organizers}}" wx:key="_id" class="admin-card">
+          <view class="admin-card-head">
+            <view>
+              <view class="admin-title">{{item.orgName}}</view>
+              <view class="admin-meta">{{item.role}} · {{item.contact}}</view>
+            </view>
+            <text class="status-pill">{{item.statusText}}</text>
+          </view>
+          <view class="admin-copy">{{item.note || '暂无补充说明'}}</view>
+          <view class="admin-row">
+            <text class="admin-label">官网</text>
+            <text>{{item.website || '未填写'}}</text>
+          </view>
+          <view class="admin-actions">
+            <button class="small-btn small-btn--blue" data-id="{{item._id}}" bindtap="approveOrganizer">通过</button>
+            <button class="small-btn small-btn--white" data-id="{{item._id}}" data-type="organizer" bindtap="openReject">拒绝</button>
           </view>
         </view>
       </view>
@@ -90,10 +116,10 @@
     </block>
   </view>
 
-  <view wx:if="{{rejectDraftId}}" class="modal-mask">
+  <view wx:if="{{rejectTargetId}}" class="modal-mask">
     <view class="reject-modal">
       <view class="box-title">拒绝原因</view>
-      <textarea class="reject-textarea" value="{{rejectReason}}" placeholder="例如：缺少官网、时间不明确、主办方信息不足" bindinput="onRejectReason" />
+      <textarea class="reject-textarea" value="{{rejectReason}}" placeholder="例如：缺少官网、时间不明确、主体信息不足" bindinput="onRejectReason" />
       <view class="admin-actions">
         <button class="small-btn small-btn--white" bindtap="closeReject">取消</button>
         <button class="small-btn small-btn--danger" bindtap="confirmReject">确认拒绝</button>

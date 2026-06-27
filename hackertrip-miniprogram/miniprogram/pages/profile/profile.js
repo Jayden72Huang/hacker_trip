@@ -119,8 +119,8 @@ Page({
     ];
     if (isAdmin) {
       list.unshift({
-        title: '赛事管理',
-        sub: '审核赛事草稿，上线或下线正式赛事',
+        title: '审核工作台',
+        sub: '赛事审核、组织者审核和上下线控制',
         url: '/pages/admin-hackathons/admin-hackathons',
       });
     }
