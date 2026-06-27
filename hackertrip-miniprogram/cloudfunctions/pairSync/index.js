@@ -3,7 +3,9 @@
 //   action='push'   —— CLI / 网页端通过 HTTP 触发器写入扫描结果
 //   action='pull'   —— 小程序端凭配对码拉取，并绑定到当前 openid
 //
-// 集合 sync_pairs: { code, uploadToken, scan, card, openid, bound, createdAt, expireAt }
+//
+// 集合 sync_pairs: { code, uploadToken, scan, card, works, openid, bound, createdAt, expireAt }
+// 集合 works:      选手作品落库（pull 时 best-effort 写入），{ openid, name, summary, repo, demo, cover, techStack, awards, source, createdAt, updatedAt }
 const cloud = require('wx-server-sdk');
 const crypto = require('crypto');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
@@ -19,6 +21,44 @@ function makePairCode() {
 
 function makeUploadToken() {
   return crypto.randomBytes(24).toString('hex');
+}
+
+function cleanText(value, maxLength) {
+  return String(value == null ? '' : value).trim().slice(0, maxLength || 500);
+}
+
+// 技术栈：数组或逗号串，每项 ≤40，最多 12 个
+function cleanTechStack(value) {
+  let list = [];
+  if (Array.isArray(value)) {
+    list = value;
+  } else if (typeof value === 'string') {
+    list = value.split(/[,\n，、]/);
+  }
+  return list
+    .map((x) => cleanText(x, 40))
+    .filter(Boolean)
+    .slice(0, 12);
+}
+
+// 选手作品 works[]：每项清洗限长，过滤空项，整体限 20 条
+function cleanWorks(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      const src = item && typeof item === 'object' ? item : {};
+      return {
+        name: cleanText(src.name, 80),
+        summary: cleanText(src.summary, 500),
+        repo: cleanText(src.repo, 300),
+        demo: cleanText(src.demo, 300),
+        cover: cleanText(src.cover, 300),
+        techStack: cleanTechStack(src.techStack),
+        awards: cleanText(src.awards, 120),
+      };
+    })
+    .filter((w) => w.name || w.summary || w.repo || w.demo)
+    .slice(0, 20);
 }
 
 function normalizeEvent(event) {
@@ -117,12 +157,17 @@ exports.main = async (rawEvent, context) => {
         code: c,
         scan,
         card: card || null,
+        works: cleanWorks(event.works),
         bound: false,
         pushedAt: now,
         expireAt: doc && doc.expireAt ? doc.expireAt : now + TTL_MS,
       };
       if (doc) {
-        await col.doc(doc._id).update({ data: payload });
+        // 用 set 整体覆盖：update 对嵌套对象做深度 merge，当原 scan/card 为 null 时
+        // 无法创建子路径(Cannot create field in element {scan:null})，故合并原字段后整体写回。
+        const merged = Object.assign({}, doc, payload);
+        delete merged._id;
+        await col.doc(doc._id).set({ data: merged });
       } else {
         await col.add({ data: Object.assign({}, payload, { createdAt: now }) });
       }
@@ -156,7 +201,24 @@ exports.main = async (rawEvent, context) => {
           await db.collection('cards').add({ data: Object.assign({}, doc.card, { openid, updatedAt: now }) });
         } catch (e) {}
       }
-      return { ok: true, scan: doc.scan, card: doc.card };
+
+      // 同步把选手作品落库到用户名下（best-effort，逐条写入 works 集合）
+      const works = Array.isArray(doc.works) ? doc.works : [];
+      if (works.length && openid) {
+        for (let i = 0; i < works.length; i++) {
+          try {
+            await db.collection('works').add({
+              data: Object.assign({}, works[i], {
+                openid,
+                source: 'cli',
+                createdAt: now,
+                updatedAt: now,
+              }),
+            });
+          } catch (e) {}
+        }
+      }
+      return { ok: true, scan: doc.scan, card: doc.card, works };
     } catch (e) {
       return { ok: false, message: String(e) };
     }
