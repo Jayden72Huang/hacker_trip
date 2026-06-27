@@ -1,7 +1,8 @@
 @import "../focus.wxss";
 
 .page {
-  padding: 28rpx 40rpx 0;
+  /* 底部留出固定操作栏(≈188rpx)+ 安全区的高度，避免内容被遮挡 */
+  padding: 28rpx 40rpx calc(232rpx + env(safe-area-inset-bottom));
 }
 .seg {
   display: flex;
@@ -121,13 +122,111 @@
 .preview {
   display: flex;
   justify-content: center;
-  padding: 10rpx 0 24rpx;
+  padding: 8rpx 0 16rpx;
+}
+
+/* 当前角色：只读一行 */
+.role-line {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 14rpx 20rpx;
+  margin-bottom: 16rpx;
+  background: #FFFFFF;
+  border: 3rpx solid #000000;
+  border-radius: 14rpx;
+  box-shadow: 4rpx 4rpx 0 0 #000000;
+}
+.role-line__emoji {
+  font-size: 40rpx;
+  line-height: 1;
+}
+.role-line__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.role-line__name {
+  font-size: 28rpx;
+  font-weight: 900;
+  color: #000000;
+  line-height: 1.2;
+}
+.role-line__tag {
+  margin-top: 2rpx;
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #3D3D3D;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 使用指南：一行三步 */
+.guide-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8rpx;
+  padding: 12rpx 16rpx;
+  margin-bottom: 4rpx;
+  background: #FBD902;
+  border: 3rpx solid #000000;
+  border-radius: 14rpx;
+}
+.guide-step {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+.gs-idx {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32rpx;
+  height: 32rpx;
+  color: #FFFFFF;
+  background: #0C51ED;
+  border: 2rpx solid #000000;
+  border-radius: 8rpx;
+  font-size: 20rpx;
+  font-weight: 900;
+}
+.gs-txt {
+  font-size: 22rpx;
+  font-weight: 900;
+  color: #000000;
+}
+.guide-arrow {
+  font-size: 30rpx;
+  font-weight: 900;
+  color: #000000;
+}
+
+/* 同步 Skills 入口（高级配置内） */
+.sync-entry {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 76rpx;
+  margin: 0 0 8rpx;
+  color: #0C51ED;
+  background: #F4F1E8;
+  border: 3rpx dashed #0C51ED;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  font-weight: 900;
+}
+.sync-entry::after {
+  border: none;
 }
 
 .stats-panel {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14rpx;
+  margin-top: 28rpx;
   margin-bottom: 30rpx;
 }
 
@@ -322,6 +421,7 @@
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 90;
   display: flex;
   align-items: center;
   gap: 20rpx;

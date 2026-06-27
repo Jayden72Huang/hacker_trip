@@ -1,7 +1,8 @@
 .navbar {
   position: sticky;
   top: 0;
-  z-index: 80;
+  /* 高于 canvas 同层渲染与底部操作栏，避免被原生 canvas 盖住 */
+  z-index: 500;
   width: 100%;
   background: #F4F1E8;
 }

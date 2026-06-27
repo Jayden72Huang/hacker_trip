@@ -1,34 +1,8 @@
 <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
-<view class="page-title migrated-title">{{title}}</view>
 <view wx:if="{{aiBanner}}" class="ai-banner identity-ai"><text>来自微信AI助手</text><text>{{aiIntentText}}</text></view>
 <wxs src="../../utils/tools.wxs" module="tools" />
 <view class="page">
-  <view class="identity-flow brutal-box">
-    <view class="box-title">生成流程</view>
-    <view class="flow-row">
-      <view class="flow-step">
-        <view class="flow-index">1</view>
-        <view class="flow-title">编辑资料</view>
-        <view class="flow-copy">头像、昵称、城市、技能</view>
-      </view>
-      <view class="flow-step">
-        <view class="flow-index">2</view>
-        <view class="flow-title">生成预览</view>
-        <view class="flow-copy">刷新角色和小程序码</view>
-      </view>
-      <view class="flow-step">
-        <view class="flow-index">3</view>
-        <view class="flow-title">保存转发</view>
-        <view class="flow-copy">保存图片或发给队友</view>
-      </view>
-    </view>
-    <view class="flow-actions">
-      <button class="flow-btn" bindtap="goEditProfile">编辑身份信息</button>
-      <button class="flow-btn flow-btn--yellow" bindtap="regenerateCard">生成 / 刷新</button>
-      <button class="flow-btn" bindtap="goSyncSkills">同步 Skills</button>
-    </view>
-  </view>
-
+  <!-- 预览类型切换 -->
   <view class="seg glass">
     <view class="seg-item {{variant === 'identity' ? 'on' : ''}}" data-v="identity" bindtap="switchVariant">身份卡预览</view>
     <view class="seg-item {{variant === 'config' ? 'on' : ''}}" data-v="config" bindtap="switchVariant">配置卡预览</view>
@@ -36,11 +10,36 @@
 
   <view wx:if="{{fromSync}}" class="sync-pill">✨ 已从 Skills 扫描结果预填</view>
 
-  <!-- Canvas 预览 -->
+  <!-- 卡片预览（首屏主角） -->
   <view class="preview">
     <canvas type="2d" id="cardCanvas" class="card-canvas" style="width: 540rpx; height: 720rpx;" />
   </view>
 
+  <!-- 当前角色（只读一行） -->
+  <view class="role-line">
+    <text class="role-line__emoji">{{roleMeta.emoji}}</text>
+    <view class="role-line__text">
+      <text class="role-line__name">{{roleMeta.name}}</text>
+      <text class="role-line__tag">{{roleMeta.tagline}}</text>
+    </view>
+  </view>
+
+  <!-- 使用指南：一行三步 -->
+  <view class="guide-row">
+    <view class="guide-step"><text class="gs-idx">1</text><text class="gs-txt">编辑资料</text></view>
+    <text class="guide-arrow">›</text>
+    <view class="guide-step"><text class="gs-idx">2</text><text class="gs-txt">生成预览</text></view>
+    <text class="guide-arrow">›</text>
+    <view class="guide-step"><text class="gs-idx">3</text><text class="gs-txt">保存转发</text></view>
+  </view>
+
+  <!-- 两个主操作 -->
+  <view class="flow-actions">
+    <button class="flow-btn" bindtap="goEditProfile">编辑资料</button>
+    <button class="flow-btn flow-btn--yellow" bindtap="regenerateCard">生成 / 刷新</button>
+  </view>
+
+  <!-- 数据统计 -->
   <view class="stats-panel">
     <view class="stat-card">
       <text class="stat-num">{{stats.hackathons}}</text>
@@ -71,49 +70,32 @@
     </view>
   </view>
 
-  <view class="section-head identity-section-head">配置卡片内容</view>
-
-  <!-- 角色判定面板 -->
-  <view class="role-panel glass">
-    <view class="panel-toggle" bindtap="toggleRolePanel">
-      <view class="role-head">
-        <text class="role-emoji">{{roleMeta.emoji}}</text>
-        <view class="role-info">
-          <view class="role-name">{{roleMeta.name}}</view>
-          <view class="role-tag">{{roleMeta.tagline}}</view>
-        </view>
-      </view>
-      <view class="panel-arrow">{{rolePanelOpen ? '收起' : '调整'}}</view>
-    </view>
-    <view wx:if="{{rolePanelOpen}}" class="panel-body">
-      <view wx:if="{{reasons.length}}" class="reasons">
-        <text wx:for="{{reasons}}" wx:key="*this" class="reason">· {{item}}</text>
-      </view>
-      <view class="role-switch">
-        <text class="rs-label">锁定主角色</text>
-        <scroll-view scroll-x class="rs-scroll" enhanced show-scrollbar="{{false}}">
-          <text
-            wx:for="{{roleList}}"
-            wx:key="key"
-            class="rs-chip {{role === item.key ? 'on' : ''}}"
-            data-key="{{item.key}}"
-            bindtap="lockRole"
-          >{{item.emoji}} {{item.name}}</text>
-        </scroll-view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 表单 -->
+  <!-- 高级配置：默认收起，点开才显示全部编辑项 -->
   <view class="form">
     <view class="config-toggle" bindtap="toggleConfigPanel">
       <view>
         <view class="config-title">高级配置</view>
-        <view class="config-copy">技术栈、AI 工具、打法风格和组队状态</view>
+        <view class="config-copy">角色、技术栈、AI 工具、打法风格和组队状态</view>
       </view>
       <view class="panel-arrow">{{configPanelOpen ? '收起' : '展开'}}</view>
     </view>
     <view wx:if="{{configPanelOpen}}" class="config-body">
+      <button class="sync-entry" bindtap="goSyncSkills">↻ 从 Skills 扫描自动填技术栈</button>
+
+      <view class="form-label">主角色</view>
+      <view wx:if="{{reasons.length}}" class="reasons">
+        <text wx:for="{{reasons}}" wx:key="*this" class="reason">· {{item}}</text>
+      </view>
+      <scroll-view scroll-x class="rs-scroll" enhanced show-scrollbar="{{false}}">
+        <text
+          wx:for="{{roleList}}"
+          wx:key="key"
+          class="rs-chip {{role === item.key ? 'on' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="lockRole"
+        >{{item.emoji}} {{item.name}}</text>
+      </scroll-view>
+
       <view class="form-label">主技术栈</view>
       <view class="selected">
         <text wx:for="{{techStack}}" wx:key="*this" class="chip chip-accent" data-idx="{{index}}" bindtap="removeTech">{{item}} ✕</text>
@@ -158,8 +140,6 @@
       </view>
     </view>
   </view>
-
-  <view style="height: 180rpx;" />
 </view>
 
 <!-- 底部操作栏 -->
