@@ -1,0 +1,64 @@
+[
+  {
+    "path": "pages/index/index",
+    "name": "发现黑客松",
+    "description": "浏览和搜索正在报名的黑客松赛事，支持按城市、线上线下、AI/Web3/硬件等方向筛选"
+  },
+  {
+    "path": "pages/match/match",
+    "name": "匹配赛事",
+    "description": "输入技术栈或项目方向，按匹配度推荐适合的黑客松并说明推荐理由"
+  },
+  {
+    "path": "pages/chat/chat",
+    "name": "Haki 助手",
+    "description": "AI 参赛顾问，提供组队建议、赛道选择、准备清单和参赛策略"
+  },
+  {
+    "path": "pages/identity/identity",
+    "name": "参赛身份卡",
+    "description": "生成开发者参赛名片，展示技能和角色，分享出去扫码找队友"
+  },
+  {
+    "path": "pages/detail/detail",
+    "name": "赛事详情",
+    "description": "查看黑客松的时间、地点、奖金、赛道、技术栈和报名入口",
+    "query": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "赛事ID" }
+      },
+      "required": ["id"]
+    }
+  },
+  {
+    "path": "pages/schedule/schedule",
+    "name": "我的赛程",
+    "description": "管理个人参赛日程，查看已加入赛事的时间线"
+  },
+  {
+    "path": "pages/portfolio/portfolio",
+    "name": "作品集",
+    "description": "展示参赛项目和作品，沉淀黑客松参赛履历"
+  },
+  {
+    "path": "pages/settings/settings",
+    "name": "订阅设置",
+    "description": "开启黑客松上新提醒、智能推荐和报名截止提醒"
+  },
+  {
+    "path": "pages/public-site/public-site",
+    "name": "公开主页",
+    "description": "开发者公开主页，展示技术栈、参赛记录和项目作品"
+  },
+  {
+    "path": "pages/organizer/organizer",
+    "name": "组织者认证",
+    "description": "黑客松举办方提交组织者认证，审核通过后发布活动"
+  },
+  {
+    "path": "pages/sync/sync",
+    "name": "Skills 同步",
+    "description": "通过6位配对码同步电脑端项目信息，用于赛事匹配"
+  }
+]
