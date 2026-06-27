@@ -80,13 +80,26 @@ async function verifyIdentity(miniProgram) {
   assert(sharePayload && String(sharePayload.path || '').includes('/pages/share/share'), 'identity page must prepare share path');
   const authModal = await page.$('auth-modal');
   assert(authModal, 'identity page must mount auth modal');
-  const steps = await page.$$('.flow-title');
+  let steps = await page.$$('.flow-title');
+  if (!steps.length) steps = await page.$$('.gs-txt');
   const texts = [];
   for (const step of steps) texts.push(await step.text());
   assert(texts.includes('编辑资料'), 'identity page must show edit step');
   assert(texts.includes('生成预览'), 'identity page must show generate step');
   assert(texts.includes('保存转发'), 'identity page must show save/share step');
   return { sharePath: sharePayload.path, steps: texts };
+}
+
+async function verifyMyWorks(miniProgram) {
+  const page = await miniProgram.reLaunch('/pages/my-works/my-works');
+  await wait(page, 1000);
+  const data = await page.data();
+  assert(data.title === '我的作品', 'my-works page title should be 我的作品');
+  assert(Array.isArray(data.works), 'my-works page must expose works list');
+  assert(!/collection.*not exists|Db or Table not exist|ResourceNotFound/i.test(String(data.error || '')), 'my-works page must not expose raw missing-collection errors');
+  const authModal = await page.$('auth-modal');
+  assert(authModal, 'my-works page must mount auth modal');
+  return { worksCount: data.works.length, error: data.error || '' };
 }
 
 async function verifySync(miniProgram) {
@@ -129,6 +142,7 @@ async function main() {
     result.schedule = await verifySchedule(miniProgram);
     result.detail = await verifyDetail(miniProgram);
     result.identity = await verifyIdentity(miniProgram);
+    result.myWorks = await verifyMyWorks(miniProgram);
     result.sync = await verifySync(miniProgram);
     result.agent = await verifyAgent(miniProgram);
     console.log(JSON.stringify({ ok: true, result }, null, 2));
