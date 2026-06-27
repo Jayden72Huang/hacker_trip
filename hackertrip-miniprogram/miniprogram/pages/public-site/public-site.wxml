@@ -53,6 +53,24 @@
       <view class="list-subtitle">还没有公开技能，编辑身份后会显示在这里。</view>
     </view>
 
+    <view wx:if="{{works.length}}" class="section-head">作品 / Projects</view>
+    <view wx:for="{{works}}" wx:key="id" class="list-card work-card">
+      <image wx:if="{{item.cover}}" class="work-cover" src="{{item.cover}}" mode="aspectFill" />
+      <view wx:else class="work-cover work-cover--empty">PROJECT</view>
+      <view class="work-main">
+        <view class="list-title">{{item.name}}</view>
+        <view wx:if="{{item.desc}}" class="list-subtitle">{{item.desc}}</view>
+        <view wx:if="{{item.awards}}" class="work-awards">🏆 {{item.awards}}</view>
+        <view wx:if="{{item.tags.length}}" class="chip-row work-tags">
+          <text wx:for="{{item.tags}}" wx:key="*this" class="focus-chip focus-chip--blue">{{item}}</text>
+        </view>
+        <view wx:if="{{item.repo || item.demo}}" class="work-actions">
+          <button wx:if="{{item.repo}}" class="work-link" data-url="{{item.repo}}" bindtap="copyWorkLink">复制 Repo</button>
+          <button wx:if="{{item.demo}}" class="work-link work-link--yellow" data-url="{{item.demo}}" bindtap="copyWorkLink">复制 Demo</button>
+        </view>
+      </view>
+    </view>
+
     <view class="section-head">项目</view>
     <view wx:for="{{projects}}" wx:key="id" class="list-card">
       <view class="list-title">{{item.name}}</view>

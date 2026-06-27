@@ -2,7 +2,7 @@
   "apis": [
     {
       "name": "searchHackathons",
-      "description": "搜索黑客松赛事。当用户想浏览或按关键词、城市、线上线下、主题、赛道、技术方向筛选黑客松（hackathon / 编程比赛 / 极客比赛）时调用。例如「最近有什么 AI 黑客松」「周末上海的 hackathon」「有没有线上的黑客松」「深圳有什么编程比赛」。如果用户已经给出自己的技术栈并询问适合参加哪些比赛，应优先调用 matchHackathonsByStack。",
+      "description": "搜索黑客松赛事。当用户想浏览或按关键词、城市、线上线下、主题、赛道、技术方向筛选黑客松（hackathon / 编程比赛 / 极客比赛 / 开发者大赛 / AI 大赛）时调用。例如「最近有什么 AI 黑客松」「2026 年有哪些黑客松」「周末上海的 hackathon」「有没有线上的黑客松」「深圳有什么编程比赛」「哪里可以找 AI Agent 黑客松」。如果用户已经给出自己的技术栈并询问适合参加哪些比赛，应优先调用 matchHackathonsByStack。",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -38,7 +38,7 @@
     },
     {
       "name": "matchHackathonsByStack",
-      "description": "按技术栈匹配黑客松，这是 HackerTrip 的核心能力。当用户描述了自己的技术栈、擅长方向或项目类型（如 React、Node、AI、大模型、IoT、硬件、Web3、Python），想知道适合参加哪些黑客松时调用。例如「我会 React 和 Node，能参加哪些比赛」「我想做硬件项目参赛」「适合 AI 方向的黑客松」。返回按技术栈匹配度排序的赛事列表，每条带匹配理由 fitReason。",
+      "description": "按技术栈匹配黑客松，这是 HackerTrip 的核心能力。当用户描述了自己的技术栈、擅长方向或项目类型（如 React、Node、AI、大模型、LLM、AI Agent、IoT、硬件、Web3、Python、产品、设计），想知道适合参加哪些黑客松时调用。例如「我会 React 和 Node，能参加哪些比赛」「我有一个 AI Agent 项目，能报哪个赛道」「我想做硬件项目参赛」「适合 AI 方向的黑客松」。返回按技术栈匹配度排序的赛事列表，每条带匹配理由 fitReason。",
       "inputSchema": {
         "type": "object",
         "required": ["techStack"],
@@ -81,7 +81,7 @@
     },
     {
       "name": "getHackathonDetail",
-      "description": "查询单场黑客松详情。当用户想了解某一场具体黑客松的完整信息时调用。例如「AdventureX 什么时候、在哪、奖金多少」「详细介绍下这场比赛」「这个比赛的赛道有哪些」「XX 报名截止了吗」。必须先通过 searchHackathons 或 matchHackathonsByStack 拿到赛事 id；如果上下文没有可用 id，应先搜索或匹配。",
+      "description": "查询单场黑客松详情。当用户想了解某一场具体黑客松的完整信息时调用，包括时间、地点、线上线下模式、奖金、赛道、技术栈、报名截止和官网。例如「AdventureX 什么时候、在哪、奖金多少」「详细介绍下这场比赛」「这个比赛的赛道有哪些」「XX 报名截止了吗」「这场比赛官网是什么」。必须先通过 searchHackathons 或 matchHackathonsByStack 拿到赛事 id；如果上下文没有可用 id，应先搜索或匹配。",
       "inputSchema": {
         "type": "object",
         "required": ["id"],

@@ -21,6 +21,7 @@ Page({
       skills: [],
     },
     projects: [],
+    works: [],
     history: [],
     loading: true,
   },
@@ -50,6 +51,9 @@ Page({
           loading: false,
           profile: Object.assign({}, remote.profile, { avatarChar }),
           projects: remote.projects || [],
+          works: (remote.works || []).map((work) => Object.assign({}, work, {
+            tags: Array.isArray(work.tags) ? work.tags : [],
+          })),
           history: [],
         });
         return;
@@ -108,7 +112,20 @@ Page({
         skills: p.skills || [],
       },
       projects: api.getPortfolioProjects(),
+      works: [],
       history,
+    });
+  },
+
+  copyWorkLink(e) {
+    const url = e.currentTarget.dataset.url || '';
+    if (!url) {
+      wx.showToast({ title: '暂无链接', icon: 'none' });
+      return;
+    }
+    wx.setClipboardData({
+      data: url,
+      success: () => wx.showToast({ title: '链接已复制', icon: 'success' }),
     });
   },
 });

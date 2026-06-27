@@ -27,6 +27,7 @@ Page({
       { title: '我的身份卡', sub: '生成参赛身份卡，分享找队友', url: '/pages/identity/identity' },
       { title: '卡册 · 成就解锁', sub: '集齐限定卡面，邀请好友解锁稀有卡', url: '/pages/cardbook/cardbook' },
       { title: '项目作品集', sub: '整理作品，用于报名和分享', url: '/pages/portfolio/portfolio' },
+      { title: '我的作品', sub: '发布、下架或删除 CLI 提交的作品', url: '/pages/my-works/my-works' },
       { title: 'Agent 技能库', sub: '管理 Haki 可读取的项目能力', url: '/pages/agent/agent' },
       { title: 'Skills 同步', sub: '从 GitHub/本地项目同步技术栈', url: '/pages/sync/sync' },
     ],

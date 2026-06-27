@@ -1,0 +1,57 @@
+<view class="focus-page my-works-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view class="focus-title">我的作品</view>
+    <view class="focus-subtitle">审核 CLI 提交到当前账号下的作品，决定哪些展示到公开主页。</view>
+
+    <view wx:if="{{loading}}" class="list-card">
+      <view class="list-title">正在加载</view>
+      <view class="list-subtitle">读取你的作品列表...</view>
+    </view>
+
+    <view wx:elif="{{error}}" class="brutal-box yellow-box">
+      <view class="box-title">需要处理</view>
+      <view class="box-copy">{{error}}</view>
+    </view>
+
+    <view wx:elif="{{!works.length}}" class="list-card">
+      <view class="list-title">暂无作品</view>
+      <view class="list-subtitle">电脑端提交作品后，会出现在这里等待发布或下架。</view>
+    </view>
+
+    <view wx:for="{{works}}" wx:key="_id" class="list-card work-card">
+      <image wx:if="{{item.cover}}" class="work-cover" src="{{item.cover}}" mode="aspectFill" />
+      <view wx:else class="work-cover work-cover--empty">WORK</view>
+      <view class="work-body">
+        <view class="work-head">
+          <view class="list-title work-title">{{item.name}}</view>
+          <view class="status-badge {{item.statusClass}}">{{item.statusText}}</view>
+        </view>
+        <view wx:if="{{item.summary}}" class="list-subtitle">{{item.summary}}</view>
+        <view wx:if="{{item.awards}}" class="work-awards">获奖：{{item.awards}}</view>
+        <view wx:if="{{item.repo || item.demo}}" class="work-links">
+          <text wx:if="{{item.repo}}">Repo 已提交</text>
+          <text wx:if="{{item.demo}}">Demo 已提交</text>
+        </view>
+        <view wx:if="{{item.techStack.length}}" class="chip-row work-tags">
+          <text wx:for="{{item.techStack}}" wx:key="*this" class="focus-chip">{{item}}</text>
+        </view>
+        <view class="work-actions">
+          <button
+            class="native-btn work-action {{item.status === 'published' ? 'native-btn--yellow' : ''}}"
+            data-id="{{item._id}}"
+            data-action="{{item.primaryAction}}"
+            bindtap="runAction"
+          >{{item.primaryActionText}}</button>
+          <button
+            class="native-btn native-btn--danger work-action"
+            data-id="{{item._id}}"
+            data-action="delete"
+            bindtap="runAction"
+          >删除</button>
+        </view>
+      </view>
+    </view>
+  </view>
+  <auth-modal id="authModal" bind:login="onAuthLogin" />
+</view>

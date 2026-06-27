@@ -494,8 +494,30 @@ async function getPublicProfile(uid) {
       stats: { hackathons: stats.hackathons, projects: stats.projects, skills: stats.skills },
     },
     projects: getPortfolioProjects().map((item) => ({ name: item.name, desc: item.subtitle || item.desc || '' })),
+    works: [],
   };
 }
+
+async function reviewWork(data) {
+  if (!cloudReady()) {
+    return { ok: false, code: 'CLOUD_REQUIRED', message: '需要连接云开发后才能管理作品' };
+  }
+  try {
+    const res = await callFn('reviewWork', data || {});
+    return res || { ok: false, code: 'EMPTY_RESPONSE', message: '作品操作失败' };
+  } catch (e) {
+    return { ok: false, code: 'REVIEW_WORK_FAILED', message: '作品操作失败，请稍后重试' };
+  }
+}
+
+async function listReviewWorks() {
+  return reviewWork({ action: 'list' });
+}
+
+async function updateReviewWork(action, workId) {
+  return reviewWork({ action, workId });
+}
+
 /** 由真实收藏/报名/卡片数量派生用户资产统计，供个人中心/公开主页/分享复用 */
 function getUserStats() {
   const profile = getProfile();
@@ -1112,6 +1134,8 @@ module.exports = {
   saveProfileWithSync,
   getProfileQr,
   getPublicProfile,
+  listReviewWorks,
+  updateReviewWork,
   getUserStats,
   getProfileMode,
   setProfileMode,

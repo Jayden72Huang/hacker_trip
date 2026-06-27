@@ -188,7 +188,7 @@ module.exports = [
     "summary": "ETHShanghai 2025十月重返上海！聚焦以太坊生态创新，获奖团队可获得Grants和生态支持。",
     "location": "上海, 中国",
     "registrationDeadline": null,
-    "isPast": false,
+    "isPast": true,
     "id": "ht-04"
   },
   {
@@ -230,7 +230,7 @@ module.exports = [
     "summary": "由VRplay社区主办，北京、上海、广州三城同步举办的XR黑客松，48小时极限开发。",
     "location": "北京/上海/广州, 中国",
     "registrationDeadline": null,
-    "isPast": false,
+    "isPast": true,
     "id": "ht-05"
   },
   {
