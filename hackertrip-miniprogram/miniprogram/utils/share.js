@@ -16,6 +16,30 @@ function buildHomeShare() {
   };
 }
 
+function buildScheduleShare() {
+  return {
+    title: 'HackerTrip 赛程管理',
+    path: '/pages/schedule/schedule',
+    imageUrl: SHARE_IMAGE,
+  };
+}
+
+function buildInboxShare() {
+  return {
+    title: 'HackerTrip 黑客松提醒',
+    path: '/pages/inbox/inbox',
+    imageUrl: SHARE_IMAGE,
+  };
+}
+
+function buildProfileShare() {
+  return {
+    title: 'HackerTrip 开发者主页',
+    path: '/pages/profile/profile',
+    imageUrl: SHARE_IMAGE,
+  };
+}
+
 function buildListShare(params) {
   const source = params || {};
   const query = [];
@@ -68,6 +92,9 @@ module.exports = {
   SHARE_IMAGE,
   enableShareMenu,
   buildHomeShare,
+  buildScheduleShare,
+  buildInboxShare,
+  buildProfileShare,
   buildListShare,
   buildDetailShare,
   timelinePayload,

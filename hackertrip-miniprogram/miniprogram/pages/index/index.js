@@ -67,6 +67,7 @@ Page({
   allEvents: [],
 
   async onShow() {
+    share.enableShareMenu();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().syncSelected();
     }

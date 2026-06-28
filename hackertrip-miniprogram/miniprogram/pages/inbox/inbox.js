@@ -1,6 +1,7 @@
 const api = require('../../utils/api.js');
 const catalog = require('../../utils/catalog.js');
 const { parseAIEntry } = require('../../utils/ai.js');
+const share = require('../../utils/share.js');
 
 /** 计算 dateStr(YYYY-MM-DD) 距今天的天数：>0 未来，=0 今天，<0 已过 */
 function daysUntil(dateStr) {
@@ -94,6 +95,7 @@ Page({
   },
 
   onShow() {
+    share.enableShareMenu();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().syncSelected();
     }
@@ -102,6 +104,7 @@ Page({
   },
 
   onLoad(options) {
+    share.enableShareMenu();
     const ai = parseAIEntry(options);
     this.setData({
       aiBanner: !!ai.fromAI,
@@ -142,5 +145,13 @@ Page({
       return;
     }
     wx.showToast({ title: res.acceptedTypes.length ? '已开启提醒' : '未授权提醒', icon: 'none' });
+  },
+
+  onShareAppMessage() {
+    return share.buildInboxShare();
+  },
+
+  onShareTimeline() {
+    return share.timelinePayload(share.buildInboxShare());
   },
 });

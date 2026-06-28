@@ -1,5 +1,6 @@
 const api = require('../../utils/api.js');
 const { parseAIEntry } = require('../../utils/ai.js');
+const share = require('../../utils/share.js');
 
 const PHASES = ['发现', '报名', '组队', '开题', '开发', '提交', '路演'];
 
@@ -27,6 +28,7 @@ Page({
   },
 
   onShow() {
+    share.enableShareMenu();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().syncSelected();
     }
@@ -35,6 +37,7 @@ Page({
   },
 
   onLoad(options) {
+    share.enableShareMenu();
     const ai = parseAIEntry(options);
     this.setData({
       aiBanner: !!ai.fromAI,
@@ -162,5 +165,13 @@ Page({
     } catch (err) {
       wx.showToast({ title: '取消失败，请重试', icon: 'none' });
     }
+  },
+
+  onShareAppMessage() {
+    return share.buildScheduleShare();
+  },
+
+  onShareTimeline() {
+    return share.timelinePayload(share.buildScheduleShare());
   },
 });

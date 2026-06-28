@@ -1,5 +1,6 @@
 const api = require('../../utils/api.js');
 const { parseAIEntry } = require('../../utils/ai.js');
+const share = require('../../utils/share.js');
 
 Page({
   data: {
@@ -35,6 +36,7 @@ Page({
   },
 
   onShow() {
+    share.enableShareMenu();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().syncSelected();
     }
@@ -43,6 +45,7 @@ Page({
   },
 
   onLoad(options) {
+    share.enableShareMenu();
     const ai = parseAIEntry(options);
     this.setData({
       aiBanner: !!ai.fromAI,
@@ -187,5 +190,13 @@ Page({
       return;
     }
     wx.navigateTo({ url: item.url });
+  },
+
+  onShareAppMessage() {
+    return share.buildProfileShare();
+  },
+
+  onShareTimeline() {
+    return share.timelinePayload(share.buildProfileShare());
   },
 });
