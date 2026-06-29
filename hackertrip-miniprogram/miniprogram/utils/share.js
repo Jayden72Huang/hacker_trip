@@ -1,5 +1,5 @@
 const SHARE_IMAGE = '/images/logo-transparent.png';
-const HOME_SHARE_TITLE = 'HackerTrip｜发现黑客松、同步 Skills、生成身份卡';
+const HOME_SHARE_TITLE = 'HackerTrip｜挖掘好玩黑客松,分享你的AI身份卡!';
 
 function enableShareMenu() {
   if (!wx.showShareMenu) return;
