@@ -82,7 +82,7 @@
           </view>
           <view class="featured-info-row">
             <text class="featured-info-label">地点</text>
-            <text class="featured-info-value">{{item.location || item.city || '待确认'}}</text>
+            <text class="featured-info-value featured-info-value--location">{{item.location || item.city || '待确认'}}</text>
           </view>
           <view class="featured-info-row featured-info-row--split">
             <view class="featured-inline">

@@ -88,6 +88,7 @@ Page({
     return {
       title: `我在 HackerTrip 的黑客松身份：${this.data.role.name}`,
       path: `/pages/share/share?${params.join('&')}`,
+      imageUrl: '/images/logo-transparent.png',
     };
   },
 });

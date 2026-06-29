@@ -40,6 +40,13 @@ function decorateFeatured(list) {
   }));
 }
 
+function hasPersonalizedReason(item) {
+  if (!item) return false;
+  if (item.fitReason) return true;
+  if (Number(item.matchScore) > 0) return true;
+  return Array.isArray(item.matchedTags) && item.matchedTags.length > 0;
+}
+
 Page({
   data: {
     title: '发现黑客松',
@@ -157,11 +164,14 @@ Page({
       city: this.data.city,
       limit: 4,
     });
-    const recommendedFeatured = decorateFeatured((res && res.list) || []);
+    const rawRecommended = (res && Array.isArray(res.list) ? res.list : [])
+      .filter(hasPersonalizedReason);
+    const recommendedFeatured = decorateFeatured(rawRecommended);
+    const hasPersonalizedMatches = !!(res && res.personalized && recommendedFeatured.length);
     const next = {
-      recommendedFeatured: res && res.needsProfile ? [] : recommendedFeatured,
+      recommendedFeatured: hasPersonalizedMatches ? recommendedFeatured : [],
       recommendationHint: res && res.message ? res.message : '',
-      recommendationState: res && res.needsProfile ? 'profile' : 'ready',
+      recommendationState: hasPersonalizedMatches ? 'ready' : 'profile',
     };
     if (this.data.activeFeaturedTab === 'mine') {
       next.featured = next.recommendedFeatured;
@@ -172,9 +182,9 @@ Page({
   onFeaturedTabTap(e) {
     const tab = e.currentTarget.dataset.tab || 'featured';
     const featured = tab === 'mine'
-      ? this.data.recommendedFeatured
+      ? []
       : this.data.curatedFeatured;
-    this.setData({ activeFeaturedTab: tab, featured });
+    this.setData({ activeFeaturedTab: tab, featured, recommendationHint: '' });
     if (tab === 'mine') {
       this.refreshRecommended();
     }

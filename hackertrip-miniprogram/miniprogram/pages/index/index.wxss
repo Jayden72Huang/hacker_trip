@@ -450,6 +450,13 @@
   white-space: normal;
 }
 
+.featured-info-value--location {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .featured-mode-pill {
   display: inline-flex;
   align-items: center;

@@ -1,4 +1,5 @@
-const SHARE_IMAGE = '/images/share-card.png';
+const SHARE_IMAGE = '/images/logo-transparent.png';
+const HOME_SHARE_TITLE = 'HackerTrip｜发现黑客松、同步 Skills、生成身份卡';
 
 function enableShareMenu() {
   if (!wx.showShareMenu) return;
@@ -10,7 +11,7 @@ function enableShareMenu() {
 
 function buildHomeShare() {
   return {
-    title: 'HackerTrip 黑客松',
+    title: HOME_SHARE_TITLE,
     path: '/pages/index/index',
     imageUrl: SHARE_IMAGE,
   };
@@ -18,7 +19,7 @@ function buildHomeShare() {
 
 function buildScheduleShare() {
   return {
-    title: 'HackerTrip 赛程管理',
+    title: 'HackerTrip 赛程｜管理你的黑客松参赛路线',
     path: '/pages/schedule/schedule',
     imageUrl: SHARE_IMAGE,
   };
@@ -26,7 +27,7 @@ function buildScheduleShare() {
 
 function buildInboxShare() {
   return {
-    title: 'HackerTrip 黑客松提醒',
+    title: 'HackerTrip 提醒｜订阅黑客松上新和截止通知',
     path: '/pages/inbox/inbox',
     imageUrl: SHARE_IMAGE,
   };
@@ -34,7 +35,7 @@ function buildInboxShare() {
 
 function buildProfileShare() {
   return {
-    title: 'HackerTrip 开发者主页',
+    title: 'HackerTrip 我的主页｜展示技能、作品和身份卡',
     path: '/pages/profile/profile',
     imageUrl: SHARE_IMAGE,
   };
@@ -47,7 +48,7 @@ function buildListShare(params) {
   if (source.q) query.push(`q=${encodeURIComponent(source.q)}`);
   if (source.filter && source.filter !== 'all') query.push(`filter=${encodeURIComponent(source.filter)}`);
   return {
-    title: 'HackerTrip 黑客松赛事列表',
+    title: 'HackerTrip｜发现适合你的黑客松赛事',
     path: `/pages/hackathon-list/hackathon-list${query.length ? `?${query.join('&')}` : ''}`,
     imageUrl: SHARE_IMAGE,
   };
