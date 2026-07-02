@@ -1,4 +1,5 @@
 const hackathons = require('../data/hackathons.js');
+const { normalizeCity } = require('./city.js');
 
 const MODE_TEXT = {
   offline: '线下',
@@ -21,9 +22,12 @@ function deriveStatus(item, today) {
 
 function decorate(item, today) {
   const status = deriveStatus(item, today);
+  const city = normalizeCity(item.city, item.location) || item.city || '';
 
   return {
     ...item,
+    city,
+    location: item.location || item.city || '',
     status,
     canRegister: status !== 'ended',
     modeText: MODE_TEXT[item.mode] || item.mode || '待确认',

@@ -159,6 +159,15 @@ function buildSecurityText(form) {
     .slice(0, 2500);
 }
 
+async function getApprovedOrganizer(openid) {
+  if (!openid) return null;
+  const res = await db.collection('organizer_applications')
+    .where({ openid, status: 'approved' })
+    .limit(1)
+    .get();
+  return res.data && res.data[0] ? res.data[0] : null;
+}
+
 exports.main = async (rawEvent, context) => {
   const event = normalizeEvent(rawEvent);
   const action = cleanText((event || {}).action || 'submit', 40);
@@ -198,6 +207,16 @@ exports.main = async (rawEvent, context) => {
     return { ok: false, code: 'BAD_PAIR', message: '该配对码已用于提交赛事，请重新生成' };
   }
   const organizerOpenid = pairDoc.openid;
+
+  let organizer = null;
+  try {
+    organizer = await getApprovedOrganizer(organizerOpenid);
+  } catch (e) {
+    return { ok: false, code: 'ORGANIZER_CHECK_FAILED', message: String(e) };
+  }
+  if (!organizer) {
+    return { ok: false, code: 'NOT_ORGANIZER', message: '需先通过组织者认证后再提交赛事' };
+  }
 
   const form = normalizeForm(readForm(event));
 
@@ -254,6 +273,8 @@ exports.main = async (rawEvent, context) => {
   const draft = Object.assign({}, form, {
     openid: organizerOpenid,
     organizerOpenid,
+    organizerId: organizer._id || '',
+    organizerName: form.organizerName || organizer.orgName || '',
     status: 'pending_manual_review',
     source: 'organizer_cli',
     needsSecurityReview,

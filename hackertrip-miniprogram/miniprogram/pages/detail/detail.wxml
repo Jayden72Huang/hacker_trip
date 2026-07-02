@@ -7,9 +7,19 @@
     </view>
 
     <view class="detail-hero brutal-box blue-box">
-      <view class="detail-status">{{item.status === 'ended' ? '已结束' : item.status === 'ongoing' ? '进行中' : '即将开始'}}</view>
-      <view class="focus-title detail-title">{{item.name}}</view>
-      <view class="detail-summary">{{item.summary}}</view>
+      <image wx:if="{{item.coverUrl}}" class="detail-hero-bg" src="{{item.coverUrl}}" mode="aspectFill" />
+      <view class="detail-hero-mask"></view>
+      <view class="detail-hero-content">
+        <view class="detail-status">{{item.status === 'ended' ? '已结束' : item.status === 'ongoing' ? '进行中' : '即将开始'}}</view>
+        <view class="detail-title-row">
+          <view class="detail-logo-shell">
+            <image wx:if="{{item.logoUrl}}" class="detail-logo-img" src="{{item.logoUrl}}" mode="aspectFill" />
+            <image wx:else class="detail-logo-img detail-logo-img--fallback" src="/images/logo-transparent.png" mode="aspectFit" />
+          </view>
+          <view class="focus-title detail-title">{{item.name}}</view>
+        </view>
+        <view class="detail-summary">{{item.summary}}</view>
+      </view>
     </view>
 
     <!-- 赛事热度（F3）：选手端关注沉淀 → 主办方获客钩子 -->

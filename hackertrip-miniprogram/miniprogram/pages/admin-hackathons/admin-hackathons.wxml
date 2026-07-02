@@ -26,7 +26,7 @@
           <view class="box-title">暂无待审核赛事</view>
           <view class="box-copy">组织者提交的新赛事会出现在这里。</view>
         </view>
-        <view wx:for="{{drafts}}" wx:key="_id" class="admin-card">
+        <view wx:for="{{drafts}}" wx:key="_id" class="admin-card" bindtap="goDetail" data-id="{{item.id || item.hackathonId}}">
           <view class="admin-card-head">
             <view>
               <view class="admin-title">{{item.name}}</view>
@@ -41,19 +41,23 @@
           </view>
           <view class="admin-row">
             <text class="admin-label">奖金</text>
-            <text>{{item.prizePool || '未填写'}}</text>
+            <text class="{{item.prizePool ? '' : 'field-missing'}}">{{item.prizePool || '未填写'}}</text>
           </view>
           <view class="admin-row">
             <text class="admin-label">赛道</text>
-            <text>{{item.tracksText || '未填写'}}</text>
+            <text class="{{item.tracksText ? '' : 'field-missing'}}">{{item.tracksText || '未填写'}}</text>
+          </view>
+          <view class="admin-row">
+            <text class="admin-label">主办方</text>
+            <text class="{{item.organizerName ? '' : 'field-missing'}}">{{item.organizerName || '未填写'}}</text>
           </view>
           <view class="admin-row">
             <text class="admin-label">链接</text>
-            <text>{{item.website}}</text>
+            <text class="{{item.website ? '' : 'field-missing'}}">{{item.website || '未填写'}}</text>
           </view>
           <view class="admin-actions">
-            <button class="small-btn small-btn--blue" data-id="{{item._id}}" bindtap="approveDraft">发布</button>
-            <button class="small-btn small-btn--white" data-id="{{item._id}}" data-type="draft" bindtap="openReject">拒绝</button>
+            <button class="small-btn small-btn--blue" data-id="{{item._id}}" catchtap="approveDraft">发布</button>
+            <button class="small-btn small-btn--white" data-id="{{item._id}}" data-type="draft" catchtap="openReject">拒绝</button>
           </view>
         </view>
       </view>
@@ -88,7 +92,7 @@
           <view class="box-title">暂无正式赛事</view>
           <view class="box-copy">审核发布后的赛事会出现在这里。</view>
         </view>
-        <view wx:for="{{hackathons}}" wx:key="_id" class="admin-card">
+        <view wx:for="{{hackathons}}" wx:key="_id" class="admin-card" bindtap="goDetail" data-id="{{item.id}}">
           <view class="admin-card-head">
             <view>
               <view class="admin-title">{{item.name}}</view>
@@ -102,14 +106,23 @@
           </view>
           <view class="admin-row">
             <text class="admin-label">奖金</text>
-            <text>{{item.prizePool || '未填写'}}</text>
+            <text class="{{item.prizePool ? '' : 'field-missing'}}">{{item.prizePool || '未填写'}}</text>
           </view>
           <view class="admin-row">
             <text class="admin-label">赛道</text>
-            <text>{{item.tracksText || '未填写'}}</text>
+            <text class="{{item.tracksText ? '' : 'field-missing'}}">{{item.tracksText || '未填写'}}</text>
+          </view>
+          <view class="admin-row">
+            <text class="admin-label">主办方</text>
+            <text class="{{item.organizerName ? '' : 'field-missing'}}">{{item.organizerName || '未填写'}}</text>
+          </view>
+          <view class="admin-row">
+            <text class="admin-label">链接</text>
+            <text class="{{item.website ? '' : 'field-missing'}}">{{item.website || '未填写'}}</text>
           </view>
           <view class="admin-actions">
-            <button class="small-btn {{item.isPublished === false ? 'small-btn--blue' : 'small-btn--danger'}}" data-index="{{index}}" bindtap="togglePublished">{{item.isPublished === false ? '上线' : '下线'}}</button>
+            <button class="small-btn {{item.isPublished === false ? 'small-btn--blue' : 'small-btn--danger'}}" data-index="{{index}}" catchtap="togglePublished">{{item.isPublished === false ? '上线' : '下线'}}</button>
+            <button class="small-btn small-btn--yellow" data-index="{{index}}" catchtap="notifyHackathon" loading="{{notifyingId === item.id}}" disabled="{{notifyingId !== '' || item.isPublished === false}}">通知</button>
           </view>
         </view>
       </view>

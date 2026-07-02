@@ -123,6 +123,10 @@
         />
         <button wx:if="{{query}}" class="search-clear" aria-label="清空搜索" bindtap="clearSearch">×</button>
       </view>
+      <view class="sort-chip" bindtap="openSortPicker">
+        <text>{{sortLabel}}</text>
+        <text class="sort-caret">▾</text>
+      </view>
     </view>
 
     <hackathon-card
@@ -131,6 +135,8 @@
       item="{{item}}"
       bookmarked="{{item.bookmarked}}"
       bind:bookmark="onBookmark"
+      bind:tapcard="goDetail"
+      bind:register="onRegister"
     />
 
     <!-- 搜索 / 筛选后无结果的空态（区别于 loading） -->
@@ -153,6 +159,18 @@
           bindtap="onCityPick"
         >{{item}}</view>
       </scroll-view>
+    </view>
+  </page-container>
+  <page-container show="{{sortPickerVisible}}" round bindbeforeleave="closeSortPicker" bindclickoverlay="closeSortPicker">
+    <view class="sort-picker">
+      <view class="sort-picker-title">排序方式</view>
+      <view
+        wx:for="{{sortOptions}}"
+        wx:key="key"
+        class="sort-picker-item {{sortKey === item.key ? 'on' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="onSortPick"
+      >{{item.label}}</view>
     </view>
   </page-container>
   <auth-modal id="authModal" />

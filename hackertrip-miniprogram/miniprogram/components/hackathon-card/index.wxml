@@ -1,19 +1,24 @@
-<view class="hcard">
+<view class="hcard" data-id="{{item.id}}" bindtap="onCardTap">
   <view class="hcard-top">
     <view class="hcard-title">{{item.name}}</view>
-    <button class="bookmark {{bookmarked ? 'active' : ''}}" catchtap="onBookmark" aria-label="收藏赛事">
-      <t-icon name="{{bookmarked ? 'star-filled' : 'star'}}" size="34rpx" color="{{bookmarked ? '#000000' : '#3D3D3D'}}" />
+    <button class="bookmark {{bookmarked ? 'active' : ''}}" catchtap="onBookmark" aria-label="订阅赛事">
+      <text>{{bookmarked ? '已订阅' : '订阅'}}</text>
+      <text class="bookmark-count">{{item.bookmarkCountText || '0'}}</text>
     </button>
   </view>
 
   <view class="hcard-info">
-    <view wx:if="{{item.startDate}}" class="info-row">
+    <view class="info-row">
       <text class="info-label">时间</text>
-      <text class="info-value">{{item.startDate}}{{item.endDate ? ' - ' + item.endDate : ''}}</text>
+      <text class="info-value">{{item.dateText || '待确认'}}</text>
     </view>
-    <view wx:if="{{item.location || item.city}}" class="info-row">
+    <view class="info-row">
+      <text class="info-label">城市</text>
+      <text class="info-value">{{item.cityText || item.city || '待确认'}}</text>
+    </view>
+    <view class="info-row">
       <text class="info-label">地点</text>
-      <text class="info-value">{{item.location || item.city}}</text>
+      <text class="info-value">{{item.locationText || item.location || '待确认'}}</text>
     </view>
     <view class="info-row">
       <text class="info-label">模式</text>
@@ -29,16 +34,23 @@
   </view>
 
   <view class="hcard-foot">
-    <text wx:if="{{item.prizePool}}" class="prize">奖金 {{item.prizePool}}</text>
+    <view class="metric-block metric-block--prize">
+      <text class="metric-label">奖金</text>
+      <text class="metric-value">{{item.prizeText || '待确认'}}</text>
+    </view>
+    <view class="metric-block metric-block--heat">
+      <text class="metric-label">热度</text>
+      <text class="metric-value">{{item.heatText || '0'}}</text>
+    </view>
     <text class="status-tag {{item.status}}">{{statusText[item.status] || item.status}}</text>
   </view>
 
   <view class="hcard-actions">
-    <navigator class="hcard-link" url="/pages/detail/detail?id={{item.id}}" hover-class="hcard-link--active">
+    <button class="hcard-link" catchtap="onCardTap" hover-class="hcard-link--active">
       查看详情
-    </navigator>
-    <navigator wx:if="{{item.canRegister}}" class="hcard-register" url="/pages/detail/detail?id={{item.id}}" hover-class="hcard-register--active">
-      报名入口
-    </navigator>
+    </button>
+    <button wx:if="{{item.canRegister}}" class="hcard-register" catchtap="onRegister" hover-class="hcard-register--active">
+      立即报名
+    </button>
   </view>
 </view>

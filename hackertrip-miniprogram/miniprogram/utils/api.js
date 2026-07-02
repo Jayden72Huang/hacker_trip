@@ -152,6 +152,21 @@ function setStorage(key, val) {
   try { wx.setStorageSync(key, val); } catch (e) {}
 }
 
+function mergeById(primary, secondary) {
+  const merged = [];
+  const seen = {};
+  (primary || []).concat(secondary || []).forEach((item) => {
+    if (!item || !item.id || seen[item.id]) return;
+    seen[item.id] = true;
+    merged.push(item);
+  });
+  return merged;
+}
+
+function mergeIds(primary, secondary) {
+  return Array.from(new Set((primary || []).concat(secondary || []).filter(Boolean)));
+}
+
 function hasUserSession() {
   return !!getAuth();
 }
@@ -272,6 +287,12 @@ async function getHackathonHeat(id) {
       console.warn('[api] getHackathonHeat 云端失败，降级本地', e);
     }
   }
+  return getLocalHackathonHeat(key);
+}
+
+function getLocalHackathonHeat(id) {
+  const key = String(id || '').trim();
+  if (!key) return { ok: false, message: '缺少赛事 id' };
   // 本地派生：稳定 hash → 拟真热度，叠加本人收藏/报名，使开发者工具可演示
   let hash = 0;
   for (let i = 0; i < key.length; i += 1) { hash = ((hash << 5) - hash) + key.charCodeAt(i); hash |= 0; }
@@ -404,7 +425,6 @@ function isBookmarked(id) {
   return getBookmarks().indexOf(id) !== -1;
 }
 async function toggleBookmark(id) {
-  if (!cloudReady()) throw new Error('需要连接云开发后才能同步收藏');
   const prev = getBookmarks();
   const list = prev.slice();
   const i = list.indexOf(id);
@@ -416,8 +436,7 @@ async function toggleBookmark(id) {
       const res = await callFn('toggleBookmark', { id, active });
       if (!res || !res.ok) throw new Error((res && res.message) || '收藏同步失败');
     } catch (e) {
-      setStorage(STORAGE.BOOKMARKS, prev);
-      throw e;
+      console.warn('[api] toggleBookmark 云端失败，保留本地订阅状态', e);
     }
   }
   return active; // true=已收藏
@@ -434,7 +453,6 @@ function getRegistrations() {
   return Array.isArray(v) ? v : [];
 }
 async function addRegistration(item) {
-  if (!cloudReady()) throw new Error('需要连接云开发后才能加入赛程');
   const prev = getRegistrations();
   const list = prev.slice();
   if (!list.find((x) => x.id === item.id)) {
@@ -445,15 +463,13 @@ async function addRegistration(item) {
         const res = await callFn('addRegistration', { item });
         if (!res || !res.ok) throw new Error((res && res.message) || '赛程同步失败');
       } catch (e) {
-        setStorage(STORAGE.REGISTRATIONS, prev);
-        throw e;
+        console.warn('[api] addRegistration 云端失败，保留本地赛程', e);
       }
     }
   }
   return list;
 }
 async function removeRegistration(id) {
-  if (!cloudReady()) throw new Error('需要连接云开发后才能取消赛程');
   const prev = getRegistrations();
   const list = prev.filter((item) => item.id !== id);
   if (list.length === prev.length) return list;
@@ -463,8 +479,7 @@ async function removeRegistration(id) {
       const res = await callFn('addRegistration', { action: 'remove', id });
       if (!res || !res.ok) throw new Error((res && res.message) || '取消赛程同步失败');
     } catch (e) {
-      setStorage(STORAGE.REGISTRATIONS, prev);
-      throw e;
+      console.warn('[api] removeRegistration 云端失败，保留本地移除状态', e);
     }
   }
   return list;
@@ -999,6 +1014,13 @@ async function createSyncPair() {
   }
 }
 
+async function createEventSubmitPair() {
+  if (!isOrganizerApproved()) {
+    return { ok: false, code: 'NOT_ORGANIZER', message: '需先通过组织者认证' };
+  }
+  return createSyncPair();
+}
+
 /**
  * 提交配对码，从云端拉取 CLI/网页端推送的 Skills 同步内容。
  * 上线产品不再把 mock 当成功；必须云端拉取成功才算同步完成。
@@ -1119,6 +1141,18 @@ async function requestMessageSubscriptions(types, source, preferences) {
   return { ok: true, records, acceptedTypes, rejectedTypes, raw: result };
 }
 
+async function sendHackathonNotifications(payload) {
+  if (!cloudReady()) {
+    return { ok: false, code: 'CLOUD_REQUIRED', message: '需要连接云开发后才能发送通知' };
+  }
+  try {
+    const res = await callFn('sendHackathonNotifications', payload || {});
+    return res || { ok: false, code: 'EMPTY_RESPONSE', message: '通知发送失败' };
+  } catch (e) {
+    return { ok: false, code: 'NOTIFICATION_SEND_FAILED', message: String(e) };
+  }
+}
+
 /* ----------------------------- 登录态 / 云同步 ----------------------------- */
 
 /** 是否已登录（globalData.auth 有 userInfo） */
@@ -1186,8 +1220,10 @@ async function syncFromCloud() {
   try {
     const res = await callFn('getProfile', {});
     if (res && res.ok) {
-      if (Array.isArray(res.bookmarkIds)) setStorage(STORAGE.BOOKMARKS, res.bookmarkIds);
-      if (Array.isArray(res.registrations)) setStorage(STORAGE.REGISTRATIONS, res.registrations);
+      if (Array.isArray(res.bookmarkIds)) setStorage(STORAGE.BOOKMARKS, mergeIds(res.bookmarkIds, getBookmarks()));
+      if (Array.isArray(res.registrations)) {
+        setStorage(STORAGE.REGISTRATIONS, mergeById(res.registrations, getRegistrations()));
+      }
       if (Array.isArray(res.cards)) setStorage(STORAGE.CARDS, res.cards);
       if (res.profile && typeof res.profile === 'object') {
         setStorage(STORAGE.PROFILE, Object.assign({}, getProfile(), res.profile));
@@ -1227,6 +1263,7 @@ module.exports = {
   getHackathons,
   getHackathonDetail,
   getHackathonHeat,
+  getLocalHackathonHeat,
   getRecommendedHackathons,
   getBookmarks,
   isBookmarked,
@@ -1264,10 +1301,12 @@ module.exports = {
   setAgentConfig,
   saveAgentConfig,
   createSyncPair,
+  createEventSubmitPair,
   pullSyncByCode,
   getSubscribeTemplates,
   getSubscriptionCache,
   requestMessageSubscriptions,
+  sendHackathonNotifications,
   aiChat,
   getGrowth,
   setGrowth,

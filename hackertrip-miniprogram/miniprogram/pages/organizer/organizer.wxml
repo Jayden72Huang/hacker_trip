@@ -13,34 +13,12 @@
       <view>
         <view class="box-title">当前状态</view>
         <view class="state-copy">{{statusText}}</view>
+        <view class="state-hint">{{statusHint}}</view>
       </view>
-      <button class="status-action {{status === 'approved' ? 'status-action--approved' : ''}}">{{statusActionText}}</button>
+      <button class="status-action {{status === 'approved' ? 'status-action--approved' : ''}}" bindtap="onStatusAction">{{statusActionText}}</button>
     </view>
 
-    <view class="brutal-box submit-pair-card">
-      <view class="box-title">生成提交配对码</view>
-      <view class="box-copy">在电脑端用 HackerTrip CLI 的 submit-event 命令，填入此配对码和凭证即可提交赛事。赛事提交后进入小程序后台人工审核。</view>
-      <button
-        class="native-btn submit-pair-btn"
-        bindtap="createSubmitPair"
-        loading="{{pairCreating}}"
-        disabled="{{pairCreating}}"
-      >{{pairCreating ? '生成中...' : '生成提交配对码'}}</button>
-
-      <view wx:if="{{pairCode}}" class="pair-result">
-        <view class="pair-code">{{pairCode}}</view>
-        <view class="pair-meta">有效期 {{pairExpireText || '30 分钟'}} · {{pairCountdown}}</view>
-        <view class="pair-token-label">上传凭证</view>
-        <view class="pair-token">{{pairUploadToken}}</view>
-        <view class="pair-actions">
-          <button class="native-btn pair-copy" bindtap="copyPairCode">复制配对码</button>
-          <button class="native-btn native-btn--yellow pair-copy" bindtap="copyPairToken">复制凭证</button>
-        </view>
-      </view>
-      <view wx:else class="pair-status">{{pairStatusText}}</view>
-    </view>
-
-    <view wx:if="{{status !== 'pending' && status !== 'approved'}}" class="brutal-box">
+    <view wx:if="{{status !== 'pending' && status !== 'approved'}}" id="organizer-form" class="brutal-box">
       <view class="box-title">申请信息</view>
       <view class="form-field">
         <view class="field-label">机构 / 团队名称</view>
@@ -68,11 +46,6 @@
         loading="{{submitting}}"
         disabled="{{submitting}}"
       >{{submitting ? '安全检测中' : '提交组织者申请'}}</button>
-    </view>
-
-    <view wx:else class="brutal-box">
-      <view class="box-title">{{status === 'approved' ? '认证已通过' : '申请审核中'}}</view>
-      <view class="box-copy">{{status === 'approved' ? '现在可以发布黑客松，提交后的赛事仍会进入内容审核。' : '我们会核对机构身份和活动真实性，审核通过后开放发布入口。'}}</view>
     </view>
 
     <view class="section-head">已提交赛事</view>

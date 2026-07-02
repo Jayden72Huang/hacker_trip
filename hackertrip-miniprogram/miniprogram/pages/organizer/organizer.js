@@ -9,6 +9,7 @@ Page({
     status: 'none',
     statusText: '未申请',
     statusActionText: '立即申请',
+    statusHint: '填写下方申请信息，提交后进入平台审核。',
     submitting: false,
     form: {
       orgName: '',
@@ -18,13 +19,6 @@ Page({
       note: '',
     },
     drafts: [],
-    pairCreating: false,
-    pairCode: '',
-    pairUploadToken: '',
-    pairExpireAt: '',
-    pairExpireText: '',
-    pairCountdown: '',
-    pairStatusText: '点击生成一次性配对码，电脑端提交赛事时填写。',
   },
 
   onShow() {
@@ -44,10 +38,6 @@ Page({
     this.refresh();
   },
 
-  onUnload() {
-    this.clearPairTimer();
-  },
-
   async refresh() {
     if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
     const app = api.getOrganizerApplication();
@@ -55,6 +45,7 @@ Page({
       status: app.status,
       statusText: this.getStatusText(app.status),
       statusActionText: this.getStatusActionText(app.status),
+      statusHint: this.getStatusHint(app.status),
       form: {
         orgName: app.orgName || '',
         role: app.role || '',
@@ -81,11 +72,21 @@ Page({
   getStatusActionText(status) {
     const map = {
       none: '立即申请',
-      pending: '待审核',
-      approved: '已通过',
+      pending: '查看进度',
+      approved: '发布赛事',
       rejected: '需修改',
     };
     return map[status] || '立即申请';
+  },
+
+  getStatusHint(status) {
+    const map = {
+      none: '填写下方申请信息，提交后进入平台审核。',
+      pending: '我们会核对机构身份和活动真实性，审核通过后开放赛事发布。',
+      approved: '认证已通过，现在可以发布黑客松；提交后的赛事仍会进入内容审核。',
+      rejected: '申请未通过，请根据反馈修改资料后重新提交。',
+    };
+    return map[status] || map.none;
   },
 
   getDraftStatusText(status) {
@@ -139,6 +140,28 @@ Page({
     this.refresh();
   },
 
+  onStatusAction() {
+    if (this.data.status === 'approved') {
+      this.goCreate();
+      return;
+    }
+    if (this.data.status === 'pending') {
+      wx.showModal({
+        title: '申请审核中',
+        content: this.data.statusHint,
+        showCancel: false,
+      });
+      return;
+    }
+    if (this.data.status === 'none' || this.data.status === 'rejected') {
+      wx.pageScrollTo({
+        selector: '#organizer-form',
+        duration: 240,
+        fail: () => wx.showToast({ title: '请填写下方申请信息', icon: 'none' }),
+      });
+    }
+  },
+
   goCreate() {
     if (!api.isOrganizerApproved()) {
       wx.showModal({
@@ -149,92 +172,5 @@ Page({
       return;
     }
     wx.navigateTo({ url: '/pages/hackathon-create/hackathon-create' });
-  },
-
-  clearPairTimer() {
-    if (this.pairTimer) {
-      clearInterval(this.pairTimer);
-      this.pairTimer = null;
-    }
-  },
-
-  formatExpireAt(expireAt) {
-    if (!expireAt) return '';
-    const date = new Date(expireAt);
-    if (Number.isNaN(date.getTime())) return String(expireAt);
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-  },
-
-  updatePairCountdown() {
-    const expireAt = this.data.pairExpireAt;
-    if (!expireAt) return;
-    const time = new Date(expireAt).getTime();
-    if (Number.isNaN(time)) {
-      this.setData({ pairCountdown: '30 分钟内有效' });
-      return;
-    }
-    const remaining = Math.max(0, time - Date.now());
-    const minutes = Math.floor(remaining / 60000);
-    const seconds = Math.floor((remaining % 60000) / 1000);
-    this.setData({
-      pairCountdown: remaining > 0 ? `${minutes}分${String(seconds).padStart(2, '0')}秒后过期` : '已过期，请重新生成',
-    });
-    if (remaining <= 0) this.clearPairTimer();
-  },
-
-  startPairTimer() {
-    this.clearPairTimer();
-    this.updatePairCountdown();
-    this.pairTimer = setInterval(() => this.updatePairCountdown(), 1000);
-  },
-
-  async createSubmitPair() {
-    if (this.data.pairCreating) return;
-    const auth = await api.requireAuth(this, '/pages/organizer/organizer', '登录后才能生成赛事提交配对码。');
-    if (!auth) return;
-    this.setData({ pairCreating: true, pairStatusText: '正在生成提交配对码...' });
-    const res = await api.createSyncPair();
-    this.setData({ pairCreating: false });
-    if (res && res.ok && res.code && res.uploadToken) {
-      this.setData({
-        pairCode: res.code,
-        pairUploadToken: res.uploadToken,
-        pairExpireAt: res.expireAt || '',
-        pairExpireText: this.formatExpireAt(res.expireAt),
-        pairStatusText: '已生成，30 分钟内一次性有效。',
-      }, () => this.startPairTimer());
-      wx.showToast({ title: '配对码已生成', icon: 'success' });
-      return;
-    }
-    const messageMap = {
-      NO_OPENID: '请先登录后再生成配对码',
-      CLOUD_REQUIRED: '需要连接云开发后才能生成配对码',
-    };
-    const message = messageMap[res && res.code] || (res && res.message) || '配对码生成失败，请稍后重试';
-    this.setData({ pairStatusText: message });
-    wx.showToast({ title: message, icon: 'none' });
-  },
-
-  copyPairCode() {
-    if (!this.data.pairCode) {
-      wx.showToast({ title: '请先生成配对码', icon: 'none' });
-      return;
-    }
-    wx.setClipboardData({
-      data: this.data.pairCode,
-      success: () => wx.showToast({ title: '配对码已复制', icon: 'success' }),
-    });
-  },
-
-  copyPairToken() {
-    if (!this.data.pairUploadToken) {
-      wx.showToast({ title: '请先生成凭证', icon: 'none' });
-      return;
-    }
-    wx.setClipboardData({
-      data: this.data.pairUploadToken,
-      success: () => wx.showToast({ title: '凭证已复制', icon: 'success' }),
-    });
   },
 });

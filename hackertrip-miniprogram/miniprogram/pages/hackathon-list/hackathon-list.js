@@ -1,5 +1,6 @@
 const api = require('../../utils/api.js');
 const { buildCityOptions, matchHackathonCity, matchHackathonQuery } = require('../../utils/hackathon-search.js');
+const { SORT_OPTIONS, decorateCardItem, sortCardItems, getSortLabel } = require('../../utils/hackathon-card-data.js');
 const share = require('../../utils/share.js');
 
 const FILTERS = [
@@ -31,6 +32,10 @@ Page({
     query: '',
     activeFilter: 'all',
     filters: FILTERS,
+    sortKey: 'heat',
+    sortLabel: '热度优先',
+    sortOptions: SORT_OPTIONS,
+    sortPickerVisible: false,
     hackathons: [],
     filteredCount: 0,
     scopeCount: 0,
@@ -80,6 +85,21 @@ Page({
   closeCityPicker() {
     this.setData({ cityPickerVisible: false });
   },
+  openSortPicker() {
+    this.setData({ sortPickerVisible: true });
+  },
+  closeSortPicker() {
+    this.setData({ sortPickerVisible: false });
+  },
+  onSortPick(e) {
+    const sortKey = e.currentTarget.dataset.key || 'heat';
+    this.setData({
+      sortKey,
+      sortLabel: getSortLabel(sortKey),
+      sortPickerVisible: false,
+    });
+    this.applyFilters();
+  },
   onCityPick(e) {
     const city = e.currentTarget.dataset.city || '全国';
     this.setData({ city, cityPickerVisible: false });
@@ -116,9 +136,7 @@ Page({
       return matchFilter(item, activeFilter) && matchHackathonQuery(item, query);
     });
 
-    const marked = hackathons.map((item) => Object.assign({}, item, {
-      bookmarked: api.isBookmarked(item.id),
-    }));
+    const marked = sortCardItems(hackathons.map(decorateCardItem), this.data.sortKey);
 
     this.setData({
       hackathons: marked,
@@ -128,20 +146,29 @@ Page({
   },
 
   async onBookmark(e) {
-    const auth = await api.requireAuth(this, '/pages/hackathon-list/hackathon-list', '登录后才能收藏赛事，并在你的账号中同步查看。');
+    const auth = await api.requireAuth(this, '/pages/hackathon-list/hackathon-list', '登录后才能订阅赛事，并在你的账号中同步查看。');
     if (!auth) return;
     const id = e.detail.id;
     if (!id) return;
-    try {
-      const active = await api.toggleBookmark(id);
-      const hackathons = this.data.hackathons.map((item) =>
-        item.id === id ? Object.assign({}, item, { bookmarked: active }) : item,
-      );
-      this.setData({ hackathons });
-      wx.showToast({ title: active ? '已收藏' : '已取消收藏', icon: 'none' });
-    } catch (err) {
-      wx.showToast({ title: '收藏同步失败，请重试', icon: 'none' });
+    const active = await api.toggleBookmark(id);
+    this.applyFilters();
+    wx.showToast({ title: active ? '已订阅' : '已取消订阅', icon: 'none' });
+  },
+
+  onRegister(e) {
+    const id = e.detail && e.detail.id;
+    const item = this.data.hackathons.find((entry) => entry.id === id) || {};
+    const url = e.detail.url || item.registerUrl || item.website || '';
+    if (!url) {
+      wx.showToast({ title: '暂无报名链接', icon: 'none' });
+      return;
     }
+    wx.setClipboardData({
+      data: url,
+      success: () => {
+        wx.showToast({ title: '已经复制报名链接,请到浏览器打开报名', icon: 'none' });
+      },
+    });
   },
 
   goDetail(e) {

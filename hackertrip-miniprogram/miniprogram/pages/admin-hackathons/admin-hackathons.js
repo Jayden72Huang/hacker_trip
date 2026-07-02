@@ -13,6 +13,7 @@ Page({
     rejectTargetId: '',
     rejectTargetType: '',
     rejectReason: '',
+    notifyingId: '',
   },
 
   onLoad() {
@@ -49,18 +50,32 @@ Page({
       pending_manual_review: '人工审核',
       security_review: '安全复核',
     };
+    let tracksList = [];
+    if (Array.isArray(item.tracks)) {
+      tracksList = item.tracks.map((t) => (t && typeof t === 'object' && t.title) ? t.title : String(t));
+    }
+    let organizerName = item.organizerName || '';
+    if (!organizerName && Array.isArray(item.organizers)) {
+      organizerName = item.organizers.map((o) => (o && typeof o === 'object' ? o.name : o) || '').filter(Boolean).join(' / ');
+    }
     return Object.assign({}, item, {
       statusText: statusMap[item.status] || item.status || '待审核',
-      tracksText: Array.isArray(item.tracks) ? item.tracks.join(' / ') : (item.tracks || ''),
+      tracksText: tracksList.join(' / ') || '',
+      organizerName: organizerName,
     });
   },
 
   decorateHackathon(item) {
     const modeMap = { offline: '线下', online: '线上', hybrid: '混合' };
+    let organizerName = item.organizerName || '';
+    if (!organizerName && Array.isArray(item.organizers)) {
+      organizerName = item.organizers.map((o) => (o && typeof o === 'object' ? o.name : o) || '').filter(Boolean).join(' / ');
+    }
     return Object.assign({}, item, {
       publishedText: item.isPublished === false ? '已下线' : '已上线',
       modeText: item.modeText || modeMap[item.mode] || item.mode || '未设置',
       tracksText: Array.isArray(item.tracks) ? item.tracks.join(' / ') : (item.tracks || ''),
+      organizerName: organizerName,
     });
   },
 
@@ -76,6 +91,12 @@ Page({
 
   switchTab(e) {
     this.setData({ activeTab: e.currentTarget.dataset.tab || 'drafts' });
+  },
+
+  goDetail(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id) return;
+    wx.navigateTo({ url: `/pages/detail/detail?id=${id}` });
   },
 
   approveDraft(e) {
@@ -156,6 +177,54 @@ Page({
           isPublished: next,
         }, next ? '已上线' : '已下线');
       },
+    });
+  },
+
+  notifyHackathon(e) {
+    const index = Number(e.currentTarget.dataset.index);
+    const item = this.data.hackathons[index];
+    if (!item || !item.id) return;
+    wx.showModal({
+      title: '发送赛事通知',
+      content: `确认给订阅过黑客松上新提醒的用户发送「${item.shortName || item.name}」通知？`,
+      confirmText: '发送',
+      success: async (res) => {
+        if (!res.confirm) return;
+        await this.runNotify(item);
+      },
+    });
+  },
+
+  async runNotify(item) {
+    const id = item.id || item._id || '';
+    this.setData({ notifyingId: id });
+    wx.showLoading({ title: '发送中' });
+    const res = await api.sendHackathonNotifications({
+      action: 'send',
+      type: api.SUBSCRIBE_TYPES.NEW_HACKATHON,
+      hackathonId: item.id,
+      hackathon: item,
+      title: item.shortName || item.name,
+      note: item.city ? `${item.city} · 查看详情` : '打开 HackerTrip 查看详情',
+    });
+    wx.hideLoading();
+    this.setData({ notifyingId: '' });
+    if (!res || !res.ok) {
+      const messageMap = {
+        TEMPLATE_NOT_CONFIGURED: '订阅消息模板 ID 还没有配置，暂时无法发送。',
+        FORBIDDEN: '当前账号没有发送订阅消息权限。',
+      };
+      wx.showModal({
+        title: '通知失败',
+        content: messageMap[res && res.code] || (res && res.message) || '请稍后重试',
+        showCancel: false,
+      });
+      return;
+    }
+    wx.showModal({
+      title: '通知完成',
+      content: `订阅用户 ${res.count || 0} 人，成功 ${res.sent || 0}，失败 ${res.failed || 0}。`,
+      showCancel: false,
     });
   },
 

@@ -108,7 +108,7 @@ async function verifySync(miniProgram) {
   const data = await page.data();
   assert(data.title === 'Skills 同步', 'sync page title should be Skills 同步');
   assert(data.syncEndpointReady === true, 'sync page should have pairSync HTTP endpoint configured');
-  assert(String(data.desktopCommand || '').includes('点击生成后显示桌面端命令'), 'sync page should wait for one-time command generation');
+  assert(String(data.desktopCommand || '').includes('生成同步码后显示 CLI 命令'), 'sync page should wait for one-time command generation');
   const authModal = await page.$('auth-modal');
   assert(authModal, 'sync page must mount auth modal');
   return { syncEndpointReady: data.syncEndpointReady, statusText: data.statusText };

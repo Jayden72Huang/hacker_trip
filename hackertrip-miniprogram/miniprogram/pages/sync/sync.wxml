@@ -42,7 +42,7 @@
     <view class="sync-step-card sync-step-card--yellow">
       <view class="step-badge">Step 3</view>
       <view class="step-title">拉取结果</view>
-      <view class="step-desc">电脑端提示推送完成后，回到这里点击按钮，结果会进入推荐、身份卡和 Agent 上下文。</view>
+      <view class="step-desc">电脑端提示推送完成后，回到这里点击按钮；同步后会更新推荐、身份卡和 Agent 上下文。</view>
       <input
         class="pair-input"
         value="{{code}}"

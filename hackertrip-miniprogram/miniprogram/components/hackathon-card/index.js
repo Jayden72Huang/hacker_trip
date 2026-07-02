@@ -11,8 +11,19 @@ Component({
     },
   },
   methods: {
+    onCardTap() {
+      this.triggerEvent('tapcard', { id: this.data.item.id });
+    },
     onBookmark() {
       this.triggerEvent('bookmark', { id: this.data.item.id });
+    },
+    onRegister() {
+      const item = this.data.item || {};
+      this.triggerEvent('register', {
+        id: item.id,
+        url: item.registerUrl || item.registrationUrl || item.website || '',
+        hosted: item.registrationType === 'platform' || item.hostedRegistration === true,
+      });
     },
   },
 });

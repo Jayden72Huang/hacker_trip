@@ -10,11 +10,15 @@ function joinText(list) {
 function buildDetail(raw) {
   const item = raw;
   if (!item) return null;
+  const logoUrl = item.logoUrl || item.logo || item.icon || '';
+  const coverUrl = item.coverUrl || item.cover || item.banner || logoUrl;
 
   return Object.assign({}, item, {
     dateText: `${item.startDate || '待确认'} - ${item.endDate || '待确认'}`,
     cityText: item.city || item.location || '待确认',
     locationText: item.location || item.city || '待确认',
+    logoUrl,
+    coverUrl,
     prizeText: item.prizePool || '待确认',
     tracksText: joinText(item.tracks),
     stackText: joinText(item.techStack),
@@ -125,15 +129,22 @@ Page({
     await api.syncUserDataIfLoggedIn().catch(() => {});
     const already = api.getRegistrations().some((r) => r.id === item.id);
     if (already) {
-      wx.showToast({ title: '已在你的赛程中', icon: 'none' });
+      this.showScheduleSuccess();
       return;
     }
-    try {
-      await api.addRegistration(item);
-      wx.showToast({ title: '已加入赛程', icon: 'success' });
-    } catch (e) {
-      wx.showToast({ title: '赛程同步失败，请重试', icon: 'none' });
-    }
+    await api.addRegistration(item);
+    this.showScheduleSuccess();
+  },
+
+  showScheduleSuccess() {
+    wx.showToast({
+      title: '赛程加入成功,可以到赛程页面查看赛事行程',
+      icon: 'none',
+      duration: 3000,
+    });
+    setTimeout(() => {
+      wx.switchTab({ url: '/pages/schedule/schedule' });
+    }, 3000);
   },
 
   async toggleBookmark() {

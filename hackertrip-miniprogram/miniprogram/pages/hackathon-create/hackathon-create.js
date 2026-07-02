@@ -8,6 +8,13 @@ Page({
     aiIntentText: 'hackathon.create',
     allowed: false,
     submitting: false,
+    pairCreating: false,
+    pairCode: '',
+    pairUploadToken: '',
+    pairExpireAt: '',
+    pairExpireText: '',
+    pairCountdown: '',
+    pairStatusText: '已通过组织者认证后，可生成一次性配对码供电脑端提交赛事。',
     form: {
       name: '',
       city: '',
@@ -31,6 +38,10 @@ Page({
     this.refreshAllowed();
   },
 
+  onUnload() {
+    this.clearPairTimer();
+  },
+
   async refreshAllowed() {
     if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
     this.setData({ allowed: api.isOrganizerApproved() });
@@ -48,6 +59,104 @@ Page({
 
   goApply() {
     wx.redirectTo({ url: '/pages/organizer/organizer' });
+  },
+
+  onAuthLogin() {
+    this.refreshAllowed();
+  },
+
+  clearPairTimer() {
+    if (this.pairTimer) {
+      clearInterval(this.pairTimer);
+      this.pairTimer = null;
+    }
+  },
+
+  formatExpireAt(expireAt) {
+    if (!expireAt) return '';
+    const date = new Date(expireAt);
+    if (Number.isNaN(date.getTime())) return String(expireAt);
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  },
+
+  updatePairCountdown() {
+    const expireAt = this.data.pairExpireAt;
+    if (!expireAt) return;
+    const time = new Date(expireAt).getTime();
+    if (Number.isNaN(time)) {
+      this.setData({ pairCountdown: '30 分钟内有效' });
+      return;
+    }
+    const remaining = Math.max(0, time - Date.now());
+    const minutes = Math.floor(remaining / 60000);
+    const seconds = Math.floor((remaining % 60000) / 1000);
+    this.setData({
+      pairCountdown: remaining > 0 ? `${minutes}分${String(seconds).padStart(2, '0')}秒后过期` : '已过期，请重新生成',
+    });
+    if (remaining <= 0) this.clearPairTimer();
+  },
+
+  startPairTimer() {
+    this.clearPairTimer();
+    this.updatePairCountdown();
+    this.pairTimer = setInterval(() => this.updatePairCountdown(), 1000);
+  },
+
+  async createSubmitPair() {
+    if (this.data.pairCreating) return;
+    const auth = await api.requireAuth(this, '/pages/hackathon-create/hackathon-create', '登录后才能生成赛事提交配对码。');
+    if (!auth) return;
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
+    if (!api.isOrganizerApproved()) {
+      this.setData({ allowed: false });
+      wx.showToast({ title: '需先通过组织者认证', icon: 'none' });
+      return;
+    }
+    this.setData({ pairCreating: true, pairStatusText: '正在生成提交配对码...' });
+    const res = await api.createEventSubmitPair();
+    this.setData({ pairCreating: false });
+    if (res && res.ok && res.code && res.uploadToken) {
+      this.setData({
+        pairCode: res.code,
+        pairUploadToken: res.uploadToken,
+        pairExpireAt: res.expireAt || '',
+        pairExpireText: this.formatExpireAt(res.expireAt),
+        pairStatusText: '已生成，30 分钟内一次性有效。',
+      }, () => this.startPairTimer());
+      wx.showToast({ title: '配对码已生成', icon: 'success' });
+      return;
+    }
+    const messageMap = {
+      NOT_ORGANIZER: '需先通过组织者认证',
+      NO_OPENID: '请先登录后再生成配对码',
+      CLOUD_REQUIRED: '需要连接云开发后才能生成配对码',
+    };
+    const message = messageMap[res && res.code] || (res && res.message) || '配对码生成失败，请稍后重试';
+    this.setData({ pairStatusText: message });
+    wx.showToast({ title: message, icon: 'none' });
+  },
+
+  copyPairCode() {
+    if (!this.data.pairCode) {
+      wx.showToast({ title: '请先生成配对码', icon: 'none' });
+      return;
+    }
+    wx.setClipboardData({
+      data: this.data.pairCode,
+      success: () => wx.showToast({ title: '配对码已复制', icon: 'success' }),
+    });
+  },
+
+  copyPairToken() {
+    if (!this.data.pairUploadToken) {
+      wx.showToast({ title: '请先生成凭证', icon: 'none' });
+      return;
+    }
+    wx.setClipboardData({
+      data: this.data.pairUploadToken,
+      success: () => wx.showToast({ title: '凭证已复制', icon: 'success' }),
+    });
   },
 
   async submitHackathon() {

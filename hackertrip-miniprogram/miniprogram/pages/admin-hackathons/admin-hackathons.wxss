@@ -119,8 +119,13 @@
 }
 
 .admin-label {
-  flex: 0 0 70rpx;
+  flex: 0 0 92rpx;
   color: #6C6C66;
+}
+
+.field-missing {
+  color: #E53935;
+  font-weight: 600;
 }
 
 .admin-actions {
@@ -160,6 +165,12 @@
 .small-btn--danger {
   color: #FFFFFF;
   background: #FF4D2E;
+}
+
+.small-btn[disabled] {
+  color: #6C6C66;
+  background: #ECE8DB;
+  opacity: 1;
 }
 
 .modal-mask {

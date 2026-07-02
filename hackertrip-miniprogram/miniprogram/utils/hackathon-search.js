@@ -1,3 +1,5 @@
+const { extractCities, normalizeCity } = require('./city.js');
+
 function normalizeText(value) {
   return String(value || '')
     .trim()
@@ -35,17 +37,11 @@ function matchHackathonQuery(item, query) {
 }
 
 function getCityTokens(value) {
-  return String(value || '')
-    .split(/[\/／,，、|｜;；\s]+/)
-    .map((item) => item.trim())
-    .filter((item) => item && item !== '中国');
+  return extractCities(value);
 }
 
 function getHackathonCities(item) {
-  const cities = []
-    .concat(getCityTokens(item.city))
-    .concat(getCityTokens(item.location));
-  return Array.from(new Set(cities));
+  return getCityTokens(item.city || normalizeCity(item.city, item.location));
 }
 
 function buildCityOptions(list) {
@@ -68,6 +64,7 @@ module.exports = {
   getSearchTokens,
   matchHackathonQuery,
   getHackathonCities,
+  normalizeCity,
   buildCityOptions,
   matchHackathonCity,
 };
