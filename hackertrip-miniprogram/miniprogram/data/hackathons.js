@@ -385,5 +385,44 @@ module.exports = [
     "registrationDeadline": null,
     "isPast": true,
     "id": "ht-09"
+  },
+  {
+    "name": "Horizon Startup 黑客松 2026 北京站",
+    "shortName": "Horizon北京",
+    "startDate": "2026-07-24",
+    "endDate": "2026-07-26",
+    "city": "北京",
+    "country": "中国",
+    "mode": "offline",
+    "theme": "面向青年创变者的84小时极限创造挑战",
+    "tracks": [
+      "Horizon Canvas",
+      "Founder House",
+      "Studio Critique",
+      "Vibe Coding"
+    ],
+    "techStack": [
+      "AI",
+      "Vibe Coding",
+      "创业孵化",
+      "产品设计"
+    ],
+    "tags": [
+      "AI",
+      "创业",
+      "创新",
+      "青年",
+      "孵化",
+      "Vibe Coding",
+      "产品",
+      "免费"
+    ],
+    "prizePool": "20万+创业孵化基金",
+    "website": "https://www.horizon-startup.com",
+    "summary": "Horizon Startup 2026北京站，50-70位青年创变者齐聚中关村软件园，84小时极限创造真实产品与商业闭环。免费参加、免费住宿餐饮。",
+    "location": "北京, 中国",
+    "registrationDeadline": null,
+    "isPast": false,
+    "id": "ht-10"
   }
 ];
