@@ -48,20 +48,47 @@ function defaultPage(event) {
   return '/pages/index/index';
 }
 
+// time 类型字段必须是合法时间格式，非法值(如"待定")会被微信判 47003，兜底为今天日期
+function safeTime(value) {
+  const s = cleanText(value, 20);
+  if (/\d{4}[-/年]\s?\d{1,2}/.test(s)) return s;
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+// 字段名/类型必须与微信后台模板逐一对应，否则发送 47003。三个模板字段：
+//   new_hackathon(新活动提醒 OGH7):       thing1 活动名称 / time2 开始时间 / time4 活动时间 / thing3 温馨提示
+//   smart_recommendation(订阅资讯更新 QlPV): thing1 资讯名称 / time2 发布时间 / thing4 项目名称 / thing3 温馨提示
+//   deadline_reminder(活动动态通知 7eqO):   thing1 活动名称 / thing5 活动机构 / time3 截止时间 / phrase2 活动进度 / thing4 温馨提示
 function defaultData(type, event) {
   const hackathon = event && event.hackathon && typeof event.hackathon === 'object' ? event.hackathon : {};
   const title = cleanText(event.title || hackathon.shortName || hackathon.name || 'HackerTrip 黑客松', 20);
   const note = cleanText(event.note || hackathon.summary || '打开 HackerTrip 查看详情', 20);
+  const start = safeTime(event.startTime || hackathon.startDate);
+
   if (type === 'deadline_reminder') {
     return {
       thing1: { value: title },
-      time2: { value: cleanText(event.deadline || hackathon.registrationDeadline || hackathon.startDate || '待确认', 20) },
+      thing5: { value: cleanText(event.organizer || hackathon.organizerName || hackathon.organizer || 'HackerTrip', 20) },
+      time3: { value: safeTime(event.deadline || hackathon.registrationDeadline || hackathon.startDate) },
+      phrase2: { value: cleanText(event.progress || '报名中', 5) },
+      thing4: { value: note },
+    };
+  }
+  if (type === 'smart_recommendation') {
+    return {
+      thing1: { value: title },
+      time2: { value: safeTime(event.publishTime || hackathon.startDate) },
+      thing4: { value: cleanText(event.project || hackathon.name || title, 20) },
       thing3: { value: note },
     };
   }
+  // 默认 new_hackathon
   return {
     thing1: { value: title },
-    thing2: { value: cleanText(hackathon.location || hackathon.city || event.location || '待确认', 20) },
+    time2: { value: start },
+    time4: { value: safeTime(event.eventTime || hackathon.startDate) },
     thing3: { value: note },
   };
 }
