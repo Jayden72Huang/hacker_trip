@@ -71,6 +71,12 @@
       <view class="box-copy">把赛事名称、日期、城市、赛道和技术栈带入 Haki，让它按你的项目方向判断适配度。</view>
       <button class="native-btn detail-ai-btn" bindtap="askAI">问AI是否适合</button>
     </view>
+
+    <view class="brutal-box">
+      <view class="box-title">现场签到与组队</view>
+      <view class="box-copy">到场后生成本场活动身份，开启成员发现和 AI 破冰匹配。</view>
+      <button class="native-btn detail-ai-btn" bindtap="goCheckin">进入现场签到</button>
+    </view>
   </view>
 
   <view wx:elif="{{notFound}}" class="focus-content">

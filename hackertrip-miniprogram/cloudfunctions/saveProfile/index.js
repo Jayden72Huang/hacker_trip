@@ -16,6 +16,12 @@ function makePublicId(openid) {
 
 function buildSecurityText(profile) {
   const skills = Array.isArray(profile.skills) ? profile.skills.join(' ') : '';
+  const projects = Array.isArray(profile.projects) ? profile.projects.map((item) => item && (item.name || item.summary || item.role)).join(' ') : '';
+  const experiences = Array.isArray(profile.experiences) ? profile.experiences.map((item) => item && (item.title || item.summary)).join(' ') : '';
+  const awards = Array.isArray(profile.awards) ? profile.awards.map((item) => item && (item.title || item.eventName)).join(' ') : '';
+  const teamPreference = profile.teamPreference && typeof profile.teamPreference === 'object'
+    ? [profile.teamPreference.projectIdea, profile.teamPreference.availability, (profile.teamPreference.lookingFor || []).join(' ')].join(' ')
+    : '';
   return [
     profile.nickname,
     profile.role,
@@ -23,6 +29,10 @@ function buildSecurityText(profile) {
     profile.bio,
     profile.github,
     skills,
+    projects,
+    experiences,
+    awards,
+    teamPreference,
   ]
     .filter(Boolean)
     .join('\n')
@@ -78,6 +88,11 @@ exports.main = async (event) => {
     github: profile.github || '',
     avatarUrl: profile.avatarUrl || '',
     skills: Array.isArray(profile.skills) ? profile.skills.slice(0, 20) : [],
+    projects: Array.isArray(profile.projects) ? profile.projects.slice(0, 20) : [],
+    experiences: Array.isArray(profile.experiences) ? profile.experiences.slice(0, 20) : [],
+    hackathonHistory: Array.isArray(profile.hackathonHistory) ? profile.hackathonHistory.slice(0, 30) : [],
+    awards: Array.isArray(profile.awards) ? profile.awards.slice(0, 30) : [],
+    teamPreference: profile.teamPreference && typeof profile.teamPreference === 'object' ? profile.teamPreference : {},
     updatedAt: now,
   };
 

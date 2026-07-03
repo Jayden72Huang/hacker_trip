@@ -1,0 +1,51 @@
+@import "../focus.wxss";
+
+.achievements-title {
+  color: #FFFFFF;
+}
+
+.achievements-sub {
+  margin-top: 16rpx;
+  color: #FFFFFF;
+  font-size: 26rpx;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.achievement-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+
+.achievement-title {
+  color: #000000;
+  font-size: 32rpx;
+  font-weight: 900;
+}
+
+.verified-badge {
+  flex: none;
+  padding: 8rpx 14rpx;
+  color: #FFFFFF;
+  background: #0C51ED;
+  border: 3rpx solid #000000;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 900;
+}
+
+.achievement-event {
+  margin-top: 18rpx;
+  color: #000000;
+  font-size: 27rpx;
+  font-weight: 800;
+}
+
+.achievement-meta {
+  margin-top: 8rpx;
+  color: #6F6A5F;
+  font-size: 24rpx;
+  font-weight: 800;
+}

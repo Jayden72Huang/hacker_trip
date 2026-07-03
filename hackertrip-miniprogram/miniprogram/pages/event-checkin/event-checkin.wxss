@@ -1,0 +1,86 @@
+@import "../focus.wxss";
+
+.checkin-kicker {
+  display: inline-flex;
+  padding: 8rpx 18rpx;
+  color: #000000;
+  background: #FBD902;
+  border: 3rpx solid #000000;
+  border-radius: 999rpx;
+  box-shadow: 4rpx 4rpx 0 0 #000000;
+  font-size: 22rpx;
+  font-weight: 900;
+}
+
+.checkin-title {
+  margin-top: 24rpx;
+  color: #FFFFFF;
+}
+
+.checkin-sub {
+  margin-top: 16rpx;
+  color: #FFFFFF;
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+.field {
+  margin-top: 24rpx;
+}
+
+.field-label {
+  font-size: 24rpx;
+  font-weight: 900;
+  color: #000000;
+}
+
+.field-input,
+.field-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 12rpx;
+  padding: 20rpx;
+  color: #000000;
+  background: #FFFFFF;
+  border: 3rpx solid #000000;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.field-textarea {
+  min-height: 132rpx;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24rpx;
+  margin-top: 28rpx;
+  padding: 22rpx;
+  background: #F4F1E8;
+  border: 3rpx solid #000000;
+  border-radius: 14rpx;
+}
+
+.switch-title {
+  font-size: 26rpx;
+  font-weight: 900;
+  color: #000000;
+}
+
+.switch-sub {
+  margin-top: 6rpx;
+  color: #6F6A5F;
+  font-size: 22rpx;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18rpx;
+  margin: 24rpx 0 60rpx;
+}

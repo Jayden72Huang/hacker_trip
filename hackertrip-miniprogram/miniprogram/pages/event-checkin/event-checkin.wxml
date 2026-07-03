@@ -1,0 +1,74 @@
+<view class="focus-page checkin-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view wx:if="{{aiBanner}}" class="ai-note">
+      <text>来自微信AI助手</text>
+      <text>{{aiIntentText}}</text>
+    </view>
+
+    <view wx:if="{{eventId}}" class="brutal-box blue-box">
+      <view class="checkin-kicker">{{checkedIn ? '已完成签到' : '现场签到'}}</view>
+      <view class="focus-title checkin-title">{{event.name || '活动现场'}}</view>
+      <view class="checkin-sub">{{event.city || '地点待确认'}} · {{event.startDate || '时间待确认'}}</view>
+    </view>
+
+    <view wx:else class="brutal-box">
+      <view class="box-title">缺少活动入口</view>
+      <view class="box-copy">请从赛事详情、现场二维码或 NFC 入口进入签到页。</view>
+    </view>
+
+    <view wx:if="{{eventId}}" class="brutal-box">
+      <view class="box-title">活动身份</view>
+      <view class="box-copy">这份信息只用于本场黑客松的签到、破冰和组队推荐。</view>
+
+      <view class="field">
+        <view class="field-label">展示名称</view>
+        <input class="field-input" value="{{form.displayName}}" data-field="displayName" bindinput="onInput" placeholder="你的昵称" />
+      </view>
+      <view class="field">
+        <view class="field-label">现场角色</view>
+        <input class="field-input" value="{{form.role}}" data-field="role" bindinput="onInput" placeholder="前端 / AI Builder / 设计 / Mentor" />
+      </view>
+      <view class="field">
+        <view class="field-label">城市</view>
+        <input class="field-input" value="{{form.city}}" data-field="city" bindinput="onInput" placeholder="上海 / 北京 / 深圳" />
+      </view>
+      <view class="field">
+        <view class="field-label">技能</view>
+        <textarea class="field-textarea" value="{{form.skillsText}}" data-field="skillsText" bindinput="onInput" placeholder="React, Agent, 设计, 后端" />
+      </view>
+      <view class="field">
+        <view class="field-label">想做什么</view>
+        <textarea class="field-textarea" value="{{form.projectIdea}}" data-field="projectIdea" bindinput="onInput" placeholder="一句话描述你这场想做的项目方向" />
+      </view>
+      <view class="field">
+        <view class="field-label">想找谁</view>
+        <input class="field-input" value="{{form.lookingForText}}" data-field="lookingForText" bindinput="onInput" placeholder="后端, 设计, 商务, 硬件" />
+      </view>
+      <view class="field">
+        <view class="field-label">可投入时间</view>
+        <input class="field-input" value="{{form.availability}}" data-field="availability" bindinput="onInput" placeholder="全程 / 周六白天 / 线上支持" />
+      </view>
+      <view class="field">
+        <view class="field-label">联系方式提示</view>
+        <input class="field-input" value="{{form.contactHint}}" data-field="contactHint" bindinput="onInput" placeholder="现场找我 / 先小程序破冰" />
+      </view>
+      <view class="switch-row">
+        <view>
+          <view class="switch-title">允许被活动成员发现</view>
+          <view class="switch-sub">开启后，别人可以看到你的活动身份并生成 AI 破冰报告。</view>
+        </view>
+        <switch checked="{{form.openToMeet}}" bindchange="onOpenToMeetChange" />
+      </view>
+    </view>
+
+    <view wx:if="{{eventId}}" class="action-grid">
+      <button class="native-btn" bindtap="checkin" loading="{{saving}}">{{checkedIn ? '更新签到身份' : '完成签到'}}</button>
+      <button class="native-link" bindtap="saveProfile" loading="{{saving}}">只保存身份</button>
+      <button class="native-link native-link--yellow" bindtap="goMembers">看看现场成员</button>
+      <button class="native-link native-link--yellow" bindtap="goTeamBuilder">组队助手</button>
+      <button class="native-link" bindtap="goDetail">返回赛事详情</button>
+    </view>
+  </view>
+  <auth-modal id="authModal" />
+</view>

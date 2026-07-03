@@ -1,0 +1,33 @@
+<view class="focus-page handshake-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view wx:if="{{error}}" class="brutal-box">
+      <view class="box-title">生成失败</view>
+      <view class="box-copy">{{error}}</view>
+    </view>
+
+    <block wx:elif="{{report}}">
+      <view class="brutal-box blue-box">
+        <view class="handshake-score">{{report.score}}%</view>
+        <view class="focus-title handshake-title">适合认识</view>
+        <view class="handshake-sub">{{report.summary}}</view>
+      </view>
+
+      <view class="brutal-box">
+        <view class="box-title">共同点</view>
+        <view wx:for="{{report.common}}" wx:key="*this" class="report-line">{{item}}</view>
+      </view>
+
+      <view class="brutal-box yellow-box">
+        <view class="box-title">互补点</view>
+        <view wx:for="{{report.complement}}" wx:key="*this" class="report-line">{{item}}</view>
+      </view>
+
+      <view class="brutal-box">
+        <view class="box-title">可以这样聊</view>
+        <view wx:for="{{report.topics}}" wx:key="*this" class="topic-line">{{item}}</view>
+        <button class="native-btn opener-btn" bindtap="copyOpener">复制破冰开场白</button>
+      </view>
+    </block>
+  </view>
+</view>

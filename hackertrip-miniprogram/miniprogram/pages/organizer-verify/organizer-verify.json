@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "navbar": "/components/navbar/index",
+    "auth-modal": "/components/auth-modal/index"
+  }
+}

@@ -1,0 +1,23 @@
+<view class="focus-page achievements-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view class="brutal-box blue-box">
+      <view class="focus-title achievements-title">主办方验证的黑客松履历</view>
+      <view class="achievements-sub">参赛、入围、获奖、嘉宾和导师身份都应该由主办方确认后展示。</view>
+    </view>
+
+    <view wx:if="{{!achievements.length && !loading}}" class="brutal-box">
+      <view class="box-title">暂无已验证记录</view>
+      <view class="box-copy">参加支持 HackerTrip 的黑客松后，主办方可以把参赛和获奖结果同步到这里。</view>
+    </view>
+
+    <view wx:for="{{achievements}}" wx:key="id" class="achievement-card brutal-box">
+      <view class="achievement-head">
+        <view class="achievement-title">{{item.title}}</view>
+        <view class="verified-badge">已验证</view>
+      </view>
+      <view class="achievement-event">{{item.eventName || item.eventId}}</view>
+      <view class="achievement-meta">{{item.level || 'achievement'}} · {{item.verifiedByName || 'HackerTrip 主办方'}}</view>
+    </view>
+  </view>
+</view>

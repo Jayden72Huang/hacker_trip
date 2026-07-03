@@ -19,6 +19,13 @@
     "pages/my-works/my-works",
     "pages/agent/agent",
     "pages/public-site/public-site",
+    "pages/event-checkin/event-checkin",
+    "pages/event-members/event-members",
+    "pages/handshake/handshake",
+    "pages/achievements/achievements",
+    "pages/form-assistant/form-assistant",
+    "pages/organizer-verify/organizer-verify",
+    "pages/team-builder/team-builder",
     "pages/settings/settings",
     "pages/login/login",
     "pages/share/share"

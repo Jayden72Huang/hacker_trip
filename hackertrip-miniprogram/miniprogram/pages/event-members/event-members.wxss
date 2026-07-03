@@ -1,0 +1,64 @@
+@import "../focus.wxss";
+
+.members-title {
+  color: #FFFFFF;
+}
+
+.members-sub {
+  margin-top: 16rpx;
+  color: #FFFFFF;
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+.members-empty-btn,
+.member-action {
+  margin-top: 22rpx;
+}
+
+.member-head {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.member-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 78rpx;
+  height: 78rpx;
+  color: #FFFFFF;
+  background: #0C51ED;
+  border: 3rpx solid #000000;
+  border-radius: 50%;
+  box-shadow: 4rpx 4rpx 0 0 #000000;
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.member-name {
+  font-size: 32rpx;
+  font-weight: 900;
+  color: #000000;
+}
+
+.member-meta,
+.member-need {
+  margin-top: 8rpx;
+  color: #6F6A5F;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.member-idea {
+  margin-top: 20rpx;
+  color: #000000;
+  font-size: 26rpx;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.member-chips {
+  margin-top: 18rpx;
+}

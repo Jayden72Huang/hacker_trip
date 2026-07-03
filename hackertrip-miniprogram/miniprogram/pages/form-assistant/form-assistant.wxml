@@ -1,0 +1,34 @@
+<view class="focus-page form-assistant-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view class="brutal-box blue-box">
+      <view class="focus-title form-title">把报名表交给 Haki 先整理</view>
+      <view class="form-sub">粘贴报名表问题或说明，HackerTrip 会从你的资料库生成草稿，并标出需要人工补充的地方。</view>
+    </view>
+
+    <view class="brutal-box">
+      <view class="box-title">报名表内容</view>
+      <textarea class="form-textarea" value="{{formText}}" bindinput="onInput" placeholder="粘贴报名表字段、主观题或赛事说明。也可以先空着，直接用资料库生成通用报名草稿。" />
+      <button class="native-btn generate-btn" bindtap="generate">生成报名草稿</button>
+    </view>
+
+    <block wx:if="{{result}}">
+      <view class="brutal-box yellow-box">
+        <view class="box-title">Agent 建议</view>
+        <view wx:for="{{result.advice}}" wx:key="*this" class="advice-line">{{item}}</view>
+        <button class="native-link profile-btn" bindtap="goProfile">补充资料库</button>
+      </view>
+
+      <view class="brutal-box">
+        <view class="result-head">
+          <view class="box-title">可复制草稿</view>
+          <button class="copy-btn" bindtap="copyAll">复制全部</button>
+        </view>
+        <view wx:for="{{result.sections}}" wx:key="title" class="draft-section">
+          <view class="draft-title">{{item.title}}</view>
+          <view class="draft-content">{{item.content}}</view>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

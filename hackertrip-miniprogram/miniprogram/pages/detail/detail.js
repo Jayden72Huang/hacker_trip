@@ -172,6 +172,12 @@ Page({
     });
   },
 
+  goCheckin() {
+    const item = this.data.item || {};
+    if (!item.id) return;
+    wx.navigateTo({ url: `/pages/event-checkin/event-checkin?id=${item.id}` });
+  },
+
   // 复制官网报名链接到剪贴板（替代 web-view 加载外部域名，规避业务域名校验）
   copyOfficialUrl() {
     const item = this.data.item;

@@ -12,8 +12,15 @@ Page({
       nickname: '',
       role: '',
       city: '',
+      bio: '',
       skills: '', // 表单内用逗号分隔字符串，档案里是数组
       github: '',
+      projectIdea: '',
+      lookingFor: '',
+      availability: '',
+      projectsText: '',
+      experiencesText: '',
+      awardsText: '',
     },
     saving: false,
   },
@@ -32,8 +39,15 @@ Page({
         nickname: profile.nickname,
         role: profile.role,
         city: profile.city,
+        bio: profile.bio,
         skills: (profile.skills || []).join(', '),
         github: profile.github,
+        projectIdea: (profile.teamPreference && profile.teamPreference.projectIdea) || '',
+        lookingFor: ((profile.teamPreference && profile.teamPreference.lookingFor) || []).join(', '),
+        availability: (profile.teamPreference && profile.teamPreference.availability) || '',
+        projectsText: (profile.projects || []).map((item) => item.name || item.summary || '').filter(Boolean).join('\n'),
+        experiencesText: (profile.experiences || []).map((item) => item.title || item.summary || '').filter(Boolean).join('\n'),
+        awardsText: (profile.awards || []).map((item) => item.title || item.eventName || '').filter(Boolean).join('\n'),
       },
     });
   },
@@ -68,23 +82,59 @@ Page({
     this.setData({ [`form.${field}`]: e.detail.value });
   },
 
+  splitList(text) {
+    return String(text || '')
+      .split(/[,\n，、\/]/)
+      .map((s) => s.trim())
+      .filter((s) => s);
+  },
+
+  splitLines(text, key) {
+    return String(text || '')
+      .split(/\n/)
+      .map((s) => s.trim())
+      .filter((s) => s)
+      .slice(0, 20)
+      .map((value) => ({ [key]: value }));
+  },
+
   async saveProfile() {
     if (this.data.saving) return;
     const auth = await api.requireAuth(this, '/pages/identity-edit/identity-edit', '登录后才能把身份资料同步到当前微信账号。');
     if (!auth) return;
-    const { nickname, role, city, github, skills } = this.data.form;
-    const skillList = (skills || '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter((s) => s);
+    const {
+      nickname,
+      role,
+      city,
+      bio,
+      github,
+      skills,
+      projectIdea,
+      lookingFor,
+      availability,
+      projectsText,
+      experiencesText,
+      awardsText,
+    } = this.data.form;
+    const skillList = this.splitList(skills);
     this.setData({ saving: true });
     const payload = {
       nickname,
       role,
       city,
+      bio,
       github,
       avatarUrl: this.data.avatarUrl,
       skills: skillList,
+      projects: this.splitLines(projectsText, 'name'),
+      experiences: this.splitLines(experiencesText, 'title'),
+      awards: this.splitLines(awardsText, 'title'),
+      teamPreference: {
+        projectIdea,
+        lookingFor: this.splitList(lookingFor),
+        availability,
+        openToMeet: true,
+      },
     };
 
     try {

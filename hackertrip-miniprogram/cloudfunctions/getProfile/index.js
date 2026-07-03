@@ -50,6 +50,11 @@ exports.main = async () => {
         avatarUrl: user.avatarUrl || '',
         skills: Array.isArray(user.skills) ? user.skills : [],
         publicId: user.publicId || '',
+        projects: Array.isArray(user.projects) ? user.projects : [],
+        experiences: Array.isArray(user.experiences) ? user.experiences : [],
+        hackathonHistory: Array.isArray(user.hackathonHistory) ? user.hackathonHistory : [],
+        awards: Array.isArray(user.awards) ? user.awards : [],
+        teamPreference: user.teamPreference && typeof user.teamPreference === 'object' ? user.teamPreference : {},
       } : null,
       agentConfig: user && user.agentConfig && typeof user.agentConfig === 'object'
         ? user.agentConfig

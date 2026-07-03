@@ -1,0 +1,85 @@
+@import "../focus.wxss";
+
+.team-title {
+  color: #FFFFFF;
+}
+
+.team-sub {
+  margin-top: 16rpx;
+  color: #FFFFFF;
+  font-size: 26rpx;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.team-textarea,
+.team-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 18rpx;
+  padding: 22rpx;
+  color: #000000;
+  background: #FFFFFF;
+  border: 4rpx solid #000000;
+  border-radius: 16rpx;
+  font-size: 27rpx;
+  font-weight: 800;
+}
+
+.team-textarea {
+  min-height: 180rpx;
+  line-height: 1.5;
+}
+
+.field-label {
+  margin-top: 24rpx;
+  color: #000000;
+  font-size: 24rpx;
+  font-weight: 900;
+}
+
+.team-action {
+  margin-top: 24rpx;
+}
+
+.advice-line {
+  margin-top: 16rpx;
+  color: #000000;
+  font-size: 26rpx;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.team-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+
+.team-name {
+  color: #000000;
+  font-size: 32rpx;
+  font-weight: 900;
+}
+
+.team-meta,
+.team-reason,
+.team-idea {
+  margin-top: 12rpx;
+  color: #5F5A50;
+  font-size: 25rpx;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.team-score {
+  flex: none;
+  padding: 10rpx 16rpx;
+  color: #000000;
+  background: #FBD902;
+  border: 3rpx solid #000000;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  font-weight: 900;
+}

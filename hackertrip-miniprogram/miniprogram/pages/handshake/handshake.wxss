@@ -1,0 +1,46 @@
+@import "../focus.wxss";
+
+.handshake-score {
+  display: inline-flex;
+  padding: 10rpx 20rpx;
+  color: #000000;
+  background: #FBD902;
+  border: 3rpx solid #000000;
+  border-radius: 999rpx;
+  box-shadow: 4rpx 4rpx 0 0 #000000;
+  font-size: 42rpx;
+  font-weight: 900;
+}
+
+.handshake-title {
+  margin-top: 24rpx;
+  color: #FFFFFF;
+}
+
+.handshake-sub {
+  margin-top: 16rpx;
+  color: #FFFFFF;
+  font-size: 26rpx;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.report-line,
+.topic-line {
+  margin-top: 18rpx;
+  color: #000000;
+  font-size: 27rpx;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.topic-line {
+  padding: 18rpx;
+  background: #F4F1E8;
+  border: 3rpx solid #000000;
+  border-radius: 12rpx;
+}
+
+.opener-btn {
+  margin-top: 24rpx;
+}

@@ -1,0 +1,31 @@
+<view class="focus-page members-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view class="brutal-box blue-box">
+      <view class="focus-title members-title">{{event.name || '活动现场'}}</view>
+      <view class="members-sub">开放认识的选手与嘉宾</view>
+    </view>
+
+    <view wx:if="{{!members.length && !loading}}" class="brutal-box">
+      <view class="box-title">还没有可发现成员</view>
+      <view class="box-copy">先完成签到并开启“允许被活动成员发现”，现场成员就能互相生成 AI 破冰报告。</view>
+      <button class="native-btn members-empty-btn" bindtap="goCheckin">去完善活动身份</button>
+    </view>
+
+    <view wx:for="{{members}}" wx:key="uid" class="member-card brutal-box">
+      <view class="member-head">
+        <view class="member-avatar">{{item.avatarChar}}</view>
+        <view class="member-main">
+          <view class="member-name">{{item.displayName || 'HackerTrip 用户'}}</view>
+          <view class="member-meta">{{item.role || '参赛者'}}{{item.city ? ' · ' + item.city : ''}}</view>
+        </view>
+      </view>
+      <view wx:if="{{item.projectIdea}}" class="member-idea">{{item.projectIdea}}</view>
+      <view class="chip-row member-chips">
+        <text wx:for="{{item.skills}}" wx:key="*this" class="focus-chip">{{item}}</text>
+      </view>
+      <view wx:if="{{item.lookingForText}}" class="member-need">正在找：{{item.lookingForText}}</view>
+      <button class="native-btn member-action" data-uid="{{item.uid}}" bindtap="openHandshake">生成 AI 破冰</button>
+    </view>
+  </view>
+</view>

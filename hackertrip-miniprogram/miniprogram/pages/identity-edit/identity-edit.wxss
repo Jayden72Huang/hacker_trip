@@ -65,6 +65,17 @@
   font-weight: 900;
 }
 
+.form-section-title {
+  margin: 34rpx 0 18rpx;
+  color: #000000;
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.vault-textarea {
+  min-height: 156rpx;
+}
+
 .save-profile {
   margin-top: 10rpx;
 }

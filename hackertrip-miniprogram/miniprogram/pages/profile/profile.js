@@ -27,8 +27,11 @@ Page({
     tools: [
       { title: '我的身份卡', sub: '生成参赛身份卡，分享找队友', url: '/pages/identity/identity' },
       { title: '卡册 · 成就解锁', sub: '集齐限定卡面，邀请好友解锁稀有卡', url: '/pages/cardbook/cardbook' },
+      { title: '报名助手', sub: '复用资料库生成报名草稿和缺失项', url: '/pages/form-assistant/form-assistant' },
+      { title: '组队助手', sub: '按活动目标寻找技能/角色互补队友', url: '/pages/team-builder/team-builder' },
       { title: '项目作品集', sub: '整理作品，用于报名和分享', url: '/pages/portfolio/portfolio' },
       { title: '我的作品', sub: '发布、下架或删除 CLI 提交的作品', url: '/pages/my-works/my-works' },
+      { title: '可信履历', sub: '展示主办方验证过的参赛与获奖记录', url: '/pages/achievements/achievements' },
       { title: 'Agent 技能库', sub: '管理 Haki 可读取的项目能力', url: '/pages/agent/agent' },
       { title: 'Skills 同步', sub: '从 GitHub/本地项目同步技术栈', url: '/pages/sync/sync' },
     ],
@@ -161,6 +164,7 @@ Page({
       return [
         { title: '发布黑客松', sub: '创建赛事信息，提交后进入审核', url: '/pages/hackathon-create/hackathon-create', action: 'open' },
         { title: '赛事管理', sub: '查看已提交赛事和审核状态', url: '/pages/organizer/organizer', action: 'open' },
+        { title: '验证选手履历', sub: '给参赛、入围和获奖结果加主办方验证', url: '/pages/organizer-verify/organizer-verify', action: 'open' },
       ];
     }
     if (status === 'pending') {

@@ -24,6 +24,10 @@ const STORAGE = {
   HACKATHON_DRAFTS: 'ht_hackathon_drafts', // 组织者提交的赛事草稿
   GROWTH: 'ht_growth', // 裂变成长态：暗号 / 招募值 / 被邀请 / 已解锁卡面
   SUBSCRIPTIONS: 'ht_message_subscriptions', // 微信订阅消息授权记录
+  EVENT_CHECKINS: 'ht_event_checkins', // 活动签到缓存
+  EVENT_PROFILES: 'ht_event_profiles', // 活动内身份缓存
+  EVENT_MEMBERS: 'ht_event_members', // 活动成员缓存
+  ACHIEVEMENTS: 'ht_achievements', // 主办方验证履历缓存
 };
 
 const SUBSCRIBE_TYPES = {
@@ -64,6 +68,16 @@ const DEFAULT_PROFILE = {
   github: '',
   avatarUrl: '',
   publicId: '',
+  projects: [],
+  experiences: [],
+  hackathonHistory: [],
+  awards: [],
+  teamPreference: {
+    lookingFor: [],
+    projectIdea: '',
+    availability: '',
+    openToMeet: true,
+  },
 };
 
 function getPortfolioProjects() {
@@ -135,6 +149,10 @@ function clearUserSession() {
     STORAGE.PROFILE,
     STORAGE.GROWTH,
     STORAGE.SUBSCRIPTIONS,
+    STORAGE.EVENT_CHECKINS,
+    STORAGE.EVENT_PROFILES,
+    STORAGE.EVENT_MEMBERS,
+    STORAGE.ACHIEVEMENTS,
   ].forEach((key) => {
     try { wx.removeStorageSync(key); } catch (e) {}
   });
@@ -644,12 +662,392 @@ async function updateReviewWork(action, workId) {
 /** 由真实收藏/报名/卡片数量派生用户资产统计，供个人中心/公开主页/分享复用 */
 function getUserStats() {
   const profile = getProfile();
+  const verified = getLocalAchievements().filter((item) => item && item.verified).length;
   return {
     hackathons: getRegistrations().length,
     bookmarks: getBookmarks().length,
     projects: getPortfolioProjects().length,
     skills: Array.isArray(profile.skills) ? profile.skills.length : 0,
+    verifiedAchievements: verified,
   };
+}
+
+/* ----------------------------- 活动身份 / 签到 ----------------------------- */
+
+function cleanString(value, maxLength) {
+  return String(value == null ? '' : value).trim().slice(0, maxLength || 500);
+}
+
+function cleanStringList(value, maxItems, maxLength) {
+  let list = [];
+  if (Array.isArray(value)) list = value;
+  else if (typeof value === 'string') list = value.split(/[,\n，、\/]/);
+  return list
+    .map((item) => cleanString(item, maxLength || 40))
+    .filter((item) => item)
+    .slice(0, maxItems || 12);
+}
+
+function getEventCheckins() {
+  if (!hasUserSession()) return [];
+  const v = getStorage(STORAGE.EVENT_CHECKINS, []);
+  return Array.isArray(v) ? v : [];
+}
+
+function setEventCheckins(list) {
+  setStorage(STORAGE.EVENT_CHECKINS, Array.isArray(list) ? list : []);
+}
+
+function getLocalEventProfiles() {
+  if (!hasUserSession()) return [];
+  const v = getStorage(STORAGE.EVENT_PROFILES, []);
+  return Array.isArray(v) ? v : [];
+}
+
+function setLocalEventProfiles(list) {
+  setStorage(STORAGE.EVENT_PROFILES, Array.isArray(list) ? list : []);
+}
+
+function getLocalAchievements() {
+  if (!hasUserSession()) return [];
+  const v = getStorage(STORAGE.ACHIEVEMENTS, []);
+  return Array.isArray(v) ? v : [];
+}
+
+function setLocalAchievements(list) {
+  setStorage(STORAGE.ACHIEVEMENTS, Array.isArray(list) ? list : []);
+}
+
+function normalizeEventProfile(profilePatch) {
+  const profile = getProfile();
+  const pref = profile.teamPreference && typeof profile.teamPreference === 'object' ? profile.teamPreference : {};
+  const patch = profilePatch && typeof profilePatch === 'object' ? profilePatch : {};
+  return {
+    displayName: cleanString(patch.displayName || profile.nickname, 40),
+    role: cleanString(patch.role || profile.role || '参赛者', 40),
+    city: cleanString(patch.city || profile.city, 40),
+    skills: cleanStringList(patch.skills && patch.skills.length ? patch.skills : profile.skills, 16, 40),
+    projectIdea: cleanString(patch.projectIdea || pref.projectIdea, 240),
+    lookingFor: cleanStringList(patch.lookingFor && patch.lookingFor.length ? patch.lookingFor : pref.lookingFor, 8, 40),
+    availability: cleanString(patch.availability || pref.availability, 80),
+    openToMeet: patch.openToMeet === false ? false : pref.openToMeet !== false,
+    contactHint: cleanString(patch.contactHint, 80),
+  };
+}
+
+function upsertByEventId(list, eventId, patch) {
+  const source = Array.isArray(list) ? list.slice() : [];
+  const idx = source.findIndex((item) => item && item.eventId === eventId);
+  const next = Object.assign({}, idx >= 0 ? source[idx] : {}, patch || {}, { eventId });
+  if (idx >= 0) source[idx] = next;
+  else source.unshift(next);
+  return { list: source, item: next };
+}
+
+async function getEventSummary(eventId) {
+  const item = await getHackathonDetail(eventId).catch(() => null);
+  return item ? {
+    id: item.id || eventId,
+    name: item.name || '未命名黑客松',
+    city: item.city || item.location || '',
+    startDate: item.startDate || '',
+    endDate: item.endDate || '',
+    modeText: item.modeText || item.mode || '',
+  } : { id: eventId, name: '活动现场', city: '', startDate: '', endDate: '', modeText: '' };
+}
+
+async function eventHub(action, payload) {
+  if (!cloudReady()) {
+    return { ok: false, code: 'CLOUD_REQUIRED', message: '需要连接云开发后才能同步活动数据' };
+  }
+  try {
+    return await callFn('eventHub', Object.assign({ action }, payload || {}));
+  } catch (e) {
+    return { ok: false, code: 'EVENT_HUB_FAILED', message: String(e) };
+  }
+}
+
+async function getEventProfile(eventId) {
+  const id = cleanString(eventId, 120);
+  if (!id) return { ok: false, code: 'NO_EVENT', message: '缺少活动 ID' };
+  if (cloudReady()) {
+    const res = await eventHub('getEventProfile', { eventId: id });
+    if (res && res.ok) {
+      if (res.eventProfile) {
+        const profiles = upsertByEventId(getLocalEventProfiles(), id, res.eventProfile);
+        setLocalEventProfiles(profiles.list);
+      }
+      if (Array.isArray(res.achievements)) setLocalAchievements(res.achievements);
+      return res;
+    }
+  }
+  const event = await getEventSummary(id);
+  const checkin = getEventCheckins().find((item) => item.eventId === id) || null;
+  const eventProfile = getLocalEventProfiles().find((item) => item.eventId === id) || null;
+  return {
+    ok: true,
+    local: true,
+    event,
+    checkedIn: !!checkin,
+    checkin,
+    eventProfile,
+    achievements: getLocalAchievements(),
+  };
+}
+
+async function checkinEvent(eventId, profilePatch) {
+  const id = cleanString(eventId, 120);
+  if (!id) return { ok: false, code: 'NO_EVENT', message: '缺少活动 ID' };
+  const eventProfile = normalizeEventProfile(profilePatch);
+  if (cloudReady()) {
+    const res = await eventHub('checkin', { eventId: id, profile: eventProfile });
+    if (res && res.ok) {
+      const checkins = upsertByEventId(getEventCheckins(), id, res.checkin || { eventId: id, checkedInAt: Date.now() });
+      setEventCheckins(checkins.list);
+      if (res.eventProfile) {
+        const profiles = upsertByEventId(getLocalEventProfiles(), id, res.eventProfile);
+        setLocalEventProfiles(profiles.list);
+      }
+      return res;
+    }
+    return res;
+  }
+  const event = await getEventSummary(id);
+  const now = Date.now();
+  const checkins = upsertByEventId(getEventCheckins(), id, { checkedInAt: now, updatedAt: now });
+  setEventCheckins(checkins.list);
+  const profiles = upsertByEventId(getLocalEventProfiles(), id, Object.assign({}, eventProfile, {
+    uid: getProfile().publicId || 'local-user',
+    eventId: id,
+    checkedInAt: now,
+    updatedAt: now,
+  }));
+  setLocalEventProfiles(profiles.list);
+  return { ok: true, local: true, event, checkin: checkins.item, eventProfile: profiles.item };
+}
+
+async function saveEventProfile(eventId, profilePatch) {
+  const id = cleanString(eventId, 120);
+  if (!id) return { ok: false, code: 'NO_EVENT', message: '缺少活动 ID' };
+  const eventProfile = normalizeEventProfile(profilePatch);
+  if (cloudReady()) {
+    const res = await eventHub('saveEventProfile', { eventId: id, profile: eventProfile });
+    if (res && res.ok && res.eventProfile) {
+      const profiles = upsertByEventId(getLocalEventProfiles(), id, res.eventProfile);
+      setLocalEventProfiles(profiles.list);
+    }
+    return res;
+  }
+  const profiles = upsertByEventId(getLocalEventProfiles(), id, Object.assign({}, eventProfile, {
+    uid: getProfile().publicId || 'local-user',
+    updatedAt: Date.now(),
+  }));
+  setLocalEventProfiles(profiles.list);
+  return { ok: true, local: true, eventProfile: profiles.item };
+}
+
+async function listEventMembers(eventId) {
+  const id = cleanString(eventId, 120);
+  if (!id) return { ok: false, code: 'NO_EVENT', message: '缺少活动 ID', members: [] };
+  if (cloudReady()) {
+    const res = await eventHub('listEventMembers', { eventId: id });
+    if (res && res.ok) {
+      setStorage(STORAGE.EVENT_MEMBERS, res.members || []);
+      return res;
+    }
+  }
+  const members = getStorage(STORAGE.EVENT_MEMBERS, []);
+  return { ok: true, local: true, event: await getEventSummary(id), members: Array.isArray(members) ? members.filter((item) => item.eventId === id) : [] };
+}
+
+function localHandshakeReport(me, target) {
+  const same = cleanStringList(me.skills, 20, 40).filter((skill) => cleanStringList(target.skills, 20, 40).map((x) => x.toLowerCase()).indexOf(skill.toLowerCase()) !== -1);
+  const targetUnique = cleanStringList(target.skills, 20, 40).filter((skill) => cleanStringList(me.skills, 20, 40).map((x) => x.toLowerCase()).indexOf(skill.toLowerCase()) === -1);
+  const score = Math.min(96, 58 + same.length * 8 + targetUnique.length * 5);
+  return {
+    score,
+    summary: `${score}% 适合认识。先聊共同技术，再看项目目标和角色互补。`,
+    common: same.length ? [`你们都提到了 ${same.slice(0, 4).join('、')}，适合从技术选择聊起。`] : ['公开资料重叠不多，适合用项目目标快速破冰。'],
+    complement: targetUnique.length ? [`对方有 ${targetUnique.slice(0, 4).join('、')}，可以补齐你的能力半径。`] : ['你们能力结构接近，适合一起推进原型或互相 review。'],
+    topics: [target.projectIdea ? `你这个「${target.projectIdea}」现在最缺哪块？` : '这场比赛你最想验证哪个想法？'],
+    opener: `嗨，我是 ${me.displayName || 'HackerTrip 用户'}。HackerTrip 说我们有 ${score}% 的合作契合度，想听听你这次最想做的方向。`,
+  };
+}
+
+async function createHandshake(eventId, targetUid) {
+  const id = cleanString(eventId, 120);
+  const uid = cleanString(targetUid, 80);
+  if (!id || !uid) return { ok: false, code: 'BAD_REQUEST', message: '缺少活动或目标用户' };
+  if (cloudReady()) return eventHub('createHandshake', { eventId: id, targetUid: uid });
+  const me = getLocalEventProfiles().find((item) => item.eventId === id) || normalizeEventProfile({});
+  const target = (getStorage(STORAGE.EVENT_MEMBERS, []) || []).find((item) => item.uid === uid) || null;
+  if (!target) return { ok: false, code: 'NO_TARGET', message: '本地暂无目标成员数据' };
+  return { ok: true, local: true, me, target, report: localHandshakeReport(me, target) };
+}
+
+function scoreMemberForTeam(member, goal, missingRoles, mySkills) {
+  const text = [
+    member.displayName,
+    member.role,
+    member.projectIdea,
+    member.availability,
+    ...(member.skills || []),
+    ...(member.lookingFor || []),
+  ].join(' ').toLowerCase();
+  const goalTokens = cleanStringList(goal, 12, 40);
+  const roleTokens = cleanStringList(missingRoles, 8, 40);
+  const mySkillTokens = cleanStringList(mySkills, 20, 40).map((item) => item.toLowerCase());
+  const hits = [];
+  let score = 46;
+
+  roleTokens.forEach((token) => {
+    if (text.indexOf(token.toLowerCase()) !== -1) {
+      score += 16;
+      hits.push(`匹配缺口「${token}」`);
+    }
+  });
+  goalTokens.forEach((token) => {
+    if (text.indexOf(token.toLowerCase()) !== -1) {
+      score += 8;
+      hits.push(`方向相关「${token}」`);
+    }
+  });
+  const uniqueSkills = cleanStringList(member.skills, 20, 40)
+    .filter((skill) => mySkillTokens.indexOf(skill.toLowerCase()) === -1)
+    .slice(0, 4);
+  if (uniqueSkills.length) {
+    score += Math.min(20, uniqueSkills.length * 5);
+    hits.push(`补充 ${uniqueSkills.join('、')}`);
+  }
+  if (member.availability) {
+    score += 4;
+    hits.push(`已填写投入时间`);
+  }
+
+  return Object.assign({}, member, {
+    teamScore: Math.min(96, score),
+    teamReasons: hits.slice(0, 4),
+    teamReasonText: hits.length ? hits.slice(0, 4).join('；') : '资料较少，建议先用 AI 破冰确认目标和时间。',
+  });
+}
+
+async function recommendTeamMembers(eventId, goal, missingRoles) {
+  const membersRes = await listEventMembers(eventId);
+  const members = membersRes && Array.isArray(membersRes.members) ? membersRes.members : [];
+  const profile = getProfile();
+  const pref = profile.teamPreference || {};
+  const projectGoal = cleanString(goal || pref.projectIdea, 240);
+  const roles = cleanStringList(missingRoles && cleanStringList(missingRoles).length ? missingRoles : pref.lookingFor, 8, 40);
+  const scored = members
+    .map((member) => scoreMemberForTeam(member, projectGoal, roles, profile.skills || []))
+    .sort((a, b) => b.teamScore - a.teamScore)
+    .slice(0, 8);
+  const advice = [];
+  if (!projectGoal) advice.push('先把项目目标写成一句话，推荐会更准。');
+  if (!roles.length) advice.push('请明确缺少的角色，例如后端、设计、硬件、路演或增长。');
+  if (!members.length) advice.push('当前活动还没有开放发现的成员，先邀请大家完成签到和活动身份。');
+  if (scored.length) advice.push('优先联系分数高且理由具体的人，再用 AI 破冰确认时间和目标。');
+  if (!advice.length) advice.push('推荐结果可用，建议先聊项目目标、角色边界和可投入时间。');
+  return { ok: true, event: membersRes.event || null, goal: projectGoal, missingRoles: roles, members: scored, advice };
+}
+
+async function listAchievements(uid) {
+  if (cloudReady()) {
+    const res = await eventHub('listAchievements', uid ? { uid } : {});
+    if (res && res.ok && Array.isArray(res.achievements)) {
+      if (!uid) setLocalAchievements(res.achievements);
+      return res;
+    }
+  }
+  return { ok: true, local: true, achievements: getLocalAchievements() };
+}
+
+async function verifyAchievement(payload) {
+  if (!cloudReady()) {
+    return { ok: false, code: 'CLOUD_REQUIRED', message: '需要连接云开发后才能验证履历' };
+  }
+  const res = await eventHub('verifyAchievement', payload || {});
+  return res || { ok: false, code: 'EMPTY_RESPONSE', message: '验证失败' };
+}
+
+function textFromNamedList(list, key) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .map((item) => {
+      if (typeof item === 'string') return item;
+      if (item && typeof item === 'object') return item[key] || item.name || item.title || item.summary || '';
+      return '';
+    })
+    .map((item) => cleanString(item, 200))
+    .filter((item) => item);
+}
+
+function generateRegistrationDraft(formText) {
+  const profile = getProfile();
+  const pref = profile.teamPreference && typeof profile.teamPreference === 'object' ? profile.teamPreference : {};
+  const skills = cleanStringList(profile.skills, 20, 40);
+  const projects = textFromNamedList(profile.projects, 'name');
+  const experiences = textFromNamedList(profile.experiences, 'title');
+  const awards = textFromNamedList(profile.awards, 'title');
+  const verified = getLocalAchievements().filter((item) => item && item.verified);
+  const missing = [];
+
+  if (!profile.nickname) missing.push('昵称/姓名');
+  if (!profile.role) missing.push('当前角色');
+  if (!profile.bio) missing.push('个人简介');
+  if (!skills.length) missing.push('技能栈');
+  if (!projects.length) missing.push('项目经历');
+  if (!experiences.length) missing.push('过往经历');
+  if (!pref.projectIdea) missing.push('本次参赛方向');
+
+  const sections = [
+    {
+      title: '基础介绍',
+      content: [
+        profile.nickname ? `我是 ${profile.nickname}` : '我是（请补充姓名/昵称）',
+        profile.role ? `，当前身份是 ${profile.role}` : '',
+        profile.city ? `，常驻 ${profile.city}` : '',
+        profile.bio ? `。${profile.bio}` : '。这里建议补充 1-2 句和本赛事相关的背景。',
+      ].join(''),
+    },
+    {
+      title: '技能栈',
+      content: skills.length ? skills.join('、') : '请补充你能实际交付的技术、设计、产品或增长能力。',
+    },
+    {
+      title: '项目经历',
+      content: projects.length ? projects.map((item, index) => `${index + 1}. ${item}`).join('\n') : '请补充 1-3 个最能证明交付能力的项目。',
+    },
+    {
+      title: '过往经历',
+      content: experiences.length ? experiences.map((item, index) => `${index + 1}. ${item}`).join('\n') : '请补充参赛、实习、产品、开源、社区或创业经历。',
+    },
+    {
+      title: '获奖/可信记录',
+      content: verified.length
+        ? verified.map((item, index) => `${index + 1}. ${item.eventName || item.eventId} - ${item.title}（主办方已验证）`).join('\n')
+        : (awards.length ? awards.map((item, index) => `${index + 1}. ${item}（自填，建议后续找主办方验证）`).join('\n') : '暂无记录。获奖经历建议只写可核验内容。'),
+    },
+    {
+      title: '本次参赛方向',
+      content: pref.projectIdea || '请结合本次赛事主题，写一个具体、可在 24-48 小时内做出 Demo 的方向。',
+    },
+    {
+      title: '组队需求',
+      content: cleanStringList(pref.lookingFor, 8, 40).length
+        ? `希望寻找：${cleanStringList(pref.lookingFor, 8, 40).join('、')}。${pref.availability ? `可投入时间：${pref.availability}。` : ''}`
+        : '请补充你缺少的角色，例如后端、设计、硬件、商业化、路演。',
+    },
+  ];
+
+  const source = cleanString(formText, 2000);
+  const advice = [];
+  if (source) advice.push('已根据你粘贴的报名表内容生成通用草稿；主观题需要结合赛事主题再人工改写。');
+  if (missing.length) advice.push(`资料库缺少：${missing.join('、')}。建议先补齐后再提交报名。`);
+  if (!verified.length && awards.length) advice.push('当前获奖记录是自填数据，展示可信履历时应使用主办方验证记录。');
+  if (!advice.length) advice.push('资料库较完整，可以直接复制草稿后针对赛事主题微调。');
+
+  return { ok: true, sections, missing, advice };
 }
 
 /* ----------------------------- 组织者 ----------------------------- */
@@ -1280,6 +1678,16 @@ module.exports = {
   saveProfileWithSync,
   getProfileQr,
   getPublicProfile,
+  getEventCheckins,
+  getEventProfile,
+  checkinEvent,
+  saveEventProfile,
+  listEventMembers,
+  createHandshake,
+  recommendTeamMembers,
+  listAchievements,
+  verifyAchievement,
+  generateRegistrationDraft,
   listReviewWorks,
   updateReviewWork,
   getUserStats,

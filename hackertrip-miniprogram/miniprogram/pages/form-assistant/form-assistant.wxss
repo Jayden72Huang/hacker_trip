@@ -1,0 +1,83 @@
+@import "../focus.wxss";
+
+.form-title {
+  color: #FFFFFF;
+}
+
+.form-sub {
+  margin-top: 16rpx;
+  color: #FFFFFF;
+  font-size: 26rpx;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 260rpx;
+  box-sizing: border-box;
+  margin-top: 18rpx;
+  padding: 22rpx;
+  color: #000000;
+  background: #FFFFFF;
+  border: 4rpx solid #000000;
+  border-radius: 16rpx;
+  font-size: 27rpx;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.generate-btn,
+.profile-btn {
+  margin-top: 24rpx;
+}
+
+.advice-line {
+  margin-top: 16rpx;
+  color: #000000;
+  font-size: 26rpx;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+
+.copy-btn {
+  flex: none;
+  min-width: 140rpx;
+  height: 64rpx;
+  color: #FFFFFF;
+  background: #000000;
+  border: 3rpx solid #000000;
+  border-radius: 14rpx;
+  font-size: 24rpx;
+  font-weight: 900;
+}
+
+.draft-section {
+  margin-top: 24rpx;
+  padding: 20rpx;
+  background: #F4F1E8;
+  border: 3rpx solid #000000;
+  border-radius: 14rpx;
+}
+
+.draft-title {
+  color: #000000;
+  font-size: 26rpx;
+  font-weight: 900;
+}
+
+.draft-content {
+  margin-top: 12rpx;
+  color: #242424;
+  font-size: 25rpx;
+  font-weight: 750;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}

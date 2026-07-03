@@ -1,0 +1,46 @@
+<view class="focus-page team-builder-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view class="brutal-box blue-box">
+      <view class="focus-title team-title">让 Haki 先帮你筛队友</view>
+      <view class="team-sub">输入目标和缺口，系统会从本场开放认识的成员里找技能/角色互补的人。</view>
+    </view>
+
+    <view class="brutal-box">
+      <view class="box-title">组队目标</view>
+      <view class="field-label">赛事 ID</view>
+      <input class="team-input" value="{{eventId}}" data-field="eventId" bindinput="onInput" placeholder="从赛事详情或现场签到入口自动带入，也可手动填写" />
+      <view class="field-label">项目目标</view>
+      <textarea class="team-textarea" value="{{goal}}" data-field="goal" bindinput="onInput" placeholder="例如：想做 AI Agent 工具，帮助创作者自动整理选题。" />
+      <view class="field-label">缺少角色</view>
+      <input class="team-input" value="{{missingRolesText}}" data-field="missingRolesText" bindinput="onInput" placeholder="后端, 设计, 硬件, 路演" />
+      <button class="native-btn team-action" bindtap="generate" loading="{{loading}}">推荐队友</button>
+    </view>
+
+    <block wx:if="{{result}}">
+      <view class="brutal-box yellow-box">
+        <view class="box-title">新手组队建议</view>
+        <view wx:for="{{result.advice}}" wx:key="*this" class="advice-line">{{item}}</view>
+      </view>
+
+      <view wx:if="{{!result.members.length}}" class="brutal-box">
+        <view class="box-title">暂无候选人</view>
+        <view class="box-copy">先完成签到并让现场成员开启“允许被发现”，推荐会自动出现。</view>
+        <button class="native-btn team-action" bindtap="goCheckin">去活动身份页</button>
+      </view>
+
+      <view wx:for="{{result.members}}" wx:key="uid" class="team-card brutal-box">
+        <view class="team-card-head">
+          <view>
+            <view class="team-name">{{item.displayName || 'HackerTrip 用户'}}</view>
+            <view class="team-meta">{{item.role || '参赛者'}}{{item.city ? ' · ' + item.city : ''}}</view>
+          </view>
+          <view class="team-score">{{item.teamScore}}%</view>
+        </view>
+        <view class="team-reason">{{item.teamReasonText}}</view>
+        <view wx:if="{{item.projectIdea}}" class="team-idea">{{item.projectIdea}}</view>
+        <button class="native-btn team-action" data-uid="{{item.uid}}" bindtap="openHandshake">生成破冰话术</button>
+      </view>
+    </block>
+  </view>
+</view>
