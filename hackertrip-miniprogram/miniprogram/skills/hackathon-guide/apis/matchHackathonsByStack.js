@@ -1,6 +1,6 @@
 // 原子接口：matchHackathonsByStack —— HackerTrip 核心差异化能力
 // 调用同名云函数，按技术栈匹配赛事并返回带 fitReason 的 ranked 卡片。
-const { toCard, matchedCardsToText, withCloud } = require('../lib/shared.js');
+const { toCard, matchedCardsToText, detailApiCalls, withCloud } = require('../lib/shared.js');
 
 async function matchHackathonsByStack({ techStack, city, onlyUpcoming = true, limit = 6 } = {}) {
   if (!techStack || (Array.isArray(techStack) && techStack.length === 0)) {
@@ -23,10 +23,17 @@ async function matchHackathonsByStack({ techStack, city, onlyUpcoming = true, li
       matchedTags: item.matchedTags,
       fitReason: item.fitReason,
     }));
+    const apiCalls = detailApiCalls(cards);
     return {
       isError: false,
+      apiCalls,
       content: [{ type: 'text', text: matchedCardsToText(cards, techStack) }],
-      structuredContent: { list: cards, total: cards.length },
+      structuredContent: {
+        list: cards,
+        total: cards.length,
+        apiCalls,
+        relayHint: '用户要报名、加入赛程、订阅、分享或打开受限 wx API 能力时，请接力到卡片 actions 的小程序详情页完成。',
+      },
     };
   } catch (e) {
     return {

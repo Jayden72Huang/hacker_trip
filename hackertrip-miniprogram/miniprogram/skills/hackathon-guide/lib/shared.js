@@ -4,6 +4,43 @@
 const MODE_CN = { offline: '线下', online: '线上', hybrid: '线上+线下' };
 const STATUS_CN = { upcoming: '即将开始', ongoing: '进行中', ended: '已结束' };
 
+function detailPath(id, intent) {
+  const params = [
+    `id=${encodeURIComponent(id || '')}`,
+    'src=ai',
+  ];
+  if (intent) params.push(`intent=${encodeURIComponent(intent)}`);
+  return `/pages/detail/detail?${params.join('&')}`;
+}
+
+function relayAction(label, intent, id, description) {
+  return {
+    type: 'miniProgramPage',
+    label,
+    path: detailPath(id, intent),
+    description,
+  };
+}
+
+function detailActions(item) {
+  const id = item && item.id;
+  return [
+    relayAction('查看详情', 'event.detail', id, '打开小程序赛事详情页，查看完整时间、地点、赛道和奖金信息。'),
+    relayAction('立即报名', 'event.register', id, '接力到小程序详情页复制报名链接或进入平台报名流程；不要在原子接口内代用户报名。'),
+    relayAction('加入赛程', 'event.schedule', id, '接力到小程序详情页完成登录校验和加入赛程。'),
+    relayAction('订阅赛事', 'event.subscribe', id, '接力到小程序详情页完成订阅、收藏和热度沉淀。'),
+  ];
+}
+
+function detailApiCalls(cards, limit) {
+  return (cards || []).slice(0, limit || 5).map((card) => ({
+    name: 'getHackathonDetail',
+    arguments: { id: card.id },
+    label: `查看「${card.title || card.id}」详情`,
+    reason: '用户选择某场赛事后，用该 id 查询完整赛事信息。',
+  }));
+}
+
 // 拿到 wx.cloud 句柄（独立 JS 环境内 wx.cloud 可用；首次需 init）
 let _inited = false;
 function withCloud() {
@@ -41,8 +78,9 @@ function toCard(item) {
     body: item.summary || '',
     status,
     // 稳定 deep-link（公开契约，恒接受 src/intent）
-    deeplink: `/pages/detail/detail?id=${item.id}&src=ai`,
+    deeplink: detailPath(item.id, 'event.detail'),
     website: item.website || '',
+    actions: detailActions(item),
   };
 }
 
@@ -68,7 +106,8 @@ function toDetail(item) {
     summary: item.summary,
     website: item.website,
     status: item.status || deriveStatus(item),
-    deeplink: `/pages/detail/detail?id=${item.id}&src=ai`,
+    deeplink: detailPath(item.id, 'event.detail'),
+    actions: detailActions(item),
   };
 }
 
@@ -88,7 +127,8 @@ function cardsToText(cards, hint) {
   return [
     `已找到 ${cards.length} 场黑客松，结构化卡片列表已放在 structuredContent.list。`,
     lines.join('\n'),
-    '请先展示这些赛事卡片，并用一句话引导用户选择一场查看详情；用户选定后再用 getHackathonDetail，并使用上游返回的 id 原值。',
+    '请先展示这些赛事卡片，并用一句话引导用户选择一场查看详情；用户选定后优先使用返回的 apiCalls 调用 getHackathonDetail，并使用上游返回的 id 原值。',
+    '报名、加入赛程、订阅、分享等动作请接力到卡片 actions 中的小程序详情页完成，不要在原子接口内调用受限 wx API。',
   ].join('\n');
 }
 
@@ -110,7 +150,8 @@ function matchedCardsToText(cards, techStack) {
   return [
     `已根据技术栈「${ts}」匹配到 ${cards.length} 场黑客松，结果已按匹配度排序并放在 structuredContent.list。`,
     lines.join('\n'),
-    '请展示匹配结果卡片和 fitReason；用户想深入某场赛事时，再用 getHackathonDetail，并使用上游返回的 id 原值。',
+    '请展示匹配结果卡片和 fitReason；用户想深入某场赛事时，优先使用返回的 apiCalls 调用 getHackathonDetail，并使用上游返回的 id 原值。',
+    '报名、加入赛程、订阅、分享等动作请接力到卡片 actions 中的小程序详情页完成，不要在原子接口内调用受限 wx API。',
   ].join('\n');
 }
 
@@ -131,7 +172,7 @@ function detailToText(d) {
   return [
     `已查到赛事详情：${d.name || d.id}。`,
     parts.filter(Boolean).join('\n'),
-    '请向用户概括时间、地点、赛道、奖金和报名截止；如用户要报名，只引导打开官网或小程序详情页，不要宣称已代用户报名。',
+    '请向用户概括时间、地点、赛道、奖金和报名截止；如用户要报名、加入赛程、订阅或分享，只接力到 structuredContent.hackathon.actions 中的小程序详情页，不要宣称已代用户完成。',
   ].join('\n');
 }
 
@@ -139,6 +180,9 @@ module.exports = {
   withCloud,
   toCard,
   toDetail,
+  detailApiCalls,
+  detailPath,
+  detailActions,
   cardsToText,
   matchedCardsToText,
   detailToText,

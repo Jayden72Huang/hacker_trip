@@ -28,11 +28,38 @@
                 "body": { "type": "string" },
                 "status": { "type": "string", "enum": ["upcoming", "ongoing", "ended"] },
                 "deeplink": { "type": "string" },
-                "website": { "type": "string" }
+                "website": { "type": "string" },
+                "actions": {
+                  "type": "array",
+                  "description": "需要接力到小程序页面完成的动作。报名、加入赛程、订阅、分享等不得在原子接口内直接调用受限 wx API。",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "type": { "type": "string", "enum": ["miniProgramPage"] },
+                      "label": { "type": "string" },
+                      "path": { "type": "string" },
+                      "description": { "type": "string" }
+                    }
+                  }
+                }
               }
             }
           },
-          "total": { "type": "number" }
+          "total": { "type": "number" },
+          "apiCalls": {
+            "type": "array",
+            "description": "下一步可执行的原子接口调用建议。用户选择某场赛事后，优先使用这里的 getHackathonDetail 调用。",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "arguments": { "type": "object" },
+                "label": { "type": "string" },
+                "reason": { "type": "string" }
+              }
+            }
+          },
+          "relayHint": { "type": "string" }
         }
       }
     },
@@ -71,11 +98,38 @@
                 "matchScore": { "type": "number", "description": "匹配得分，越高越契合" },
                 "matchedTags": { "type": "array", "items": { "type": "string" }, "description": "命中的技术栈标签" },
                 "fitReason": { "type": "string", "description": "匹配理由的自然语言说明" },
-                "deeplink": { "type": "string" }
+                "deeplink": { "type": "string" },
+                "actions": {
+                  "type": "array",
+                  "description": "需要接力到小程序页面完成的动作。报名、加入赛程、订阅、分享等不得在原子接口内直接调用受限 wx API。",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "type": { "type": "string", "enum": ["miniProgramPage"] },
+                      "label": { "type": "string" },
+                      "path": { "type": "string" },
+                      "description": { "type": "string" }
+                    }
+                  }
+                }
               }
             }
           },
-          "total": { "type": "number" }
+          "total": { "type": "number" },
+          "apiCalls": {
+            "type": "array",
+            "description": "下一步可执行的原子接口调用建议。用户选择某场赛事后，优先使用这里的 getHackathonDetail 调用。",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "arguments": { "type": "object" },
+                "label": { "type": "string" },
+                "reason": { "type": "string" }
+              }
+            }
+          },
+          "relayHint": { "type": "string" }
         }
       }
     },
@@ -109,9 +163,24 @@
               "summary": { "type": "string" },
               "website": { "type": "string" },
               "status": { "type": "string", "enum": ["upcoming", "ongoing", "ended"] },
-              "deeplink": { "type": "string" }
+              "deeplink": { "type": "string" },
+              "actions": {
+                "type": "array",
+                "description": "需要接力到小程序页面完成的动作。报名、加入赛程、订阅、分享等不得在原子接口内直接调用受限 wx API。",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": { "type": "string", "enum": ["miniProgramPage"] },
+                    "label": { "type": "string" },
+                    "path": { "type": "string" },
+                    "description": { "type": "string" }
+                  }
+                }
+              }
             }
-          }
+          },
+          "relayPage": { "type": "string", "description": "小程序接力页路径，用户要报名、加入赛程、订阅或分享时打开该页。" },
+          "relayHint": { "type": "string" }
         }
       }
     }

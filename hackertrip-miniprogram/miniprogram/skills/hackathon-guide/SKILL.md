@@ -26,7 +26,7 @@ HackerTrip 是一站式黑客松（hackathon / 编程比赛 / 极客比赛 / 开
 | `matchHackathonsByStack` | 用户给出技术栈或方向，求最适合的赛事（**核心差异化**） | 按匹配度排序的赛事 + 匹配理由 fitReason |
 | `getHackathonDetail` | 查询某一场赛事的完整信息（需 id） | 单场赛事全字段 |
 
-推荐调用链：先用 `searchHackathons` 或 `matchHackathonsByStack` 拿到列表与赛事 id，再用 `getHackathonDetail` 取某场的完整信息。
+推荐调用链：先用 `searchHackathons` 或 `matchHackathonsByStack` 拿到列表与赛事 id，再优先使用返回的 `apiCalls` 调用 `getHackathonDetail` 取某场的完整信息。
 
 ## 业务流程
 
@@ -37,7 +37,7 @@ HackerTrip 是一站式黑客松（hackathon / 编程比赛 / 极客比赛 / 开
 1. 调用 `searchHackathons`。
 2. 展示 `structuredContent.list` 中的赛事卡片。
 3. 引导用户选择一场查看详情。
-4. 用户选定某场后，使用该卡片返回的 `id` 原值调用 `getHackathonDetail`。
+4. 用户选定某场后，优先使用返回的 `apiCalls` 调用 `getHackathonDetail`；如运行环境不消费 `apiCalls`，则使用该卡片返回的 `id` 原值调用 `getHackathonDetail`。
 
 无结果时：告诉用户没有找到匹配赛事，引导更换城市、主题、技术方向，或改用技术栈匹配；不要用相同参数重复调用 `searchHackathons`。
 
@@ -47,7 +47,7 @@ HackerTrip 是一站式黑客松（hackathon / 编程比赛 / 极客比赛 / 开
 
 1. 用户已表达技术栈或项目方向时，调用 `matchHackathonsByStack`。
 2. 展示按匹配度排序的赛事卡片和 `fitReason`。
-3. 用户想深入某场赛事时，使用该卡片返回的 `id` 原值调用 `getHackathonDetail`。
+3. 用户想深入某场赛事时，优先使用返回的 `apiCalls` 调用 `getHackathonDetail`；如运行环境不消费 `apiCalls`，则使用该卡片返回的 `id` 原值调用 `getHackathonDetail`。
 
 如果用户没有给出技术栈或项目方向，只是泛泛地说「推荐几个比赛」，先调用 `searchHackathons`；不要凭空补充用户未说过的技术栈。
 
@@ -74,6 +74,7 @@ HackerTrip 是一站式黑客松（hackathon / 编程比赛 / 极客比赛 / 开
 - 搜索和匹配结果应优先展示卡片；纯文本只用于总结、追问或解释空结果。
 - 已结束赛事可用于资料查询，但不要作为「可报名」推荐。
 - HackerTrip 不代办报名、不代缴费用；用户要报名时，引导打开赛事官网或小程序详情页。
+- 报名、加入赛程、订阅赛事、转发分享等动作必须接力到 `actions` / `relayPage` 指向的小程序详情页完成；不要在原子接口内调用 `wx.shareAppMessage`、`wx.chooseLocation`、`wx.chooseMedia`、`wx.scanCode`、`wx.openLocation`、`wx.makePhoneCall`、`wx.requestPayment` 等受限 API。
 - 原子接口执行失败前，不要向用户宣称已经完成搜索、匹配或查询。
 - 未核验的最新赛事只能作为线索，不要宣称已经被 HackerTrip 正式收录；报名状态、奖金和资格以赛事官网为准。
 
@@ -90,4 +91,9 @@ HackerTrip 是一站式黑客松（hackathon / 编程比赛 / 极客比赛 / 开
 
 ## 深链续接
 
-每个结果带稳定 deep-link `/pages/detail/detail?id={id}&src=ai`，用户点击可在 HackerTrip 内查看完整详情并继续报名等操作；`src=ai` 标识来自微信 AI 助手的流量，落地页会复述意图并直接呈现结果。
+每个结果带稳定 deep-link `/pages/detail/detail?id={id}&src=ai&intent=event.detail`，用户点击可在 HackerTrip 内查看完整详情并继续报名等操作；`src=ai` 标识来自微信 AI 助手的流量，落地页会复述意图并直接呈现结果。
+
+新版微信 AI 返回契约中：
+
+- `apiCalls`：只用于建议下一步原子接口调用，例如从赛事列表接着调用 `getHackathonDetail`。
+- `actions` / `relayPage`：只用于接力到小程序页面。凡是需要登录、授权、支付、媒体选择、位置、分享、扫码、电话、打开文档等微信受限 API 的动作，都必须走小程序页面接力。

@@ -26,8 +26,13 @@ async function getHackathonDetail({ id } = {}) {
     const detail = toDetail(hackathon);
     return {
       isError: false,
+      apiCalls: [],
       content: [{ type: 'text', text: detailToText(detail) }],
-      structuredContent: { hackathon: detail },
+      structuredContent: {
+        hackathon: detail,
+        relayPage: detail.deeplink,
+        relayHint: '报名、加入赛程、订阅、分享等动作必须接力到小程序详情页完成，不要在原子接口内调用受限 wx API。',
+      },
     };
   } catch (e) {
     return {
