@@ -166,9 +166,13 @@ function verifyUserBoundDataSync() {
 }
 
 function verifyIdentityAndShare() {
-  contains('miniprogram/pages/identity/identity.wxml', '编辑资料', 'identity page must expose edit step');
-  contains('miniprogram/pages/identity/identity.wxml', '生成预览', 'identity page must expose generate step');
-  contains('miniprogram/pages/identity/identity.wxml', '保存转发', 'identity page must expose share/save step');
+  contains('miniprogram/pages/identity/identity.wxml', '完善身份信息', 'identity page must expose profile completion step');
+  contains('miniprogram/pages/identity/identity.wxml', '选择卡片风格', 'identity page must expose style selection step');
+  contains('miniprogram/pages/identity/identity.wxml', '导出分享', 'identity page must expose export/share step');
+  contains('miniprogram/pages/identity/identity.wxml', '参赛经历', 'identity page must link to participation history');
+  contains('miniprogram/pages/identity/identity.wxml', '作品列表', 'identity page must link to works list');
+  contains('miniprogram/pages/identity/identity.wxml', '我的 Skills', 'identity page must link to skills context');
+  assert(!read('miniprogram/pages/identity/identity.wxml').includes('我的暗号'), 'identity page must not show invite code module');
   contains('miniprogram/pages/identity/identity.js', 'api.getProfileQr', 'identity card must request profile QR');
   contains('miniprogram/pages/identity/identity.js', /async regenerateCard\(\)[\s\S]*api\.requireAuth[\s\S]*loadProfileQr\(\{ promptLogin: true \}\)/, 'identity generate action must prompt login before QR generation');
   contains('miniprogram/pages/identity/identity.wxml', '<auth-modal id="authModal" bind:login="onAuthLogin"', 'identity page must bind auth modal login callback');

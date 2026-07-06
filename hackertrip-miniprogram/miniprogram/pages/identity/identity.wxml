@@ -2,13 +2,45 @@
 <view wx:if="{{aiBanner}}" class="ai-banner identity-ai"><text>来自微信AI助手</text><text>{{aiIntentText}}</text></view>
 <wxs src="../../utils/tools.wxs" module="tools" />
 <view class="page">
-  <!-- 预览类型切换 -->
-  <view class="seg glass">
-    <view class="seg-item {{variant === 'identity' ? 'on' : ''}}" data-v="identity" bindtap="switchVariant">身份卡预览</view>
-    <view class="seg-item {{variant === 'config' ? 'on' : ''}}" data-v="config" bindtap="switchVariant">配置卡预览</view>
-  </view>
-
   <view wx:if="{{fromSync}}" class="sync-pill">✨ 已从 Skills 扫描结果预填</view>
+
+  <!-- 身份卡生成流程：每一步内放对应操作 -->
+  <view class="identity-flow">
+    <view class="flow-head">
+      <view class="flow-kicker">Identity Card</view>
+      <view class="flow-heading">把已有参赛数据整理成一张可分享身份卡</view>
+      <view class="flow-sub">先补身份资料，再选择卡片风格，最后导出图片或直接转发给队友。</view>
+    </view>
+    <view class="flow-row">
+      <view class="flow-step">
+        <text class="flow-index">1</text>
+        <view class="flow-title">完善身份信息</view>
+        <view class="flow-copy">填写昵称、城市、角色、GitHub 和可交付的 Skills。</view>
+        <button class="flow-btn" bindtap="goEditProfile">去完善资料</button>
+      </view>
+      <view class="flow-step">
+        <text class="flow-index">2</text>
+        <view class="flow-title">选择卡片风格</view>
+        <view class="flow-copy">身份卡适合社群分享；配置卡适合展示 Agent / Skills 上下文。</view>
+        <view class="style-switch">
+          <view class="style-chip {{variant === 'identity' ? 'on' : ''}}" data-v="identity" bindtap="switchVariant">身份卡</view>
+          <view class="style-chip {{variant === 'config' ? 'on' : ''}}" data-v="config" bindtap="switchVariant">配置卡</view>
+        </view>
+      </view>
+      <view class="flow-step">
+        <text class="flow-index">3</text>
+        <view class="flow-title">导出分享</view>
+        <view class="flow-copy">保存图片到相册，或转发带公开主页入口的身份卡。</view>
+        <view class="flow-actions flow-actions--inline">
+          <button class="flow-btn flow-btn--yellow" bindtap="saveToAlbum">{{saving || savingCard ? '保存中…' : '保存图片'}}</button>
+          <button class="flow-btn flow-btn--share {{qrReady ? '' : 'is-disabled'}}" open-type="share" disabled="{{!qrReady}}" bindtap="prepareShare">
+            {{qrReady ? '分享卡片' : '生成中…'}}
+          </button>
+        </view>
+        <view class="share-status flow-share-status">{{qrReady ? (cardSaved ? '已保存到我的 · 可转发' : '已绑定公开主页') : (qrError || '正在生成小程序码')}}</view>
+      </view>
+    </view>
+  </view>
 
   <!-- 卡片预览（首屏主角） -->
   <view class="preview">
@@ -24,47 +56,24 @@
     </view>
   </view>
 
-  <!-- 使用指南：上下三步 -->
-  <view class="guide-row">
-    <view class="guide-step"><text class="gs-idx">1</text><text class="gs-txt">编辑资料</text></view>
-    <view class="guide-step"><text class="gs-idx">2</text><text class="gs-txt">生成预览</text></view>
-    <view class="guide-step"><text class="gs-idx">3</text><text class="gs-txt">保存转发</text></view>
-  </view>
-
-  <!-- 两个主操作 -->
-  <view class="flow-actions">
-    <button class="flow-btn" bindtap="goEditProfile">编辑资料</button>
-    <button class="flow-btn flow-btn--yellow" bindtap="regenerateCard">生成 / 刷新</button>
-  </view>
-
-  <!-- 数据统计 -->
-  <view class="stats-panel">
-    <view class="stat-card">
-      <text class="stat-num">{{stats.hackathons}}</text>
-      <text class="stat-label">参赛</text>
-    </view>
-    <view class="stat-card">
-      <text class="stat-num">{{stats.projects}}</text>
-      <text class="stat-label">作品</text>
-    </view>
-    <view class="stat-card">
-      <text class="stat-num">{{techStack.length}}</text>
-      <text class="stat-label">Skills</text>
-    </view>
-  </view>
-
-  <!-- 我的暗号：F1 裂变邀请起点 -->
-  <view class="invite-card glass">
-    <view class="invite-head">
-      <view class="invite-head-text">
-        <view class="invite-title">🔑 我的暗号</view>
-        <view class="invite-sub">朋友把它发给 Haki，就能解锁你俩的「组队雷达」</view>
-      </view>
-      <view class="invite-score">招募 {{growth.recruitScore}} 人</view>
-    </view>
-    <view class="invite-coderow">
-      <text class="invite-code" bindtap="copyInviteCode">{{growth.inviteCode || '生成中…'}}</text>
-      <button class="invite-copy" bindtap="copyInvite">复制邀请语</button>
+  <!-- 卡片数据来源 -->
+  <view class="data-panel">
+    <view class="data-title">将写入卡片的数据</view>
+    <view class="data-copy">身份卡会整合当前档案、参赛记录、作品和 Skills；修改后点刷新会重新绘制预览。</view>
+    <button class="refresh-btn" bindtap="regenerateCard">刷新预览</button>
+    <view class="stats-panel">
+      <button class="stat-card" data-target="hackathons" bindtap="openAsset">
+        <text class="stat-num">{{stats.hackathons}}</text>
+        <text class="stat-label">参赛经历</text>
+      </button>
+      <button class="stat-card" data-target="works" bindtap="openAsset">
+        <text class="stat-num">{{stats.projects}}</text>
+        <text class="stat-label">作品列表</text>
+      </button>
+      <button class="stat-card" data-target="skills" bindtap="openAsset">
+        <text class="stat-num">{{techStack.length}}</text>
+        <text class="stat-label">我的 Skills</text>
+      </button>
     </view>
   </view>
 
@@ -137,17 +146,6 @@
         >{{item.emoji}} {{item.label}}</view>
       </view>
     </view>
-  </view>
-</view>
-
-<!-- 底部操作栏 -->
-<view class="actionbar glass-strong">
-  <button class="btn-ghost act-save" bindtap="saveToAlbum">{{saving || savingCard ? '保存中…' : '保存图片'}}</button>
-  <view class="share-wrap">
-    <button class="btn-primary act-share {{qrReady ? '' : 'is-disabled'}}" open-type="share" disabled="{{!qrReady}}" bindtap="prepareShare">
-      {{qrReady ? '分享 / 找队友' : '生成中…'}}
-    </button>
-    <view class="share-status">{{qrReady ? (cardSaved ? '已保存到我的 · 可转发' : '已绑定公开主页') : (qrError || '正在生成小程序码')}}</view>
   </view>
 </view>
 <auth-modal id="authModal" bind:login="onAuthLogin" />
