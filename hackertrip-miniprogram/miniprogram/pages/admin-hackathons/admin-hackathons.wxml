@@ -15,8 +15,9 @@
     </view>
 
     <block wx:else>
-      <view class="admin-tabs admin-tabs--three">
+      <view class="admin-tabs admin-tabs--four">
         <button class="admin-tab {{activeTab === 'drafts' ? 'admin-tab--active' : ''}}" data-tab="drafts" bindtap="switchTab">赛事审核 {{drafts.length}}</button>
+        <button class="admin-tab {{activeTab === 'claims' ? 'admin-tab--active' : ''}}" data-tab="claims" bindtap="switchTab">赛事认领 {{claims.length}}</button>
         <button class="admin-tab {{activeTab === 'organizers' ? 'admin-tab--active' : ''}}" data-tab="organizers" bindtap="switchTab">组织者审核 {{organizers.length}}</button>
         <button class="admin-tab {{activeTab === 'live' ? 'admin-tab--active' : ''}}" data-tab="live" bindtap="switchTab">正式赛事 {{hackathons.length}}</button>
       </view>
@@ -58,6 +59,43 @@
           <view class="admin-actions">
             <button class="small-btn small-btn--blue" data-id="{{item._id}}" catchtap="approveDraft">发布</button>
             <button class="small-btn small-btn--white" data-id="{{item._id}}" data-type="draft" catchtap="openReject">拒绝</button>
+          </view>
+        </view>
+      </view>
+
+      <view wx:elif="{{activeTab === 'claims'}}">
+        <view wx:if="{{claims.length === 0}}" class="brutal-box">
+          <view class="box-title">暂无待审核认领</view>
+          <view class="box-copy">通过组织者认证后，主办方提交的赛事归属申请会出现在这里。</view>
+        </view>
+        <view wx:for="{{claims}}" wx:key="_id" class="admin-card" bindtap="goDetail" data-id="{{item.eventId}}">
+          <view class="admin-card-head">
+            <view>
+              <view class="admin-title">{{item.eventName}}</view>
+              <view class="admin-meta">{{item.eventCity || '城市未填'}} · {{item.eventDateText}}</view>
+            </view>
+            <text class="status-pill">{{item.statusText}}</text>
+          </view>
+          <view class="admin-copy">{{item.note || '暂无认领说明'}}</view>
+          <view class="admin-row">
+            <text class="admin-label">申请方</text>
+            <text>{{item.organizerName || '未填写'}}</text>
+          </view>
+          <view class="admin-row">
+            <text class="admin-label">身份</text>
+            <text class="{{item.claimRole ? '' : 'field-missing'}}">{{item.claimRole || '未填写'}}</text>
+          </view>
+          <view class="admin-row">
+            <text class="admin-label">联系</text>
+            <text class="{{item.contact ? '' : 'field-missing'}}">{{item.contact || '未填写'}}</text>
+          </view>
+          <view class="admin-row">
+            <text class="admin-label">证明</text>
+            <text class="{{item.proofUrl ? '' : 'field-missing'}}">{{item.proofUrl || '未填写'}}</text>
+          </view>
+          <view class="admin-actions">
+            <button class="small-btn small-btn--blue" data-id="{{item._id}}" catchtap="approveClaim">通过认领</button>
+            <button class="small-btn small-btn--white" data-id="{{item._id}}" data-type="claim" catchtap="openReject">拒绝</button>
           </view>
         </view>
       </view>

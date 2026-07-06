@@ -21,6 +21,8 @@ const STORAGE = {
   PROFILE: 'ht_profile', // 统一用户档案（身份编辑/身份卡/公开主页/分享/设置共享）
   PROFILE_MODE: 'ht_profile_mode', // 我的页角色视图偏好
   ORGANIZER: 'ht_organizer_application', // 组织者申请与审核状态
+  HACKATHON_CLAIMS: 'ht_hackathon_claims', // 主办方赛事认领申请
+  OWNED_HACKATHONS: 'ht_owned_hackathons', // 主办方已认领/创建的赛事
   HACKATHON_DRAFTS: 'ht_hackathon_drafts', // 组织者提交的赛事草稿
   GROWTH: 'ht_growth', // 裂变成长态：暗号 / 招募值 / 被邀请 / 已解锁卡面
   SUBSCRIPTIONS: 'ht_message_subscriptions', // 微信订阅消息授权记录
@@ -148,6 +150,8 @@ function clearUserSession() {
     STORAGE.AGENT_CONFIG,
     STORAGE.PROFILE,
     STORAGE.GROWTH,
+    STORAGE.HACKATHON_CLAIMS,
+    STORAGE.OWNED_HACKATHONS,
     STORAGE.SUBSCRIPTIONS,
     STORAGE.EVENT_CHECKINS,
     STORAGE.EVENT_PROFILES,
@@ -1066,6 +1070,7 @@ function generateRegistrationDraft(formText) {
 
 const PROFILE_MODES = ['participant', 'organizer'];
 const ORGANIZER_STATUSES = ['none', 'pending', 'approved', 'rejected'];
+const HACKATHON_CLAIM_STATUSES = ['pending', 'security_review', 'approved', 'rejected'];
 
 function normalizeProfileMode(mode) {
   return PROFILE_MODES.indexOf(mode) !== -1 ? mode : 'participant';
@@ -1155,6 +1160,58 @@ async function submitOrganizerApplication(form) {
 function isOrganizerApproved() {
   const app = getOrganizerApplication();
   return app.status === 'approved' && app.approvalSource === 'server';
+}
+
+function getHackathonClaims() {
+  if (!hasUserSession()) return [];
+  const v = getStorage(STORAGE.HACKATHON_CLAIMS, []);
+  return Array.isArray(v) ? v : [];
+}
+
+function getHackathonClaim(eventId) {
+  const id = String(eventId || '').trim();
+  if (!id) return null;
+  return getHackathonClaims().find((item) => item && item.eventId === id) || null;
+}
+
+function cacheHackathonClaim(form, remote) {
+  const eventId = String((form && (form.eventId || form.id)) || '').trim();
+  if (!eventId) return null;
+  const claims = getHackathonClaims();
+  const index = claims.findIndex((item) => item && item.eventId === eventId);
+  const current = index === -1 ? {} : claims[index];
+  const next = Object.assign({}, current, form || {}, {
+    id: remote && remote.id ? remote.id : (current.id || `claim-${Date.now()}`),
+    _id: remote && remote.id ? remote.id : current._id,
+    eventId,
+    status: remote && remote.status ? remote.status : (current.status || 'pending'),
+    submittedAt: Date.now(),
+    updatedAt: Date.now(),
+  });
+  if (HACKATHON_CLAIM_STATUSES.indexOf(next.status) === -1) next.status = 'pending';
+  if (index === -1) claims.unshift(next);
+  else claims[index] = next;
+  setStorage(STORAGE.HACKATHON_CLAIMS, claims);
+  return next;
+}
+
+async function submitHackathonClaim(form) {
+  if (!cloudReady()) {
+    return { ok: false, code: 'CLOUD_REQUIRED', message: '需要连接云开发后才能提交赛事认领' };
+  }
+  try {
+    const res = await callFn('submitHackathonClaim', { form });
+    if (res && res.ok) cacheHackathonClaim(form, res);
+    return res || { ok: false, code: 'EMPTY_RESPONSE', message: '提交认领失败' };
+  } catch (e) {
+    return { ok: false, code: 'SUBMIT_FAILED', message: String(e) };
+  }
+}
+
+function getOwnedHackathons() {
+  if (!hasUserSession()) return [];
+  const v = getStorage(STORAGE.OWNED_HACKATHONS, []);
+  return Array.isArray(v) ? v : [];
 }
 
 function getHackathonDrafts() {
@@ -1645,6 +1702,12 @@ async function syncFromCloud() {
       if (res.organizerApplication && typeof res.organizerApplication === 'object') {
         setStorage(STORAGE.ORGANIZER, res.organizerApplication);
       }
+      if (Array.isArray(res.hackathonClaims)) {
+        setStorage(STORAGE.HACKATHON_CLAIMS, res.hackathonClaims);
+      }
+      if (Array.isArray(res.ownedHackathons)) {
+        setStorage(STORAGE.OWNED_HACKATHONS, res.ownedHackathons);
+      }
       return { ok: true };
     }
   } catch (e) {
@@ -1709,6 +1772,10 @@ module.exports = {
   saveOrganizerApplication,
   submitOrganizerApplication,
   isOrganizerApproved,
+  getHackathonClaims,
+  getHackathonClaim,
+  submitHackathonClaim,
+  getOwnedHackathons,
   getHackathonDrafts,
   saveHackathonDraft,
   submitHackathonDraft,

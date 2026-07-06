@@ -82,9 +82,15 @@ function publicDraftFields(draft, draftId) {
 }
 
 async function listData() {
-  const [drafts, organizers, hackathons] = await Promise.all([
+  const [drafts, claims, organizers, hackathons] = await Promise.all([
     db.collection('hackathon_drafts')
       .where({ status: _.in(['pending_review', 'pending_manual_review', 'security_review']) })
+      .orderBy('submittedAt', 'desc')
+      .limit(50)
+      .get()
+      .catch(() => ({ data: [] })),
+    db.collection('hackathon_claims')
+      .where({ status: _.in(['pending', 'security_review']) })
       .orderBy('submittedAt', 'desc')
       .limit(50)
       .get()
@@ -103,6 +109,7 @@ async function listData() {
   ]);
   return {
     drafts: drafts.data || [],
+    claims: claims.data || [],
     organizers: organizers.data || [],
     hackathons: hackathons.data || [],
   };
@@ -121,6 +128,7 @@ async function approveDraft(event, openid) {
     sourceDraftId: draftId,
     organizerId: draft.organizerId || '',
     organizerName: draft.organizerName || '',
+    organizerOpenid: draft.organizerOpenid || draft.openid || '',
     approvedBy: openid,
     approvedAt: now,
     updatedAt: now,
@@ -179,6 +187,96 @@ async function approveOrganizer(event, openid) {
   return { ok: true, action: 'approveOrganizer', id: applicationId };
 }
 
+async function getHackathonTarget(eventId, docId) {
+  const id = cleanText(eventId, 120);
+  const directDocId = cleanText(docId, 80);
+  if (directDocId) {
+    const byDoc = await db.collection('hackathons').doc(directDocId).get().catch(() => null);
+    if (byDoc && byDoc.data) return byDoc.data;
+  }
+  if (id) {
+    const byId = await db.collection('hackathons').where({ id }).limit(1).get();
+    if (byId.data && byId.data[0]) return byId.data[0];
+    const byDoc = await db.collection('hackathons').doc(id).get().catch(() => null);
+    if (byDoc && byDoc.data) return byDoc.data;
+  }
+  return null;
+}
+
+async function getOrganizerForOpenid(ownerOpenid) {
+  const owner = cleanText(ownerOpenid, 120);
+  if (!owner) return null;
+  const res = await db.collection('organizer_applications')
+    .where({ openid: owner, status: 'approved' })
+    .limit(1)
+    .get();
+  return res.data && res.data[0] ? res.data[0] : null;
+}
+
+async function approveClaim(event, openid) {
+  const claimId = cleanText(event.claimId, 80);
+  if (!claimId) return { ok: false, code: 'INVALID_CLAIM', message: '缺少认领申请 id' };
+
+  const claimRes = await db.collection('hackathon_claims').doc(claimId).get();
+  const claim = claimRes.data;
+  if (!claim) return { ok: false, code: 'CLAIM_NOT_FOUND', message: '认领申请不存在' };
+
+  const target = await getHackathonTarget(claim.eventId, claim.eventDocId);
+  if (!target || !target._id) return { ok: false, code: 'HACKATHON_NOT_FOUND', message: '赛事不存在' };
+
+  const organizer = await getOrganizerForOpenid(claim.openid);
+  if (!organizer) return { ok: false, code: 'ORGANIZER_NOT_APPROVED', message: '申请方还没有通过组织者认证' };
+
+  if (target.organizerOpenid && target.organizerOpenid !== claim.openid) {
+    return { ok: false, code: 'HACKATHON_ALREADY_CLAIMED', message: '该赛事已绑定其他组织者' };
+  }
+
+  const now = Date.now();
+  const organizerName = claim.organizerName || organizer.orgName || '';
+  await db.collection('hackathons').doc(target._id).update({
+    data: {
+      organizerOpenid: claim.openid,
+      organizerId: organizer._id || claim.organizerId || '',
+      organizerName,
+      claimId,
+      claimStatus: 'approved',
+      claimedBy: openid,
+      claimedAt: now,
+      updatedAt: now,
+    },
+  });
+
+  await db.collection('hackathon_claims').doc(claimId).update({
+    data: {
+      status: 'approved',
+      reviewedBy: openid,
+      reviewedAt: now,
+      updatedAt: now,
+      rejectReason: '',
+      boundHackathonId: target.id || claim.eventId || '',
+      boundHackathonDocId: target._id || '',
+    },
+  });
+
+  return { ok: true, action: 'approveClaim', id: claimId, hackathonId: target.id || claim.eventId || '' };
+}
+
+async function rejectClaim(event, openid) {
+  const claimId = cleanText(event.claimId, 80);
+  if (!claimId) return { ok: false, code: 'INVALID_CLAIM', message: '缺少认领申请 id' };
+  const now = Date.now();
+  await db.collection('hackathon_claims').doc(claimId).update({
+    data: {
+      status: 'rejected',
+      rejectReason: cleanText(event.reason || '主办方证明不足或未通过人工审核', 300),
+      reviewedBy: openid,
+      reviewedAt: now,
+      updatedAt: now,
+    },
+  });
+  return { ok: true, action: 'rejectClaim', id: claimId };
+}
+
 async function rejectOrganizer(event, openid) {
   const applicationId = cleanText(event.applicationId, 80);
   if (!applicationId) return { ok: false, code: 'INVALID_APPLICATION', message: '缺少组织者申请 id' };
@@ -234,6 +332,8 @@ exports.main = async (event) => {
     if (action === 'list') return Object.assign({ ok: true, isAdmin: true }, await listData());
     if (action === 'approveDraft') return await approveDraft(event || {}, openid);
     if (action === 'rejectDraft') return await rejectDraft(event || {}, openid);
+    if (action === 'approveClaim') return await approveClaim(event || {}, openid);
+    if (action === 'rejectClaim') return await rejectClaim(event || {}, openid);
     if (action === 'approveOrganizer') return await approveOrganizer(event || {}, openid);
     if (action === 'rejectOrganizer') return await rejectOrganizer(event || {}, openid);
     if (action === 'setPublished') return await setPublished(event || {}, openid);

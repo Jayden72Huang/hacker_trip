@@ -185,6 +185,7 @@ function loadCloudFunction(rel, state, runtime) {
 async function main() {
   const state = {
     organizer_applications: [],
+    hackathon_claims: [],
     hackathon_drafts: [],
     hackathons: [],
     admin_users: [],
@@ -195,6 +196,7 @@ async function main() {
   const runtime = { openid: 'organizer-openid', sentMessages: [] };
 
   const submitOrganizerApplication = loadCloudFunction('cloudfunctions/submitOrganizerApplication/index.js', state, runtime);
+  const submitHackathonClaim = loadCloudFunction('cloudfunctions/submitHackathonClaim/index.js', state, runtime);
   const submitHackathonDraft = loadCloudFunction('cloudfunctions/submitHackathonDraft/index.js', state, runtime);
   const adminHackathonManage = loadCloudFunction('cloudfunctions/adminHackathonManage/index.js', state, runtime);
   const sendHackathonNotifications = loadCloudFunction('cloudfunctions/sendHackathonNotifications/index.js', state, runtime);
@@ -231,6 +233,42 @@ async function main() {
   });
   assert(approveOrganizer.ok, 'admin should approve organizer application');
   assert(state.organizer_applications[0].status === 'approved', 'organizer status should become approved');
+
+  runtime.openid = 'organizer-openid';
+  state.hackathons.push({
+    _id: 'hackathon_existing_claim',
+    id: 'ht-existing-claim',
+    name: '可认领测试赛',
+    shortName: '认领测试',
+    city: '北京',
+    startDate: '2026-07-24',
+    endDate: '2026-07-26',
+    website: 'https://hackertrip.space',
+    isPublished: true,
+  });
+  const claimRes = await submitHackathonClaim({
+    form: {
+      eventId: 'ht-existing-claim',
+      eventName: '可认领测试赛',
+      claimRole: '主办方负责人',
+      contact: 'organizer@example.com',
+      proofUrl: 'https://hackertrip.space',
+      note: '负责该赛事报名和运营。',
+    },
+  });
+  assert(claimRes.ok && claimRes.status === 'pending', 'approved organizer should submit event claim');
+  assert(state.hackathon_claims.length === 1, 'event claim should be saved');
+
+  runtime.openid = 'admin-openid';
+  const listWithClaim = await adminHackathonManage({ action: 'list' });
+  assert(listWithClaim.ok && listWithClaim.claims.length === 1, 'admin list should include pending event claims');
+  const approveClaim = await adminHackathonManage({
+    action: 'approveClaim',
+    claimId: claimRes.id,
+  });
+  assert(approveClaim.ok, 'admin should approve event claim');
+  assert(state.hackathon_claims[0].status === 'approved', 'event claim status should become approved');
+  assert(state.hackathons[0].organizerOpenid === 'organizer-openid', 'claimed hackathon should bind organizer openid');
 
   runtime.openid = 'organizer-openid';
   const draftRes = await submitHackathonDraft({
@@ -303,7 +341,7 @@ async function main() {
     draftId: draftRes.id,
   });
   assert(approveDraft.ok && approveDraft.id, 'admin should publish approved draft');
-  assert(state.hackathons.length === 1, 'published hackathon should be inserted');
+  assert(state.hackathons.length === 2, 'published hackathon should be inserted');
   assert(state.hackathon_drafts[0].status === 'approved', 'draft should be marked approved');
 
   const setOffline = await adminHackathonManage({
@@ -347,6 +385,8 @@ async function main() {
       organizerApplication: appRes.status,
       unapprovedSubmitCode: unapprovedDraft.code,
       organizerApproved: state.organizer_applications[0].status,
+      claimStatus: state.hackathon_claims[0].status,
+      claimedHackathonOwner: state.hackathons[0].organizerOpenid,
       draftStatus: draftRes.status,
       eventSyncRejectedCode: rejectedCli.code,
       eventSyncAcceptedStatus: cliDraft.status,

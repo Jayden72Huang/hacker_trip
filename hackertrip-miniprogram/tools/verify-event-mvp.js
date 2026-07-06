@@ -54,8 +54,10 @@ function main() {
   checkJsSyntax('miniprogram/pages/detail/detail.js');
   checkJsSyntax('miniprogram/pages/profile/profile.js');
   checkJsSyntax('cloudfunctions/eventHub/index.js');
+  checkJsSyntax('cloudfunctions/submitHackathonClaim/index.js');
   checkJsSyntax('cloudfunctions/saveProfile/index.js');
   checkJsSyntax('cloudfunctions/getProfile/index.js');
+  checkJsSyntax('cloudfunctions/adminHackathonManage/index.js');
 
   const eventPkg = JSON.parse(read('cloudfunctions/eventHub/package.json'));
   assert(eventPkg.dependencies && eventPkg.dependencies['wx-server-sdk'], 'eventHub package missing wx-server-sdk');
@@ -71,6 +73,10 @@ function main() {
     'verifyAchievement',
     'generateRegistrationDraft',
     'recommendTeamMembers',
+    'getHackathonClaims',
+    'getHackathonClaim',
+    'submitHackathonClaim',
+    'getOwnedHackathons',
   ].forEach((name) => {
     assert(api.indexOf(name) !== -1, `api.js missing ${name}`);
   });

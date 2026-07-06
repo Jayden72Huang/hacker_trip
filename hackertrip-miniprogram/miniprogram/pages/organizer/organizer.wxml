@@ -18,6 +18,42 @@
       <button class="status-action {{status === 'approved' ? 'status-action--approved' : ''}}" bindtap="onStatusAction">{{statusActionText}}</button>
     </view>
 
+    <view wx:if="{{claimEventId}}" class="brutal-box claim-box">
+      <view class="box-title">认领赛事</view>
+      <view class="claim-event-name">{{claimEvent.name || '正在读取赛事信息'}}</view>
+      <view class="claim-event-meta">{{claimEvent.cityText || claimEvent.city || '城市待确认'}} · {{claimEvent.dateText || '时间待确认'}}</view>
+      <view class="claim-status-row">
+        <text class="claim-status {{claimStatus === 'approved' ? 'claim-status--approved' : ''}} {{claimStatus === 'rejected' ? 'claim-status--rejected' : ''}}">{{claimStatusText}}</text>
+      </view>
+      <view class="claim-hint">{{claimStatusHint}}</view>
+
+      <view wx:if="{{status === 'approved' && (claimStatus === 'none' || claimStatus === 'rejected')}}" class="claim-form">
+        <view class="form-field">
+          <view class="field-label">你和这场赛事的关系</view>
+          <input class="input-box" value="{{claimForm.claimRole}}" data-field="claimRole" placeholder="例如主办方负责人 / 联合主办 / 执行团队" bindinput="onClaimFieldInput" />
+        </view>
+        <view class="form-field">
+          <view class="field-label">认领联系方式</view>
+          <input class="input-box" value="{{claimForm.contact}}" data-field="contact" placeholder="微信 / 邮箱 / 手机" bindinput="onClaimFieldInput" />
+        </view>
+        <view class="form-field">
+          <view class="field-label">证明链接</view>
+          <input class="input-box" value="{{claimForm.proofUrl}}" data-field="proofUrl" placeholder="官网、公众号文章、活动页或主办方页面" bindinput="onClaimFieldInput" />
+        </view>
+        <view class="form-field">
+          <view class="field-label">认领说明</view>
+          <textarea class="textarea-box" value="{{claimForm.note}}" data-field="note" placeholder="说明你为什么能认领这场赛事，例如负责报名、运营、赞助或主办。" bindinput="onClaimFieldInput" />
+        </view>
+      </view>
+
+      <button
+        class="native-btn claim-submit {{claimStatus === 'approved' ? 'native-btn--yellow' : ''}}"
+        bindtap="submitClaim"
+        loading="{{claimSubmitting}}"
+        disabled="{{claimSubmitting || claimStatus === 'pending' || claimStatus === 'security_review'}}"
+      >{{claimSubmitting ? '提交中' : claimActionText}}</button>
+    </view>
+
     <view wx:if="{{status !== 'pending' && status !== 'approved'}}" id="organizer-form" class="brutal-box">
       <view class="box-title">申请信息</view>
       <view class="form-field">
@@ -46,6 +82,22 @@
         loading="{{submitting}}"
         disabled="{{submitting}}"
       >{{submitting ? '安全检测中' : '提交组织者申请'}}</button>
+    </view>
+
+    <view wx:if="{{ownedHackathons.length}}" class="section-head">已认领赛事</view>
+    <view wx:for="{{ownedHackathons}}" wx:key="id" class="list-card owned-card">
+      <view class="list-title">{{item.name}}</view>
+      <view class="list-subtitle">{{item.cityText}} · {{item.dateText}}</view>
+      <view class="owned-actions">
+        <button class="owned-btn owned-btn--white" data-id="{{item.id}}" bindtap="goOwnedDetail">赛事详情</button>
+        <button class="owned-btn" data-id="{{item.id}}" bindtap="goOwnedMembers">用户画像</button>
+      </view>
+    </view>
+
+    <view wx:if="{{claims.length}}" class="section-head">认领申请</view>
+    <view wx:for="{{claims}}" wx:key="eventId" class="list-card">
+      <view class="list-title">{{item.eventName}}</view>
+      <view class="list-subtitle">{{item.statusText}} · {{item.eventCity || '城市待确认'}}</view>
     </view>
 
     <view class="section-head">已提交赛事</view>

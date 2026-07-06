@@ -10,7 +10,8 @@
   margin: 18rpx 0 26rpx;
 }
 
-.admin-tabs--three {
+.admin-tabs--three,
+.admin-tabs--four {
   gap: 10rpx;
 }
 
@@ -33,6 +34,16 @@
 }
 
 .admin-tabs--three .admin-tab {
+  font-size: 22rpx;
+}
+
+.admin-tabs--four {
+  flex-wrap: wrap;
+}
+
+.admin-tabs--four .admin-tab {
+  flex-basis: calc(50% - 5rpx);
+  height: 70rpx;
   font-size: 22rpx;
 }
 

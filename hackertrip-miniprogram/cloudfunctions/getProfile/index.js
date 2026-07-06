@@ -2,6 +2,19 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const _ = db.command;
+
+function dedupeById(list) {
+  const seen = {};
+  const result = [];
+  (list || []).forEach((item) => {
+    const key = item && (item.id || item._id);
+    if (!key || seen[key]) return;
+    seen[key] = true;
+    result.push(item);
+  });
+  return result;
+}
 
 exports.main = async () => {
   const openid = (cloud.getWXContext() || {}).OPENID;
@@ -35,6 +48,29 @@ exports.main = async () => {
       organizerApplication = null;
     }
 
+    let hackathonClaims = [];
+    let ownedHackathons = [];
+    try {
+      const claims = await db.collection('hackathon_claims')
+        .where({ openid })
+        .orderBy('updatedAt', 'desc')
+        .limit(50)
+        .get();
+      hackathonClaims = claims.data || [];
+    } catch (e) {
+      hackathonClaims = [];
+    }
+
+    try {
+      const [byOwner, bySubmitter] = await Promise.all([
+        db.collection('hackathons').where({ organizerOpenid: openid, isPublished: _.neq(false) }).limit(50).get(),
+        db.collection('hackathons').where({ openid, isPublished: _.neq(false) }).limit(50).get(),
+      ]);
+      ownedHackathons = dedupeById((byOwner.data || []).concat(bySubmitter.data || []));
+    } catch (e) {
+      ownedHackathons = [];
+    }
+
     return {
       ok: true,
       cards: cards.data || [],
@@ -60,6 +96,8 @@ exports.main = async () => {
         ? user.agentConfig
         : null,
       organizerApplication,
+      hackathonClaims,
+      ownedHackathons,
     };
   } catch (e) {
     return { ok: false, message: String(e), cards: [], bookmarkIds: [], registrations: [], scan: null };

@@ -79,6 +79,111 @@
   margin-top: 28rpx;
 }
 
+.claim-box {
+  margin-top: 24rpx;
+}
+
+.claim-event-name {
+  margin-top: 14rpx;
+  color: #000000;
+  font-size: 32rpx;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.claim-event-meta {
+  margin-top: 8rpx;
+  color: #3D3D3D;
+  font-size: 23rpx;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.claim-status-row {
+  margin-top: 18rpx;
+}
+
+.claim-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 50rpx;
+  padding: 0 18rpx;
+  color: #000000;
+  background: #FBD902;
+  border: 3rpx solid #000000;
+  border-radius: 999rpx;
+  font-size: 23rpx;
+  font-weight: 900;
+}
+
+.claim-status--approved {
+  background: #13B36B;
+}
+
+.claim-status--rejected {
+  color: #FFFFFF;
+  background: #FF4D2E;
+}
+
+.claim-hint {
+  margin-top: 16rpx;
+  color: #2B2B2B;
+  font-size: 24rpx;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.claim-form {
+  margin-top: 6rpx;
+}
+
+.claim-submit {
+  margin-top: 28rpx;
+}
+
+.claim-submit[disabled] {
+  color: #6C6C66;
+  background: #ECE8DB;
+  opacity: 1;
+}
+
+.owned-card {
+  background: #FFFFFF;
+}
+
+.owned-actions {
+  display: flex;
+  gap: 14rpx;
+  margin-top: 20rpx;
+}
+
+.owned-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 70rpx;
+  margin: 0;
+  color: #FFFFFF;
+  background: #0C51ED;
+  border: 4rpx solid #000000;
+  border-radius: 14rpx;
+  box-shadow: 5rpx 5rpx 0 0 #000000;
+  font-size: 24rpx;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.owned-btn--white {
+  color: #000000;
+  background: #FFFFFF;
+}
+
+.owned-btn::after {
+  border: 0;
+}
+
 .empty-draft {
   background: #FFFFFF;
 }

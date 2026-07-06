@@ -8,6 +8,7 @@ Page({
     error: '',
     activeTab: 'drafts',
     drafts: [],
+    claims: [],
     organizers: [],
     hackathons: [],
     rejectTargetId: '',
@@ -29,6 +30,7 @@ Page({
         isAdmin: false,
         error: (res && res.message) || '无法读取赛事管理数据',
         drafts: [],
+        claims: [],
         organizers: [],
         hackathons: [],
       });
@@ -39,6 +41,7 @@ Page({
       loading: false,
       isAdmin: true,
       drafts: (res.drafts || []).map((item) => this.decorateDraft(item)),
+      claims: (res.claims || []).map((item) => this.decorateClaim(item)),
       organizers: (res.organizers || []).map((item) => this.decorateOrganizer(item)),
       hackathons: (res.hackathons || []).map((item) => this.decorateHackathon(item)),
     });
@@ -86,6 +89,18 @@ Page({
     };
     return Object.assign({}, item, {
       statusText: statusMap[item.status] || item.status || '待审核',
+    });
+  },
+
+  decorateClaim(item) {
+    const statusMap = {
+      pending: '待审核',
+      security_review: '安全复核',
+    };
+    const dateText = [item.eventStartDate, item.eventEndDate].filter(Boolean).join(' - ');
+    return Object.assign({}, item, {
+      statusText: statusMap[item.status] || item.status || '待审核',
+      eventDateText: dateText || '时间未填写',
     });
   },
 
@@ -137,6 +152,11 @@ Page({
         applicationId: targetId,
         reason: this.data.rejectReason || '组织者信息需要补充或未通过人工审核',
       }, '已拒绝');
+    } else if (this.data.rejectTargetType === 'claim') {
+      await this.runAction('rejectClaim', {
+        claimId: targetId,
+        reason: this.data.rejectReason || '主办方证明不足或未通过人工审核',
+      }, '已拒绝');
     } else {
       await this.runAction('rejectDraft', {
         draftId: targetId,
@@ -156,6 +176,20 @@ Page({
       success: async (res) => {
         if (!res.confirm) return;
         await this.runAction('approveOrganizer', { applicationId }, '已通过');
+      },
+    });
+  },
+
+  approveClaim(e) {
+    const claimId = e.currentTarget.dataset.id;
+    if (!claimId) return;
+    wx.showModal({
+      title: '通过赛事认领',
+      content: '确认该申请方是这场赛事的主办方？通过后会把赛事绑定到该组织者账号。',
+      confirmText: '通过',
+      success: async (res) => {
+        if (!res.confirm) return;
+        await this.runAction('approveClaim', { claimId }, '已认领');
       },
     });
   },
