@@ -90,7 +90,6 @@
       <view class="list-subtitle">{{item.cityText}} · {{item.dateText}}</view>
       <view class="owned-actions">
         <button class="owned-btn owned-btn--white" data-id="{{item.id}}" bindtap="goOwnedDetail">赛事详情</button>
-        <button class="owned-btn" data-id="{{item.id}}" bindtap="goOwnedMembers">用户画像</button>
       </view>
     </view>
 

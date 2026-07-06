@@ -170,14 +170,14 @@ Page({
       none: '填写你与赛事的关系、联系方式和证明说明。后台审核通过后，这场赛事会绑定到你的组织者账号。',
       pending: '认领申请已提交，后台会核对官网、联系方式和主办方证明。审核通过前暂时不能查看报名用户画像。',
       security_review: '认领材料正在安全复核，通过安全复核后进入人工审核。',
-      approved: '赛事已经绑定到你的组织者账号，可以进入现场成员页查看开放身份的用户画像。',
+      approved: '赛事已经绑定到你的组织者账号，后续可以在赛事管理里查看认领状态。',
       rejected: (claim && claim.rejectReason) ? `未通过原因：${claim.rejectReason}` : '认领材料不足，请补充官网、联系方式或主办方证明后重新提交。',
     };
     return map[status] || map.none;
   },
 
   getClaimActionText(status, organizerStatus) {
-    if (status === 'approved') return '查看用户画像';
+    if (status === 'approved') return '认领已通过';
     if (status === 'pending' || status === 'security_review') return '审核中';
     if (organizerStatus !== 'approved') return '等待认证';
     if (status === 'rejected') return '重新提交认领';
@@ -300,7 +300,11 @@ Page({
       return;
     }
     if (this.data.claimStatus === 'approved') {
-      this.goClaimMembers();
+      wx.showModal({
+        title: '认领已通过',
+        content: '这场赛事已经绑定到你的组织者账号。',
+        showCancel: false,
+      });
       return;
     }
     if (this.data.claimStatus === 'pending' || this.data.claimStatus === 'security_review') {
@@ -339,18 +343,6 @@ Page({
     }
     wx.showToast({ title: '认领已提交', icon: 'success' });
     this.refresh();
-  },
-
-  goClaimMembers() {
-    const event = this.data.claimEvent || {};
-    if (!event.id) return;
-    wx.navigateTo({ url: '/pages/event-members/event-members?id=' + event.id });
-  },
-
-  goOwnedMembers(e) {
-    const id = e.currentTarget.dataset.id;
-    if (!id) return;
-    wx.navigateTo({ url: '/pages/event-members/event-members?id=' + id });
   },
 
   goOwnedDetail(e) {

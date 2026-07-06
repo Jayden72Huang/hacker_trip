@@ -108,6 +108,23 @@
       </view>
     </view>
 
+    <view wx:if="{{profileMode === 'participant'}}" class="section-title">更多</view>
+    <view wx:if="{{profileMode === 'participant'}}" class="link-list">
+      <navigator
+        wx:for="{{moreTools}}"
+        wx:key="title"
+        class="link-card"
+        url="{{item.url}}"
+        hover-class="link-card--active"
+      >
+        <view class="link-main">
+          <view class="link-title">{{item.title}}</view>
+          <view class="link-sub">{{item.sub}}</view>
+        </view>
+        <text class="link-arrow">打开</text>
+      </navigator>
+    </view>
+
     <view class="section-title">设置</view>
     <view class="link-list">
       <navigator

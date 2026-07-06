@@ -228,12 +228,6 @@ Page({
     });
   },
 
-  goCheckin() {
-    const item = this.data.item || {};
-    if (!item.id) return;
-    wx.navigateTo({ url: `/pages/event-checkin/event-checkin?id=${item.id}` });
-  },
-
   async handleRegistrationCta() {
     const item = this.data.item;
     if (!item) {
