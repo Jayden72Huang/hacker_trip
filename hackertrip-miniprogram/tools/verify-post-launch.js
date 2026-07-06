@@ -95,8 +95,8 @@ function verifyAuthContract() {
   assert(!read('miniprogram/pages/settings/settings.wxml').includes('<auth-modal'), 'settings page must not duplicate the primary auth modal');
   assert(!read('miniprogram/pages/settings/settings.wxml').includes('微信登录</button>'), 'settings page must not expose a second direct login button');
   contains('miniprogram/pages/detail/detail.js', 'api.requireAuth(', 'detail join schedule must require auth');
-  contains('miniprogram/pages/detail/detail.js', 'api.addRegistration(item)', 'detail join schedule must persist registration');
-  assertInOrder('miniprogram/pages/detail/detail.js', ['api.requireAuth(', 'if (!auth) return', 'api.addRegistration(item)'], 'joining schedule must authenticate before registration write');
+  contains('miniprogram/pages/detail/detail.js', 'api.addRegistration(item', 'detail join schedule must persist registration');
+  assertInOrder('miniprogram/pages/detail/detail.js', ['api.requireAuth(', 'if (!auth) return', 'api.addRegistration(item'], 'joining schedule must authenticate before registration write');
   contains('cloudfunctions/addRegistration/index.js', /cloud\.getWXContext\(\)[\s\S]*OPENID/, 'addRegistration cloud function must bind records to caller OPENID');
 }
 

@@ -470,19 +470,31 @@ function getRegistrations() {
   const v = getStorage(STORAGE.REGISTRATIONS, []);
   return Array.isArray(v) ? v : [];
 }
-async function addRegistration(item) {
+async function addRegistration(item, options = {}) {
+  if (!item || !item.id) return getRegistrations();
   const prev = getRegistrations();
   const list = prev.slice();
-  if (!list.find((x) => x.id === item.id)) {
-    list.unshift(Object.assign({ registeredAt: Date.now() }, item));
-    setStorage(STORAGE.REGISTRATIONS, list);
-    if (cloudReady()) {
-      try {
-        const res = await callFn('addRegistration', { item });
-        if (!res || !res.ok) throw new Error((res && res.message) || '赛程同步失败');
-      } catch (e) {
-        console.warn('[api] addRegistration 云端失败，保留本地赛程', e);
-      }
+  const now = Date.now();
+  const index = list.findIndex((x) => x.id === item.id);
+  const stamped = Object.assign(
+    { registeredAt: now },
+    index === -1 ? {} : list[index],
+    item,
+    options,
+    { updatedAt: now },
+  );
+  if (index === -1) {
+    list.unshift(stamped);
+  } else {
+    list[index] = stamped;
+  }
+  setStorage(STORAGE.REGISTRATIONS, list);
+  if (cloudReady()) {
+    try {
+      const res = await callFn('addRegistration', { item: stamped });
+      if (!res || !res.ok) throw new Error((res && res.message) || '赛程同步失败');
+    } catch (e) {
+      console.warn('[api] addRegistration 云端失败，保留本地赛程', e);
     }
   }
   return list;

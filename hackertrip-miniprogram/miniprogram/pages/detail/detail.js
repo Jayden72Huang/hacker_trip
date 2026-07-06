@@ -7,11 +7,61 @@ function joinText(list) {
   return Array.isArray(list) && list.length ? list.join(' / ') : '待确认';
 }
 
+function firstText(values) {
+  for (let i = 0; i < values.length; i += 1) {
+    const value = values[i];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return '';
+}
+
+function resolveRegistrationLink(item) {
+  const source = item || {};
+  const miniProgram = source.registrationMiniProgram || source.miniProgram || {};
+  const path = firstText([
+    source.registrationMiniProgramPath,
+    source.miniProgramPath,
+    miniProgram.path,
+  ]);
+  if (path) {
+    return {
+      type: 'miniProgramPath',
+      value: path,
+      toast: '小程序报名路径已复制,请在微信内打开报名',
+    };
+  }
+
+  const url = firstText([
+    source.registrationUrl,
+    source.registerUrl,
+    source.applyUrl,
+    source.signupUrl,
+    source.officialUrl,
+    source.website,
+    source.registrationMiniProgramUrl,
+    source.miniProgramUrl,
+    source.miniProgramScheme,
+    miniProgram.url,
+    miniProgram.scheme,
+  ]);
+  if (!url) return null;
+  const isWechatArticle = /^https?:\/\/mp\.weixin\.qq\.com\//i.test(url);
+  const isMiniProgramLink = /^(weixin:\/\/|https?:\/\/wxaurl\.cn\/)/i.test(url);
+  return {
+    type: isMiniProgramLink ? 'miniProgramLink' : (isWechatArticle ? 'wechatArticle' : 'webUrl'),
+    value: url,
+    toast: isWechatArticle || isMiniProgramLink
+      ? '报名链接已复制,请在微信内打开报名'
+      : '报名链接已复制,请到浏览器打开报名',
+  };
+}
+
 function buildDetail(raw) {
   const item = raw;
   if (!item) return null;
   const logoUrl = item.logoUrl || item.logo || item.icon || '';
   const coverUrl = item.coverUrl || item.cover || item.banner || logoUrl;
+  const registrationLink = resolveRegistrationLink(item);
 
   return Object.assign({}, item, {
     dateText: `${item.startDate || '待确认'} - ${item.endDate || '待确认'}`,
@@ -24,6 +74,8 @@ function buildDetail(raw) {
     stackText: joinText(item.techStack),
     tagsText: joinText(item.tags),
     deadlineText: item.registrationDeadline || item.startDate || '待确认',
+    registrationLink,
+    registrationCtaText: registrationLink ? '报名链接' : '平台报名',
   });
 }
 
@@ -132,7 +184,11 @@ Page({
       this.showScheduleSuccess();
       return;
     }
-    await api.addRegistration(item);
+    await api.addRegistration(item, {
+      registrationMode: 'schedule',
+      registrationSource: 'hackertrip',
+      registrationChannel: 'detail_schedule',
+    });
     this.showScheduleSuccess();
   },
 
@@ -178,19 +234,49 @@ Page({
     wx.navigateTo({ url: `/pages/event-checkin/event-checkin?id=${item.id}` });
   },
 
-  // 复制官网报名链接到剪贴板（替代 web-view 加载外部域名，规避业务域名校验）
-  copyOfficialUrl() {
+  async handleRegistrationCta() {
     const item = this.data.item;
     if (!item) {
       wx.showToast({ title: '暂无可复制内容', icon: 'none' });
       return;
     }
-    wx.setClipboardData({
-      data: share.copyShareText(item),
-      success: () => {
-        wx.showToast({ title: '链接已复制', icon: 'none' });
-      },
+
+    const link = item.registrationLink || resolveRegistrationLink(item);
+    if (link && link.value) {
+      wx.setClipboardData({
+        data: link.value,
+        success: () => {
+          wx.showToast({ title: link.toast, icon: 'none' });
+        },
+        fail: () => {
+          wx.showToast({ title: '复制失败,请重试', icon: 'none' });
+        },
+      });
+      return;
+    }
+
+    await this.registerOnHackerTrip(item);
+  },
+
+  async registerOnHackerTrip(item) {
+    const auth = await api.requireAuth(
+      this,
+      '/pages/detail/detail?id=' + (item && item.id || ''),
+      '登录后才能通过 HackerTrip 报名，主办方认领赛事后可看到来自平台的报名记录。',
+    );
+    if (!auth) return;
+    await api.syncUserDataIfLoggedIn().catch(() => {});
+    await api.addRegistration(item, {
+      registrationMode: 'internal',
+      registrationSource: 'hackertrip',
+      registrationChannel: 'detail_registration_cta',
     });
+    wx.showToast({
+      title: '已通过 HackerTrip 报名',
+      icon: 'none',
+      duration: 2500,
+    });
+    this.loadHeat(item.id);
   },
 
   onShareAppMessage() {
