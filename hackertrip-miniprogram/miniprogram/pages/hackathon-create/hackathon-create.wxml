@@ -16,9 +16,14 @@
     </view>
 
     <block wx:else>
-      <view class="brutal-box submit-pair-card">
-        <view class="box-title">CLI 提交配对码</view>
-        <view class="box-copy">在电脑端用 HackerTrip CLI 的 submit-event 命令，填入此配对码和凭证即可提交赛事。赛事提交后进入平台审核。</view>
+      <view class="submit-tabs">
+        <button class="submit-tab {{submitMode === 'manual' ? 'submit-tab--active' : ''}}" data-mode="manual" bindtap="switchSubmitMode">手动填写</button>
+        <button class="submit-tab {{submitMode === 'agent' ? 'submit-tab--active' : ''}}" data-mode="agent" bindtap="switchSubmitMode">Agent + Skills</button>
+      </view>
+
+      <view wx:if="{{submitMode === 'agent'}}" class="brutal-box submit-pair-card">
+        <view class="box-title">Agent + Skills 快速提交</view>
+        <view class="box-copy">适合已经在电脑端用 Agent 整理好赛事资料的主办方。生成一次性配对码后，在 HackerTrip CLI 的 submit-event 命令里填入配对码和凭证，赛事仍会进入平台审核。</view>
         <button
           class="native-btn submit-pair-btn"
           bindtap="createSubmitPair"
@@ -39,8 +44,9 @@
         <view wx:else class="pair-status">{{pairStatusText}}</view>
       </view>
 
-      <view class="brutal-box">
-      <view class="box-title">赛事信息</view>
+      <view wx:if="{{submitMode === 'manual'}}" class="brutal-box">
+      <view class="box-title">手动填写赛事信息</view>
+      <view class="box-copy">默认提交方式。填写基础信息后进入平台审核，审核通过才会展示给参赛者。</view>
       <view class="form-field">
         <view class="field-label">赛事名称</view>
         <input class="input-box" value="{{form.name}}" data-field="name" placeholder="例如 AI Agent 黑客松" bindinput="onFieldInput" />

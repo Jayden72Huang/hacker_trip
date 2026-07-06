@@ -163,13 +163,13 @@
   white-space: nowrap;
 }
 
-/* 使用指南：一行三步 */
+/* 使用指南：上下三步 */
 .guide-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8rpx;
-  padding: 12rpx 16rpx;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10rpx;
+  padding: 14rpx 16rpx;
   margin-bottom: 4rpx;
   background: #FBD902;
   border: 3rpx solid #000000;
@@ -178,7 +178,9 @@
 .guide-step {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: 14rpx;
+  min-height: 56rpx;
+  padding: 0 8rpx;
 }
 .gs-idx {
   display: flex;
@@ -195,11 +197,6 @@
 }
 .gs-txt {
   font-size: 22rpx;
-  font-weight: 900;
-  color: #000000;
-}
-.guide-arrow {
-  font-size: 30rpx;
   font-weight: 900;
   color: #000000;
 }

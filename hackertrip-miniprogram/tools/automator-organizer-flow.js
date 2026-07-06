@@ -77,6 +77,7 @@ async function createCase(miniProgram, allowed, name) {
   await wait(page, 900);
   await page.setData({
     allowed,
+    submitMode: 'manual',
     pairCreating: false,
     pairCode: '',
     pairUploadToken: '',
@@ -85,8 +86,18 @@ async function createCase(miniProgram, allowed, name) {
   await wait(page, 300);
   const data = await page.data();
   assert(data.allowed === allowed, `create ${name} allowed mismatch`);
-  const titles = await assertTexts(await page.$$('.box-title'), [allowed ? 'CLI 提交配对码' : '需要组织者认证'], `create ${name}`);
-  if (!allowed) assert(!titles.some((text) => String(text).includes('CLI 提交配对码')), 'unapproved create page must not render pair card');
+  const titles = await assertTexts(await page.$$('.box-title'), [allowed ? '手动填写赛事信息' : '需要组织者认证'], `create ${name}`);
+  assert(!titles.some((text) => String(text).includes('CLI 提交配对码')), 'create page should not show old CLI pair title');
+  if (allowed) {
+    const tabElements = await page.$$('.submit-tab');
+    const tabs = await assertTexts(tabElements, ['手动填写', 'Agent + Skills'], `create ${name} tabs`);
+    assert(tabs.length === 2, 'approved create page should render submit mode tabs');
+    assert(tabElements[1], 'approved create page should render agent tab');
+    await tabElements[1].tap();
+    await wait(page, 300);
+    const agentTitles = await assertTexts(await page.$$('.box-title'), ['Agent + Skills 快速提交'], `create ${name} agent mode`);
+    assert(agentTitles.some((text) => String(text).includes('Agent + Skills 快速提交')), 'agent mode should render pair card');
+  }
   return shot(miniProgram, name);
 }
 

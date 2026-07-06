@@ -7,6 +7,7 @@ Page({
     aiBanner: false,
     aiIntentText: 'hackathon.create',
     allowed: false,
+    submitMode: 'manual',
     submitting: false,
     pairCreating: false,
     pairCode: '',
@@ -55,6 +56,11 @@ Page({
 
   chooseMode(e) {
     this.setData({ 'form.mode': e.currentTarget.dataset.mode || 'offline' });
+  },
+
+  switchSubmitMode(e) {
+    const mode = e.currentTarget.dataset.mode || 'manual';
+    this.setData({ submitMode: mode === 'agent' ? 'agent' : 'manual' });
   },
 
   goApply() {
