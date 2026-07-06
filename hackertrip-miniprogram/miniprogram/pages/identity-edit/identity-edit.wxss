@@ -65,6 +65,26 @@
   font-weight: 900;
 }
 
+.form-list .input-box,
+.form-list .textarea-box {
+  box-sizing: border-box;
+  width: 100%;
+  color: #000000;
+  background: #FFFFFF;
+  border: 4rpx solid #000000;
+  border-radius: 16rpx;
+  box-shadow: 6rpx 6rpx 0 0 #000000;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.form-list .input-box {
+  height: 88rpx;
+  min-height: 88rpx;
+  padding: 0 24rpx;
+  line-height: 88rpx;
+}
+
 .form-section-title {
   margin: 34rpx 0 18rpx;
   color: #000000;
@@ -73,7 +93,17 @@
 }
 
 .vault-textarea {
-  min-height: 156rpx;
+  min-height: 0;
+  padding: 20rpx 24rpx;
+  line-height: 1.45;
+}
+
+.vault-textarea--compact {
+  height: 124rpx;
+}
+
+.vault-textarea--multi {
+  height: 168rpx;
 }
 
 .save-profile {

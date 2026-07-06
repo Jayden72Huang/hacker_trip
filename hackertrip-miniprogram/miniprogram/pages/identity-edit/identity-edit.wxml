@@ -43,7 +43,7 @@
       </view>
       <view class="form-field">
         <text class="form-label">个人简介</text>
-        <textarea class="textarea-box vault-textarea" value="{{form.bio}}" data-field="bio" placeholder="用于身份页和报名表自我介绍" bindinput="onFieldInput" />
+        <textarea class="textarea-box vault-textarea vault-textarea--compact" value="{{form.bio}}" data-field="bio" placeholder="用于身份页和报名表自我介绍" placeholder-class="placeholder-text" show-confirm-bar="{{false}}" bindinput="onFieldInput" />
       </view>
       <view class="form-field">
         <text class="form-label">技能</text>
@@ -56,7 +56,7 @@
       <view class="form-section-title">报名资料库</view>
       <view class="form-field">
         <text class="form-label">当前想做的方向</text>
-        <textarea class="textarea-box vault-textarea" value="{{form.projectIdea}}" data-field="projectIdea" placeholder="例如：想做一个 AI Agent 工具，帮助创作者自动整理选题。" bindinput="onFieldInput" />
+        <textarea class="textarea-box vault-textarea vault-textarea--compact" value="{{form.projectIdea}}" data-field="projectIdea" placeholder="例如：想做一个 AI Agent 工具，帮助创作者自动整理选题。" placeholder-class="placeholder-text" show-confirm-bar="{{false}}" bindinput="onFieldInput" />
       </view>
       <view class="form-field">
         <text class="form-label">想找的队友</text>
@@ -68,15 +68,15 @@
       </view>
       <view class="form-field">
         <text class="form-label">项目经历（一行一个）</text>
-        <textarea class="textarea-box vault-textarea" value="{{form.projectsText}}" data-field="projectsText" placeholder="AI 视频工作流&#10;黑客松项目身份卡" bindinput="onFieldInput" />
+        <textarea class="textarea-box vault-textarea vault-textarea--multi" value="{{form.projectsText}}" data-field="projectsText" placeholder="{{projectsPlaceholder}}" placeholder-class="placeholder-text" show-confirm-bar="{{false}}" bindinput="onFieldInput" />
       </view>
       <view class="form-field">
         <text class="form-label">过往经历（一行一个）</text>
-        <textarea class="textarea-box vault-textarea" value="{{form.experiencesText}}" data-field="experiencesText" placeholder="参加过 8 场黑客松&#10;负责过 AI Agent 产品原型" bindinput="onFieldInput" />
+        <textarea class="textarea-box vault-textarea vault-textarea--multi" value="{{form.experiencesText}}" data-field="experiencesText" placeholder="{{experiencesPlaceholder}}" placeholder-class="placeholder-text" show-confirm-bar="{{false}}" bindinput="onFieldInput" />
       </view>
       <view class="form-field">
         <text class="form-label">获奖记录（一行一个）</text>
-        <textarea class="textarea-box vault-textarea" value="{{form.awardsText}}" data-field="awardsText" placeholder="某某黑客松冠军&#10;最佳 AI 应用奖" bindinput="onFieldInput" />
+        <textarea class="textarea-box vault-textarea vault-textarea--multi" value="{{form.awardsText}}" data-field="awardsText" placeholder="{{awardsPlaceholder}}" placeholder-class="placeholder-text" show-confirm-bar="{{false}}" bindinput="onFieldInput" />
       </view>
     </view>
 

@@ -1,11 +1,20 @@
 const { parseAIEntry } = require('../../utils/ai.js');
 const api = require('../../utils/api.js');
 
+function normalizeText(value) {
+  return String(value || '')
+    .replace(/&amp;#10;|&#10;|&#x0a;|&#x0A;|&NewLine;/g, '\n')
+    .replace(/\r\n?/g, '\n');
+}
+
 Page({
   data: {
     title: '编辑身份',
     aiBanner: false,
     aiIntentText: 'identity.edit',
+    projectsPlaceholder: 'AI 视频工作流\n黑客松项目身份卡',
+    experiencesPlaceholder: '参加过 8 场黑客松\n负责过 AI Agent 产品原型',
+    awardsPlaceholder: '某某黑客松冠军\n最佳 AI 应用奖',
     avatarUrl: '',
     isLoggedIn: false,
     form: {
@@ -36,18 +45,18 @@ Page({
       isLoggedIn: !!auth,
       avatarUrl: profile.avatarUrl || '',
       form: {
-        nickname: profile.nickname,
-        role: profile.role,
-        city: profile.city,
-        bio: profile.bio,
+        nickname: normalizeText(profile.nickname),
+        role: normalizeText(profile.role),
+        city: normalizeText(profile.city),
+        bio: normalizeText(profile.bio),
         skills: (profile.skills || []).join(', '),
-        github: profile.github,
-        projectIdea: (profile.teamPreference && profile.teamPreference.projectIdea) || '',
+        github: normalizeText(profile.github),
+        projectIdea: normalizeText((profile.teamPreference && profile.teamPreference.projectIdea) || ''),
         lookingFor: ((profile.teamPreference && profile.teamPreference.lookingFor) || []).join(', '),
-        availability: (profile.teamPreference && profile.teamPreference.availability) || '',
-        projectsText: (profile.projects || []).map((item) => item.name || item.summary || '').filter(Boolean).join('\n'),
-        experiencesText: (profile.experiences || []).map((item) => item.title || item.summary || '').filter(Boolean).join('\n'),
-        awardsText: (profile.awards || []).map((item) => item.title || item.eventName || '').filter(Boolean).join('\n'),
+        availability: normalizeText((profile.teamPreference && profile.teamPreference.availability) || ''),
+        projectsText: normalizeText((profile.projects || []).map((item) => item.name || item.summary || '').filter(Boolean).join('\n')),
+        experiencesText: normalizeText((profile.experiences || []).map((item) => item.title || item.summary || '').filter(Boolean).join('\n')),
+        awardsText: normalizeText((profile.awards || []).map((item) => item.title || item.eventName || '').filter(Boolean).join('\n')),
       },
     });
   },
@@ -79,18 +88,18 @@ Page({
 
   onFieldInput(e) {
     const field = e.currentTarget.dataset.field;
-    this.setData({ [`form.${field}`]: e.detail.value });
+    this.setData({ [`form.${field}`]: normalizeText(e.detail.value) });
   },
 
   splitList(text) {
-    return String(text || '')
+    return normalizeText(text)
       .split(/[,\n，、\/]/)
       .map((s) => s.trim())
       .filter((s) => s);
   },
 
   splitLines(text, key) {
-    return String(text || '')
+    return normalizeText(text)
       .split(/\n/)
       .map((s) => s.trim())
       .filter((s) => s)
