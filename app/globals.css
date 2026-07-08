@@ -3,13 +3,13 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --card: rgba(255, 255, 255, 0.04);
-  --border: rgba(255, 255, 255, 0.08);
-  --glass: rgba(255, 255, 255, 0.06);
-  --shadow: 0 10px 60px rgba(80, 93, 235, 0.24);
-  --accent-1: #7c5dff;
-  --accent-2: #c759ff;
-  --accent-3: #4de1ff;
+  --card: rgba(255, 255, 255, 0.05);
+  --border: rgba(203, 213, 225, 0.12);
+  --glass: rgba(8, 16, 24, 0.72);
+  --shadow: 0 18px 70px rgba(0, 0, 0, 0.34);
+  --accent-1: #67e8f9;
+  --accent-2: #22d3ee;
+  --accent-3: #f8d486;
 }
 
 @theme inline {
@@ -27,10 +27,8 @@
 }
 
 body {
-  background: radial-gradient(circle at 20% 20%, rgba(124, 93, 255, 0.08), transparent 30%),
-    radial-gradient(circle at 80% 10%, rgba(77, 225, 255, 0.08), transparent 26%),
-    radial-gradient(circle at 50% 70%, rgba(199, 89, 255, 0.1), transparent 32%),
-    #05060a;
+  background:
+    linear-gradient(180deg, #05080d 0%, #071018 44%, #05060a 100%);
   color: var(--foreground);
   font-family: var(--font-sora), system-ui, -apple-system, sans-serif;
   min-height: 100vh;
@@ -44,12 +42,12 @@ a {
 .glass {
   background: var(--glass);
   border: 1px solid var(--border);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), var(--shadow);
-  backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), var(--shadow);
+  backdrop-filter: blur(18px);
 }
 
 .glow {
-  box-shadow: 0 0 30px rgba(124, 93, 255, 0.2), 0 0 60px rgba(77, 225, 255, 0.18);
+  box-shadow: 0 0 0 1px rgba(103, 232, 249, 0.08), 0 16px 50px rgba(0, 0, 0, 0.28);
 }
 
 .shimmer {
@@ -73,10 +71,20 @@ a {
 }
 
 .grid-bg {
-  background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(circle at 50% 50%, black, transparent 60%);
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.045) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, black, transparent 78%);
+}
+
+.noise-overlay {
+  pointer-events: none;
+  opacity: 0.11;
+  background-image:
+    linear-gradient(30deg, rgba(255, 255, 255, 0.08) 12%, transparent 12.5%, transparent 87%, rgba(255, 255, 255, 0.08) 87.5%, rgba(255, 255, 255, 0.08)),
+    linear-gradient(150deg, rgba(255, 255, 255, 0.08) 12%, transparent 12.5%, transparent 87%, rgba(255, 255, 255, 0.08) 87.5%, rgba(255, 255, 255, 0.08));
+  background-size: 6px 6px;
 }
 
 /* Marquee Animations */

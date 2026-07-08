@@ -137,8 +137,40 @@ export default function RootLayout({
                     '@type': 'ImageObject',
                     url: `${siteUrl}/logo.png`,
                   },
-                  description: '中国领先的黑客松信息聚合平台，帮助开发者发现、报名和参加全球黑客松比赛。',
+                  description: 'HackerTrip 是黑客松发现与参赛助手，帮助开发者发现赛事、按技术栈匹配比赛、生成身份卡、同步项目 Skills 并管理参赛路线。',
+                  knowsAbout: [
+                    '黑客松',
+                    'hackathon',
+                    'AI hackathon',
+                    'online hackathon',
+                    'Web3 hackathon',
+                    'developer identity card',
+                    'skill-based event matching',
+                    'WeChat mini program',
+                  ],
                   sameAs: ['https://github.com/jaydenhtt/hacker_trip'],
+                },
+                {
+                  '@type': 'SoftwareApplication',
+                  '@id': `${siteUrl}/#wechat-miniprogram`,
+                  name: 'HackerTrip',
+                  applicationCategory: 'DeveloperApplication',
+                  operatingSystem: 'WeChat Mini Program',
+                  url: siteUrl,
+                  description: 'HackerTrip helps developers discover hackathons, match events by technology stack, save a personal schedule, generate participant identity cards, sync project Skills, and share public profiles.',
+                  featureList: [
+                    'Hackathon search',
+                    'Skill-based hackathon matching',
+                    'Personal hackathon schedule',
+                    'Participant identity card',
+                    'Project Skills sync',
+                    'Public developer profile',
+                    'Organizer application',
+                  ],
+                  audience: {
+                    '@type': 'Audience',
+                    audienceType: 'Developers, students, designers, AI builders, Web3 builders, startup teams, and hackathon organizers',
+                  },
                 },
                 {
                   '@type': 'WebSite',
@@ -166,6 +198,44 @@ export default function RootLayout({
                   about: { '@id': `${siteUrl}/#organization` },
                   description: '聚合全球 AI、Web3、开源黑客松赛事，AI 智能匹配项目和技术栈，一站式发现、报名、组队、参赛。',
                   inLanguage: 'zh-CN',
+                },
+                {
+                  '@type': 'FAQPage',
+                  '@id': `${siteUrl}/#faq`,
+                  mainEntity: [
+                    {
+                      '@type': 'Question',
+                      name: 'HackerTrip 是什么？',
+                      acceptedAnswer: {
+                        '@type': 'Answer',
+                        text: 'HackerTrip 是黑客松发现与参赛助手，提供赛事搜索、技术栈匹配、赛程收藏、身份卡、Skills 同步和公开主页能力。',
+                      },
+                    },
+                    {
+                      '@type': 'Question',
+                      name: 'HackerTrip 能帮我找 AI 黑客松吗？',
+                      acceptedAnswer: {
+                        '@type': 'Answer',
+                        text: '可以。HackerTrip 支持按 AI、LLM、AI Agent、城市、线上线下模式和技术栈搜索黑客松。具体报名状态仍应以活动官网为准。',
+                      },
+                    },
+                    {
+                      '@type': 'Question',
+                      name: 'HackerTrip 如何按技术栈匹配赛事？',
+                      acceptedAnswer: {
+                        '@type': 'Answer',
+                        text: 'HackerTrip 会把用户的技术栈和项目方向与赛事主题、赛道、标签和技术栈进行匹配，并返回匹配理由。',
+                      },
+                    },
+                    {
+                      '@type': 'Question',
+                      name: 'HackerTrip 身份卡有什么用？',
+                      acceptedAnswer: {
+                        '@type': 'Answer',
+                        text: 'HackerTrip 身份卡用于展示参赛者昵称、角色、城市、技能栈、项目统计和主页二维码，适合在微信里找队友和分享个人 profile。',
+                      },
+                    },
+                  ],
                 },
               ],
             }),

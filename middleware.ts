@@ -4,9 +4,34 @@ import { NextResponse } from 'next/server';
 // 需要保护的路由
 const protectedRoutes = ['/admin', '/organizer', '/organize/create', '/dashboard', '/settings', '/haki', '/works/submit', '/works/my', '/community/write', '/messages'];
 
+const CANONICAL_HOST = 'hackertrip.space';
+
 export default auth((req) => {
   const { pathname } = req.nextUrl;
   const isLoggedIn = !!req.auth;
+
+  // 生产环境统一跳转到主域名：Google OAuth 只登记了 hackertrip.space 的回调，
+  // 在 hackertrip.vercel.app 等别名域名上登录会报 redirect_uri_mismatch。
+  // preview 部署（VERCEL_ENV=preview）不跳转，保留分支预览可用性。
+  const host = req.headers.get('host') || '';
+  if (process.env.VERCEL_ENV === 'production' && host !== CANONICAL_HOST) {
+    const url = req.nextUrl.clone();
+    url.protocol = 'https';
+    url.host = CANONICAL_HOST;
+    url.port = '';
+    return NextResponse.redirect(url, 308);
+  }
+
+  // /@username → /u/[username] rewrite（身份卡个人主页友好链接）
+  // 仅命中 /@ 前缀，零误伤已有顶层路由与静态资源。
+  if (pathname.startsWith('/@')) {
+    const handle = pathname.slice(2); // 去掉 '/@'
+    if (handle && !handle.includes('/')) {
+      const url = req.nextUrl.clone();
+      url.pathname = `/u/${handle}`;
+      return NextResponse.rewrite(url);
+    }
+  }
 
   // 检查是否是受保护的路由
   const isProtectedRoute = protectedRoutes.some((route) =>

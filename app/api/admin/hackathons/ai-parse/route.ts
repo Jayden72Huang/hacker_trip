@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { chatCompletion } from '@/lib/llm';
+import { checkAdmin } from '@/lib/auth-helpers';
 
 export async function POST(request: NextRequest) {
   try {
+    const authResult = await checkAdmin();
+    if (!authResult.authorized) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { text } = await request.json();
 
     if (!text || text.trim().length < 20) {

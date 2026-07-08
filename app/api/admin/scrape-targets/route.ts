@@ -10,12 +10,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { scrapeTargets } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { checkAdmin } from '@/lib/auth-helpers';
+
+async function requireAdmin() {
+  const authResult = await checkAdmin();
+  if (!authResult.authorized) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  return null;
+}
 
 /**
  * GET - 获取所有爬取目标
  */
 export async function GET() {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const targets = await db
       .select()
       .from(scrapeTargets)
@@ -39,6 +51,9 @@ export async function GET() {
  */
 export async function POST(request: NextRequest) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const body = await request.json();
     const { name, url, platform, schedule, enabled } = body;
 

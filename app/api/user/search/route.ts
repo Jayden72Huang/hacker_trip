@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
-import { ilike, or, sql } from 'drizzle-orm';
+import { ilike, or } from 'drizzle-orm';
+import { checkAdmin } from '@/lib/auth-helpers';
 
-// GET /api/user/search?q=xxx — 搜索用户（需要登录，admin 用于邀请投稿）
 export async function GET(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: '未授权' }, { status: 401 });
+  const authResult = await checkAdmin();
+  if (!authResult.authorized) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const { searchParams } = new URL(req.url);

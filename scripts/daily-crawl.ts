@@ -5,8 +5,8 @@
  *   1. ensureTargets() 幂等插入数据源到 scrape_target 表
  *   2. 读取 enabled & schedule='daily' 的目标
  *   3. 每个目标：Firecrawl 抓 markdown（jina 降级）→ DeepSeek 提取赛事数组
- *   4. 按 name 去重（查 hackathons + draft_hackathon）
- *   5. 新赛事写入 draft_hackathon（status=pending，rawData 含 batchDate 当日批次）
+ *   4. 按 name 去重（查 hackathons + draft_hackathon + 飞书赛事总表）
+ *   5. 新赛事写入 draft_hackathon + 飞书「爬虫采集」子表
  *   6. 写 scrape_log，更新 target 统计
  *
  * 运行：source .env.local 后 `npx tsx scripts/daily-crawl.ts`
@@ -17,6 +17,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
+import { execSync } from 'child_process';
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
 import { neon } from '@neondatabase/serverless';
@@ -225,6 +226,141 @@ function confidenceOf(h: ExtractedHackathon): number {
   return Math.round((score / total) * 100);
 }
 
+// ───────────────────────── 飞书爬虫采集表 ─────────────────
+
+const FEISHU_BASE_TOKEN = 'WeUkbz9xRax4iKs8x1Lcjr6Sn4e';
+const CRAWLER_TABLE_NAME = '爬虫采集';
+
+const CRAWLER_TABLE_FIELDS = JSON.stringify([
+  { field_name: '赛事名称', type: 1 },
+  { field_name: '简称', type: 1 },
+  { field_name: '主题', type: 1 },
+  { field_name: '简介', type: 1 },
+  { field_name: '城市', type: 1 },
+  { field_name: '国家', type: 1 },
+  { field_name: '场地', type: 1 },
+  { field_name: '形式', type: 3, property: { options: [{ name: '线下' }, { name: '线上' }, { name: '混合' }] } },
+  { field_name: '开始日期', type: 5 },
+  { field_name: '结束日期', type: 5 },
+  { field_name: '奖金池', type: 1 },
+  { field_name: '参赛规模', type: 1 },
+  { field_name: '赛道', type: 1 },
+  { field_name: '标签', type: 1 },
+  { field_name: '主办方', type: 1 },
+  { field_name: '官网', type: 15 },
+  { field_name: '来源链接', type: 15 },
+  { field_name: '来源平台', type: 1 },
+  { field_name: '置信度', type: 2 },
+  { field_name: '采集时间', type: 5 },
+]);
+
+let crawlerTableId: string | null = null;
+
+function ensureFeishuCrawlerTable(): string | null {
+  try {
+    const listRaw = execSync(
+      `lark-cli base +table-list --base-token ${FEISHU_BASE_TOKEN} --as user --format json`,
+      { encoding: 'utf-8', timeout: 15000 },
+    );
+    const listResult = JSON.parse(listRaw);
+    const tables: { id: string; name: string }[] = listResult.data?.tables || [];
+    const existing = tables.find(t => t.name === CRAWLER_TABLE_NAME);
+    if (existing) return existing.id;
+
+    const createRaw = execSync(
+      `lark-cli base +table-create --base-token ${FEISHU_BASE_TOKEN} --name ${CRAWLER_TABLE_NAME} --fields '${CRAWLER_TABLE_FIELDS}' --as user --format json`,
+      { encoding: 'utf-8', timeout: 15000 },
+    );
+    const createResult = JSON.parse(createRaw);
+    const tableId = createResult.data?.table_id;
+    if (tableId) {
+      console.log(`  📋 飞书「${CRAWLER_TABLE_NAME}」子表已创建: ${tableId}`);
+      return tableId;
+    }
+    return null;
+  } catch (e) {
+    console.warn(`  ⚠️  飞书子表操作失败: ${(e as Error).message}`);
+    return null;
+  }
+}
+
+interface CrawledForFeishu {
+  name: string;
+  city?: string;
+  country?: string;
+  venue?: string;
+  startDate?: string;
+  endDate?: string;
+  format?: string;
+  theme?: string;
+  summary?: string;
+  prizePool?: string;
+  teams?: string;
+  tracks?: { title: string }[];
+  organizers?: { name: string }[];
+  detailUrl?: string;
+  platform: string;
+  confidence: number;
+  batchDate: string;
+}
+
+function writeToFeishuCrawlerTable(items: CrawledForFeishu[]) {
+  if (!crawlerTableId || items.length === 0) return;
+
+  const modeMap: Record<string, string> = { offline: '线下', online: '线上', hybrid: '混合' };
+
+  const fields = [
+    '赛事名称', '城市', '国家', '场地', '形式', '主题', '简介',
+    '开始日期', '结束日期', '奖金池', '参赛规模', '赛道', '主办方',
+    '官网', '来源链接', '来源平台', '置信度', '采集时间',
+  ];
+
+  const rows = items.map(h => {
+    const startTs = h.startDate ? new Date(h.startDate).getTime() : null;
+    const endTs = h.endDate ? new Date(h.endDate).getTime() : null;
+    const nowTs = Date.now();
+    const trackStr = (h.tracks || []).map(t => t.title).join(' / ');
+    const orgStr = (h.organizers || []).map(o => o.name).join(' / ');
+    const mode = h.format ? (modeMap[h.format] || h.format) : null;
+
+    return [
+      h.name,
+      h.city || null,
+      h.country || '中国',
+      h.venue || null,
+      mode ? [mode] : null,
+      h.theme || null,
+      h.summary || null,
+      startTs,
+      endTs,
+      h.prizePool || null,
+      h.teams || null,
+      trackStr || null,
+      orgStr || null,
+      h.detailUrl || null,
+      h.detailUrl || null,
+      h.platform || null,
+      h.confidence,
+      nowTs,
+    ];
+  });
+
+  try {
+    const payload = JSON.stringify({ fields, rows });
+    const tmpFile = path.join(os.tmpdir(), `feishu-crawl-${Date.now()}.json`);
+    fs.writeFileSync(tmpFile, payload);
+
+    execSync(
+      `lark-cli base +record-batch-create --base-token ${FEISHU_BASE_TOKEN} --table-id ${crawlerTableId} --json "$(cat ${tmpFile})" --as user --format json`,
+      { encoding: 'utf-8', timeout: 30000 },
+    );
+    fs.unlinkSync(tmpFile);
+    console.log(`  📋 写入飞书「${CRAWLER_TABLE_NAME}」${items.length} 条`);
+  } catch (e) {
+    console.warn(`  ⚠️  飞书写入失败: ${(e as Error).message}`);
+  }
+}
+
 // ───────────────────────── 主流程 ─────────────────────────
 
 async function main() {
@@ -234,6 +370,12 @@ async function main() {
 
   const batchDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
   console.log(`\n🕷️  每日黑客松爬取 — 批次 ${batchDate}\n${'─'.repeat(48)}`);
+
+  // 0. 确保飞书爬虫采集子表存在
+  crawlerTableId = ensureFeishuCrawlerTable();
+  if (crawlerTableId) {
+    console.log(`  📋 飞书「${CRAWLER_TABLE_NAME}」表已就绪: ${crawlerTableId}`);
+  }
 
   // 1. 幂等确保数据源存在
   for (const t of DEFAULT_TARGETS) {
@@ -278,6 +420,7 @@ async function main() {
       let dup = 0;
       let skippedEnded = 0;
       let autoPublished = 0;
+      const feishuBatch: CrawledForFeishu[] = [];
       for (const h of list) {
         const name = h.name.trim();
 
@@ -331,6 +474,26 @@ async function main() {
         }).returning();
         saved++;
 
+        feishuBatch.push({
+          name,
+          city: h.city,
+          country: h.country,
+          venue: h.venue,
+          startDate: start ? start.toISOString().split('T')[0] : undefined,
+          endDate: end ? end.toISOString().split('T')[0] : undefined,
+          format: h.format,
+          theme: h.theme,
+          summary: h.summary,
+          prizePool: h.prizePool,
+          teams: h.teams,
+          tracks: h.tracks,
+          organizers: h.organizers?.map(o => ({ name: o.name })),
+          detailUrl: h.detailUrl || target.url,
+          platform: target.platform || '',
+          confidence: confidenceOf(h),
+          batchDate,
+        });
+
         // 高置信度 + 报名链接验证通过 → 直接发布上架（需有起止日期）
         if (draft.startDate && draft.endDate && qualifiesForAutoPublish(draft)) {
           try {
@@ -353,6 +516,8 @@ async function main() {
         autoPublished ? `自动发布 ${autoPublished} 条` : '',
       ].filter(Boolean).join('，');
       console.log(`  ✅ 新增 ${saved} 条入草稿箱，去重跳过 ${dup} 条${extras ? '，' + extras : ''}\n`);
+
+      writeToFeishuCrawlerTable(feishuBatch);
 
       await db
         .update(scrapeLogs)
@@ -394,7 +559,7 @@ async function main() {
 
   console.log(`${'─'.repeat(48)}`);
   console.log(`🏁 批次 ${batchDate} 完成：发现 ${totalFound}，新增 ${totalSaved}，去重 ${totalDup}，跳过已结束 ${totalEnded}，自动发布 ${totalAutoPub}`);
-  console.log(`   去 /admin 草稿箱审核今日批次。\n`);
+  console.log(`   去飞书「爬虫采集」表审核 → 移入「赛事总表」→ 跑 npm run sync:feishu 上线\n`);
 }
 
 main()

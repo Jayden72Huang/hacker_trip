@@ -4,18 +4,16 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { organizerProfiles, users } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { checkAdmin } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-
-    // 简单权限检查（实际应该检查 admin 角色）
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: '请先登录' }, { status: 401 });
+    const authResult = await checkAdmin();
+    if (!authResult.authorized) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);

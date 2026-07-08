@@ -5,10 +5,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { organizerProfiles, users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { checkAdmin } from '@/lib/auth-helpers';
 
 const resend = new Resend(process.env.AUTH_RESEND_KEY);
 const FROM = process.env.EMAIL_FROM || 'HackerTrip <noreply@hackertrip.space>';
@@ -19,10 +19,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: '请先登录' }, { status: 401 });
+    const authResult = await checkAdmin();
+    if (!authResult.authorized) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const { id } = await params;

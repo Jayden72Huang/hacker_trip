@@ -13,9 +13,15 @@ import { ScraperFactory } from '@/scrapers/utils/scraper-factory';
 import { extractImageUrls, extractTextFromImages } from '@/lib/extract-from-images';
 import { normalizeToDraftInsert } from '@/lib/normalize-hackathon';
 import { chatCompletion } from '@/lib/llm';
+import { checkAdmin } from '@/lib/auth-helpers';
 
 export async function POST(request: NextRequest) {
   try {
+    const authResult = await checkAdmin();
+    if (!authResult.authorized) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { url } = await request.json();
 
     if (!url || typeof url !== 'string') {

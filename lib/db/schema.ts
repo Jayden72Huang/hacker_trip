@@ -144,6 +144,7 @@ export const hackathons = pgTable(
     participantCount: integer('participant_count').default(0),
     projectCount: integer('project_count').default(0),
     sourceUrl: text('source_url'),
+    feishuId: text('feishu_id').unique(),
     isVerified: boolean('is_verified').default(false),
     isFeatured: boolean('is_featured').default(false),
     // 软下架开关：false = 已下架，公开列表/详情页/sitemap 不展示，数据仍保留可恢复

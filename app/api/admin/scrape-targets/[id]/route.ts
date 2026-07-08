@@ -8,6 +8,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { scrapeTargets } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { checkAdmin } from '@/lib/auth-helpers';
+
+async function requireAdmin() {
+  const authResult = await checkAdmin();
+  if (!authResult.authorized) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  return null;
+}
 
 /**
  * PUT - 更新爬取目标
@@ -17,6 +26,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const { id } = await params;
     const body = await request.json();
     const { name, url, platform, schedule, enabled } = body;
@@ -87,6 +99,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const { id } = await params;
 
     const [deleted] = await db

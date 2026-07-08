@@ -105,7 +105,7 @@ export function SubscribeForm() {
               <button
                 type="submit"
                 disabled={status === 'loading'}
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-white text-[#0a0a0a] font-sora text-sm font-semibold transition-all hover:bg-gray-100 active:scale-[0.99] disabled:opacity-50"
+                className="sm:self-start inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-white text-[#0a0a0a] font-sora text-sm font-semibold transition-all hover:bg-gray-100 active:scale-[0.99] disabled:opacity-50"
               >
                 {status === 'loading' ? (
                   <span className="w-4 h-4 border-2 border-gray-400/30 border-t-gray-600 rounded-full animate-spin" />

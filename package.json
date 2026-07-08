@@ -9,7 +9,9 @@
     "lint": "eslint",
     "build:cf": "npx @opennextjs/cloudflare build",
     "preview:cf": "npm run build:cf && npx wrangler dev",
-    "deploy:cf": "npm run build:cf && npx wrangler deploy"
+    "deploy:cf": "npm run build:cf && npx wrangler deploy",
+    "sync:feishu": "npx tsx scripts/sync-from-feishu.ts",
+    "sync:admin": "npx tsx scripts/sync-admin-to-feishu.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, Copy, Scan, Sparkles, Zap, Shield, Terminal } from 'lucide-react';
+import { Check, Copy, ScanLine, Shield, Sparkles, Terminal } from 'lucide-react';
 
 export function SkillPromo() {
   const [copied, setCopied] = useState(false);
@@ -14,167 +14,148 @@ export function SkillPromo() {
   };
 
   return (
-    <section className="w-full max-w-[1440px] mx-auto px-4 md:px-6 lg:px-10 py-10 md:py-24">
-      <div className="relative rounded-2xl md:rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.04] to-white/[0.01] overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none" aria-hidden>
-          <div className="absolute -top-20 -right-20 w-[300px] h-[300px] bg-purple-500/10 rounded-full blur-[100px]" />
-          <div className="absolute -bottom-20 -left-20 w-[300px] h-[300px] bg-cyan-500/10 rounded-full blur-[100px]" />
-        </div>
+    <section id="skills" className="w-full max-w-[1440px] mx-auto scroll-mt-24 px-4 py-10 md:px-6 md:py-20 lg:px-10">
+      <div className="relative overflow-hidden rounded-[2rem] border border-white/[0.1] bg-[#071018]">
+        <div className="absolute inset-x-0 top-0 h-px bg-cyan-200/40" aria-hidden />
 
-        <div className="relative grid md:grid-cols-2 gap-6 md:gap-12 p-5 md:p-12 lg:p-16">
+        <div className="relative grid gap-8 p-5 md:grid-cols-[0.82fr_1fr] md:p-10 lg:p-14">
           {/* Left - Info */}
-          <div className="flex flex-col gap-4 md:gap-6">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20">
-                <Sparkles size={14} className="text-cyan-400" />
-                <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wider">AI Skill</span>
+          <div className="flex flex-col justify-between gap-7">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2 rounded-md border border-cyan-300/20 bg-cyan-300/10 px-3 py-1.5">
+                  <Sparkles size={14} className="text-cyan-200" />
+                  <span className="font-space-mono text-xs font-semibold uppercase tracking-wider text-cyan-100">AI Skill</span>
+                </div>
+                <div className="rounded-md border border-white/10 bg-white/[0.04] px-3 py-1.5">
+                  <span className="font-space-mono text-xs text-slate-400">开源免费 · 本地运行</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
-                <span className="text-xs text-gray-400">开源免费</span>
-              </div>
+
+              <h2 className="mt-6 font-sora text-2xl font-bold leading-tight text-white md:text-4xl">
+                一行命令，让 AI 读懂你的项目，再匹配可参赛的黑客松
+              </h2>
+
+              <p className="mt-5 max-w-xl text-sm leading-7 text-slate-400">
+                装到 Claude Code、Cursor 或 Windsurf。它会读取 package.json、README 和目录结构，输出推荐赛事、匹配分、赛道建议和 Pitch 角度。
+              </p>
             </div>
 
-            <h2 className="font-sora text-xl md:text-3xl lg:text-4xl font-bold text-white leading-tight">
-              一行命令
-              <br />
-              <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-                AI 帮你匹配黑客松
-              </span>
-            </h2>
-
-            <p className="text-gray-400 text-sm leading-relaxed">
-              不知道自己的项目适合哪个黑客松？装上这个 AI Skill，让 Claude / Cursor / Windsurf 帮你扫描代码、智能匹配。
-            </p>
-
             {/* Install command - mobile only (shown inline) */}
-            <div className="md:hidden rounded-xl bg-[#1a1a2e] border border-white/[0.08] overflow-hidden">
+            <div className="rounded-2xl border border-white/[0.1] bg-black/35 md:hidden">
               <div className="p-3">
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 text-cyan-300 text-xs font-mono break-all">
-                    <span className="text-gray-500">$ </span>{installCmd}
+                  <code className="flex-1 break-all font-space-mono text-xs text-cyan-100">
+                    <span className="text-slate-500">$ </span>{installCmd}
                   </code>
                   <button
                     onClick={handleCopy}
-                    className="shrink-0 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+                    className="shrink-0 rounded-lg border border-white/10 bg-white/5 p-1.5 transition-colors hover:bg-white/10"
                     title="复制命令"
                   >
-                    {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} className="text-gray-400" />}
+                    {copied ? <Check size={14} className="text-emerald-300" /> : <Copy size={14} className="text-slate-400" />}
                   </button>
                 </div>
               </div>
             </div>
 
             {/* Steps - compact on mobile */}
-            <div className="flex flex-col gap-3 md:gap-4 mt-1">
-              <div className="flex items-start gap-3 md:gap-4">
-                <div className="shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-xs md:text-sm font-bold">1</div>
+            <div className="flex flex-col gap-7 md:gap-8">
+              <div className="flex items-start gap-5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-300/25 bg-cyan-300/10 text-sm font-bold text-cyan-100">1</div>
                 <div>
-                  <p className="text-white font-medium text-sm">终端运行安装命令</p>
-                  <p className="text-gray-500 text-xs mt-0.5 hidden md:block">打开终端，粘贴右侧命令，10 秒自动安装 Skill 到你的 AI 编程助手</p>
+                  <p className="text-base font-semibold text-white">终端安装 Skill</p>
+                  <p className="mt-2 hidden text-sm leading-6 text-slate-500 md:block">10 秒内装到本机，不需要上传代码</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 md:gap-4">
-                <div className="shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 text-xs md:text-sm font-bold">2</div>
+              <div className="flex items-start gap-5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-300/25 bg-cyan-300/10 text-sm font-bold text-cyan-100">2</div>
                 <div>
-                  <p className="text-white font-medium text-sm">打开 AI 编程助手，进入你的项目</p>
-                  <p className="text-gray-500 text-xs mt-0.5 hidden md:block">用 Claude Code / Cursor / Windsurf 等打开你想参赛的项目目录</p>
+                  <p className="text-base font-semibold text-white">进入你的项目目录</p>
+                  <p className="mt-2 hidden text-sm leading-6 text-slate-500 md:block">支持 JS/TS、Python、Rust、Go、Ruby、Flutter</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 md:gap-4">
-                <div className="shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-pink-400 text-xs md:text-sm font-bold">3</div>
+              <div className="flex items-start gap-5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-300/25 bg-cyan-300/10 text-sm font-bold text-cyan-100">3</div>
                 <div>
-                  <p className="text-white font-medium text-sm">输入 <code className="px-1.5 py-0.5 rounded bg-white/10 text-cyan-300 text-xs font-mono">/ht-scan-project</code></p>
-                  <p className="text-gray-500 text-xs mt-0.5 hidden md:block">AI 读取 package.json、源码、README，理解项目做什么并匹配黑客松</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 md:gap-4">
-                <div className="shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center text-yellow-400 text-xs md:text-sm font-bold">4</div>
-                <div>
-                  <p className="text-white font-medium text-sm">查看匹配结果，一键跳转报名</p>
-                  <p className="text-gray-500 text-xs mt-0.5 hidden md:block">Top 5 推荐 + 匹配分数 + 推荐赛道 + Pitch 角度，点击直达详情页</p>
+                  <p className="text-base font-semibold text-white">输入 <code className="rounded bg-white/10 px-2 py-1 font-space-mono text-sm text-cyan-100">/ht-scan-project</code></p>
+                  <p className="mt-2 hidden text-sm leading-6 text-slate-500 md:block">自动生成 Top 5 推荐和报名路径</p>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 mt-1 md:mt-2 text-[11px] text-gray-500">
-              <Shield size={12} className="text-green-400" />
+            <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+              <Shield size={12} className="text-emerald-300" />
               <span>100% 本地运行，代码不上传</span>
-              <span className="text-white/10 hidden md:inline">|</span>
-              <span className="hidden md:inline">支持 JS/TS · Python · Rust · Go · Ruby · Flutter</span>
             </div>
           </div>
 
           {/* Right - Terminal (desktop only) */}
-          <div className="hidden md:flex flex-col gap-4">
+          <div className="hidden flex-col gap-4 md:flex">
             {/* Install command */}
-            <div className="rounded-2xl bg-[#1a1a2e] border border-white/[0.08] overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]">
-                <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                <div className="w-3 h-3 rounded-full bg-green-500/80" />
-                <span className="ml-2 text-xs text-gray-500 font-mono">Terminal</span>
-                <span className="ml-auto flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/25">
-                  <span className="w-4 h-4 rounded-full bg-cyan-500/20 flex items-center justify-center text-[10px] font-bold text-cyan-400">1</span>
-                  <span className="text-[10px] font-semibold text-cyan-400 uppercase tracking-wider">Step 1</span>
+            <div className="overflow-hidden rounded-2xl border border-white/[0.1] bg-black/35">
+              <div className="flex items-center gap-2 border-b border-white/[0.08] px-4 py-3">
+                <Terminal size={16} className="text-slate-500" />
+                <span className="text-xs font-mono text-slate-500">Terminal</span>
+                <span className="ml-auto flex items-center gap-1.5 rounded-full border border-cyan-300/25 bg-cyan-300/10 px-2 py-0.5">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-cyan-100">install</span>
                 </span>
               </div>
               <div className="p-4">
-                <p className="text-gray-500 text-xs font-mono mb-2">安装（10秒）</p>
+                <p className="mb-2 font-space-mono text-xs text-slate-500">安装（10秒）</p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 text-cyan-300 text-sm font-mono break-all">
-                    <span className="text-gray-500">$ </span>{installCmd}
+                  <code className="flex-1 break-all font-space-mono text-sm text-cyan-100">
+                    <span className="text-slate-500">$ </span>{installCmd}
                   </code>
                   <button
                     onClick={handleCopy}
-                    className="shrink-0 p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+                    className="shrink-0 rounded-lg border border-white/10 bg-white/5 p-2 transition-colors hover:bg-white/10"
                     title="复制命令"
                   >
-                    {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} className="text-gray-400" />}
+                    {copied ? <Check size={16} className="text-emerald-300" /> : <Copy size={16} className="text-slate-400" />}
                   </button>
                 </div>
               </div>
             </div>
 
             {/* Scan result preview */}
-            <div className="rounded-2xl bg-[#1a1a2e] border border-white/[0.08] overflow-hidden flex-1">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]">
-                <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                <div className="w-3 h-3 rounded-full bg-green-500/80" />
-                <span className="ml-2 text-xs text-gray-500 font-mono">/ht-scan-project 效果预览</span>
+            <div className="flex-1 overflow-hidden rounded-2xl border border-white/[0.1] bg-black/35">
+              <div className="flex items-center gap-2 border-b border-white/[0.08] px-4 py-3">
+                <ScanLine size={16} className="text-cyan-100" />
+                <span className="ml-1 font-space-mono text-xs text-slate-500">/ht-scan-project 效果预览</span>
               </div>
-              <div className="p-4 font-mono text-xs leading-relaxed space-y-3">
+              <div className="space-y-3 p-4 font-space-mono text-xs leading-relaxed">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="w-4 h-4 shrink-0 rounded-full bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-[10px] font-bold text-pink-400">3</span>
-                    <p className="text-white">📦 项目画像</p>
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded border border-cyan-300/25 bg-cyan-300/10 text-[10px] font-bold text-cyan-100">1</span>
+                    <p className="text-white">项目画像</p>
                   </div>
-                  <p className="text-gray-500 ml-3">名称：my-ai-app</p>
-                  <p className="text-gray-500 ml-3">技术栈：Next.js, Claude SDK, Three.js</p>
-                  <p className="text-gray-500 ml-3">领域：AI Application Platform</p>
+                  <p className="ml-3 text-slate-500">名称：my-ai-app</p>
+                  <p className="ml-3 text-slate-500">技术栈：Next.js, Claude SDK, Three.js</p>
+                  <p className="ml-3 text-slate-500">领域：AI Application Platform</p>
                 </div>
-                <div className="border-t border-white/[0.06] pt-3">
+                <div className="border-t border-white/[0.08] pt-3">
                   <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 shrink-0 rounded-full bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center text-[10px] font-bold text-yellow-400">4</span>
-                    <p className="text-yellow-400">🎯 匹配结果</p>
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded border border-cyan-300/25 bg-cyan-300/10 text-[10px] font-bold text-cyan-100">2</span>
+                    <p className="text-cyan-100">匹配结果</p>
                   </div>
                   <div className="mt-2 space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-cyan-300">#1 AdventureX 2026</span>
-                      <span className="text-yellow-400">92/100</span>
+                      <span className="text-cyan-100">#1 AdventureX 2026</span>
+                      <span className="text-amber-200">92/100</span>
                     </div>
-                    <p className="text-gray-500 ml-3">推荐赛道：AI 应用创新</p>
+                    <p className="ml-3 text-slate-500">推荐赛道：AI 应用创新</p>
                     <div className="flex justify-between">
-                      <span className="text-cyan-300">#2 腾讯云黑客松·总决赛</span>
-                      <span className="text-yellow-400">87/100</span>
+                      <span className="text-cyan-100">#2 腾讯云黑客松·总决赛</span>
+                      <span className="text-amber-200">87/100</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-cyan-300">#3 BEYOND HACK DAY</span>
-                      <span className="text-yellow-400">81/100</span>
+                      <span className="text-cyan-100">#3 BEYOND HACK DAY</span>
+                      <span className="text-amber-200">81/100</span>
                     </div>
                   </div>
                 </div>
-                <p className="text-purple-400 text-[11px]">📋 详情+报名 → hackertrip.space/hackathon/...</p>
+                <p className="text-[11px] text-cyan-100">详情+报名 → hackertrip.space/hackathon/...</p>
               </div>
             </div>
           </div>

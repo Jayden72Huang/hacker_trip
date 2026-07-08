@@ -6,7 +6,7 @@ import { eq, and } from 'drizzle-orm';
 import { SignJWT, jwtVerify } from 'jose';
 
 const INVITE_SECRET = new TextEncoder().encode(
-  process.env.NEXTAUTH_SECRET || 'hackerbot-invite-fallback-secret'
+  process.env.NEXTAUTH_SECRET
 );
 
 // POST /api/agent/team/:teamId/invite - Generate invite link
