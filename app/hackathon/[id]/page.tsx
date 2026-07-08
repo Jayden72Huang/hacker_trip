@@ -51,11 +51,13 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   }
 
   const name = row.name;
-  const summary = (row.summary || row.description || '').slice(0, 155);
+  const summary = (row.summary || row.description || '').slice(0, 130);
   const city = row.city || '';
   const mode = row.mode || 'hybrid';
   const modeLabel = mode === 'online' ? '线上' : mode === 'offline' ? '线下' : '混合';
-  const description = summary || `${name} — ${city ? city + ' · ' : ''}${modeLabel}黑客松比赛，在 HackerTrip 查看赛道、奖金和报名信息。`;
+  const description = summary
+    ? `【HackerTrip 收录赛事】${summary}`
+    : `${name} — ${city ? city + ' · ' : ''}${modeLabel}黑客松比赛，由主办方举办、HackerTrip 收录，查看赛道、奖金和报名信息。`;
 
   return {
     title: name,
@@ -152,7 +154,7 @@ export default async function HackathonDetailPage({ params }: Params) {
     url: `${siteUrl}/hackathon/${hackathon.id}`,
     organizer: hackathon.hostOrganizer
       ? { '@type': 'Organization', name: hackathon.hostOrganizer }
-      : { '@type': 'Organization', name: 'HackerTrip', url: siteUrl },
+      : undefined,
     image: hackathon.coverImage || `${siteUrl}/og-image.png`,
     offers: hackathon.prizePool
       ? { '@type': 'Offer', description: `奖金池: ${hackathon.prizePool}`, price: '0', priceCurrency: 'CNY', availability: 'https://schema.org/InStock' }
@@ -317,6 +319,14 @@ export default async function HackathonDetailPage({ params }: Params) {
             </div>
           </section>
         )}
+
+        {/* Disclaimer */}
+        <p className="text-gray-500 text-xs leading-relaxed border-t border-white/5 pt-4">
+          本页面为 HackerTrip 收录的第三方赛事信息，赛事由
+          {hackathon.hostOrganizer ? `「${hackathon.hostOrganizer}」` : '其主办方'}
+          举办，与 HackerTrip 无主办关系。信息以主办方官方渠道为准，如有出入请
+          <a href="mailto:support@hackertrip.space" className="text-gray-400 underline underline-offset-2 hover:text-white">联系我们更正</a>。
+        </p>
       </div>
     </main>
     </>
