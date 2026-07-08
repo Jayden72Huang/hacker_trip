@@ -17,13 +17,45 @@
 
     <block wx:else>
       <view class="submit-tabs">
-        <button class="submit-tab {{submitMode === 'manual' ? 'submit-tab--active' : ''}}" data-mode="manual" bindtap="switchSubmitMode">手动填写</button>
-        <button class="submit-tab {{submitMode === 'agent' ? 'submit-tab--active' : ''}}" data-mode="agent" bindtap="switchSubmitMode">Agent + Skills</button>
+        <button class="submit-tab {{submitMode === 'manual' ? 'submit-tab--active' : ''}}" data-mode="manual" bindtap="switchSubmitMode">人工填写提交</button>
+        <button class="submit-tab {{submitMode === 'agent' ? 'submit-tab--active' : ''}}" data-mode="agent" bindtap="switchSubmitMode">Agent自动提交</button>
       </view>
 
       <view wx:if="{{submitMode === 'agent'}}" class="brutal-box submit-pair-card">
-        <view class="box-title">Agent + Skills 快速提交</view>
-        <view class="box-copy">适合已经在电脑端用 Agent 整理好赛事资料的主办方。生成一次性配对码后，在 HackerTrip CLI 的 submit-event 命令里填入配对码和凭证，赛事仍会进入平台审核。</view>
+        <view class="box-title">Agent自动提交</view>
+        <view class="box-copy">适合已经在电脑端用 Agent 整理好赛事资料的主办方。CLI 负责提交，Agent / Skills 负责把官网、海报或活动说明整理成结构化赛事资料。</view>
+        <view class="agent-submit-steps">
+          <view class="agent-submit-step">
+            <view class="agent-step-index">1</view>
+            <view class="agent-step-body">
+              <view class="agent-step-title">电脑端准备 CLI</view>
+              <view class="agent-step-copy">打开终端运行 npx hackertrip --help；也可以先执行 npm i -g hackertrip 全局安装。</view>
+            </view>
+          </view>
+          <view class="agent-submit-step">
+            <view class="agent-step-index">2</view>
+            <view class="agent-step-body">
+              <view class="agent-step-title">让 Agent / Skills 整理资料</view>
+              <view class="agent-step-copy">把官网、海报或活动说明发给 Codex / Claude Code / Cursor，让它生成 event.json；没有 Skills 也可以手动准备 submit-event 参数。</view>
+            </view>
+          </view>
+          <view class="agent-submit-step">
+            <view class="agent-step-index">3</view>
+            <view class="agent-step-body">
+              <view class="agent-step-title">生成配对码和上传凭证</view>
+              <view class="agent-step-copy">点击下方按钮，拿到 6 位配对码和上传凭证。凭证只用于本次提交，30 分钟内有效。</view>
+            </view>
+          </view>
+          <view class="agent-submit-step">
+            <view class="agent-step-index">4</view>
+            <view class="agent-step-body">
+              <view class="agent-step-title">电脑端执行提交命令</view>
+              <view class="agent-step-copy">用复制的命令模板替换配对码和凭证，提交后仍会进入平台审核。</view>
+            </view>
+          </view>
+        </view>
+        <view class="agent-command">npx hackertrip submit-event --pair-code PAIR_CODE --sync-token UPLOAD_TOKEN --from event.json</view>
+        <button class="native-btn agent-command-copy" bindtap="copySubmitCommand">复制提交命令模板</button>
         <button
           class="native-btn submit-pair-btn"
           bindtap="createSubmitPair"
@@ -45,7 +77,7 @@
       </view>
 
       <view wx:if="{{submitMode === 'manual'}}" class="brutal-box">
-      <view class="box-title">手动填写赛事信息</view>
+      <view class="box-title">人工填写提交赛事信息</view>
       <view class="box-copy">默认提交方式。填写基础信息后进入平台审核，审核通过才会展示给参赛者。</view>
       <view class="form-field">
         <view class="field-label">赛事名称</view>

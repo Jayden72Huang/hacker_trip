@@ -110,6 +110,75 @@
   background: #FFFFFF;
 }
 
+.agent-submit-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.agent-submit-step {
+  display: flex;
+  gap: 16rpx;
+  padding: 18rpx;
+  background: #F7F4EA;
+  border: 3rpx solid #000000;
+  border-radius: 14rpx;
+}
+
+.agent-step-index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 42rpx;
+  width: 42rpx;
+  height: 42rpx;
+  color: #FFFFFF;
+  background: #000000;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.agent-step-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.agent-step-title {
+  color: #000000;
+  font-size: 25rpx;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.agent-step-copy {
+  margin-top: 8rpx;
+  color: #343434;
+  font-size: 22rpx;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.agent-command {
+  margin-top: 20rpx;
+  padding: 18rpx;
+  color: #FFFFFF;
+  background: #000000;
+  border-radius: 12rpx;
+  font-size: 21rpx;
+  font-weight: 800;
+  line-height: 1.45;
+  word-break: break-all;
+}
+
+.agent-command-copy {
+  min-height: 74rpx;
+  margin-top: 16rpx;
+  font-size: 23rpx;
+}
+
 .submit-pair-btn {
   margin-top: 24rpx;
 }

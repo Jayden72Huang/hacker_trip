@@ -15,7 +15,7 @@ Page({
     pairExpireAt: '',
     pairExpireText: '',
     pairCountdown: '',
-    pairStatusText: '已通过组织者认证后，可生成一次性配对码供电脑端提交赛事。',
+    pairStatusText: '点击生成后会得到 6 位配对码和上传凭证，再复制命令模板到电脑端提交。',
     form: {
       name: '',
       city: '',
@@ -162,6 +162,21 @@ Page({
     wx.setClipboardData({
       data: this.data.pairUploadToken,
       success: () => wx.showToast({ title: '凭证已复制', icon: 'success' }),
+    });
+  },
+
+  copySubmitCommand() {
+    const pairCode = this.data.pairCode || 'PAIR_CODE';
+    const syncToken = this.data.pairUploadToken || 'UPLOAD_TOKEN';
+    const command = [
+      'npx hackertrip submit-event \\',
+      `  --pair-code ${pairCode} \\`,
+      `  --sync-token ${syncToken} \\`,
+      '  --from event.json',
+    ].join('\n');
+    wx.setClipboardData({
+      data: command,
+      success: () => wx.showToast({ title: '命令模板已复制', icon: 'success' }),
     });
   },
 
