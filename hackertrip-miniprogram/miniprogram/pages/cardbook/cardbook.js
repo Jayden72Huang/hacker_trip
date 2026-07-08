@@ -66,7 +66,7 @@ Page({
         success: (r) => {
           if (!r.confirm) return;
           if (card.source === 'server') this.goIdentity();
-          else wx.switchTab({ url: '/pages/index/index' });
+          else wx.switchTab({ url: '/pages/discover/discover' });
         },
       });
     }

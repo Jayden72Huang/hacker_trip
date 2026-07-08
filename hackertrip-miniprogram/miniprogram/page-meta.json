@@ -1,6 +1,6 @@
 [
   {
-    "path": "pages/index/index",
+    "path": "pages/discover/discover",
     "name": "发现黑客松",
     "description": "浏览和搜索正在报名的黑客松赛事，支持按城市、线上线下、AI/Web3/硬件等方向筛选"
   },

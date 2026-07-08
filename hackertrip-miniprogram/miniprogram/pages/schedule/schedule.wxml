@@ -79,7 +79,7 @@
     </view>
     <view wx:elif="{{isLoggedIn}}" class="my-events-empty">
       <view class="empty-text">还没有加入的赛事，去发现页找一场报名吧。</view>
-      <navigator class="empty-cta" url="/pages/index/index" open-type="switchTab" hover-class="empty-cta--active">去发现页逛逛</navigator>
+      <navigator class="empty-cta" url="/pages/discover/discover" open-type="switchTab" hover-class="empty-cta--active">去发现页逛逛</navigator>
     </view>
 
     <view class="section-title">已收藏赛事</view>

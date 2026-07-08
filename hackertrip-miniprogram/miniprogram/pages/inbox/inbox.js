@@ -44,7 +44,7 @@ function toDeadlineItem(reg) {
     sub: `${reg.startDate || '待确认'} - ${reg.endDate || '待确认'} · ${reg.location || reg.city || '地点待确认'} · ${reg.modeText || '形式待确认'}`,
     time,
     tag: isReg ? '报名截止' : (reg.prizePool || '赛程'),
-    url: reg.id ? `/pages/detail/detail?id=${reg.id}` : '/pages/index/index',
+    url: reg.id ? `/pages/detail/detail?id=${reg.id}` : '/pages/discover/discover',
     _days: days,
   };
 }
@@ -77,7 +77,7 @@ function buildGroups(registrations) {
         sub: '报名或收藏赛事后，报名截止和赛程提醒会自动出现在这里',
         time: '',
         tag: '提示',
-        url: '/pages/index/index',
+        url: '/pages/discover/discover',
       },
     ],
   });

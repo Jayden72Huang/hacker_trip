@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/discover/discover",
     "pages/schedule/schedule",
     "pages/inbox/inbox",
     "pages/profile/profile",
@@ -44,7 +45,7 @@
     "backgroundColor": "#FFFFFF",
     "list": [
       {
-        "pagePath": "pages/index/index",
+        "pagePath": "pages/discover/discover",
         "text": "发现"
       },
       {

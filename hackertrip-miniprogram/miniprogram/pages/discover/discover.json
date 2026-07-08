@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "发现黑客松",
+  "navigationBarTextStyle": "white",
+  "navigationBarBackgroundColor": "#000000",
+  "usingComponents": {
+    "navbar": "/components/navbar/index",
+    "hackathon-card": "/components/hackathon-card/index",
+    "t-icon": "tdesign-miniprogram/icon/icon"
+  }
+}

@@ -54,7 +54,7 @@ Page({
   goBack() {
     const redirect = this.data.redirect;
     if (redirect) {
-      const TAB_PAGES = ['/pages/index/index', '/pages/schedule/schedule', '/pages/inbox/inbox', '/pages/profile/profile'];
+      const TAB_PAGES = ['/pages/discover/discover', '/pages/schedule/schedule', '/pages/inbox/inbox', '/pages/profile/profile'];
       if (TAB_PAGES.some((p) => redirect.indexOf(p) === 0)) {
         wx.switchTab({ url: redirect });
       } else {

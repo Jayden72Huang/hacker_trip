@@ -1,177 +1,31 @@
-<view class="page page--tab discovery-page">
-  <navbar title="{{title}}" showBack="{{false}}" showHome="{{false}}" />
-
-  <view class="content">
-    <view wx:if="{{aiBanner}}" class="ai-banner">
-      <text>来自微信AI助手</text>
-      <text>{{aiIntentText}}</text>
-    </view>
-
-    <view class="hero">
-      <view class="hero-brand">
-        <image class="hero-logo" src="/images/logo-transparent.png" mode="aspectFit" />
-        <view class="hero-copy">
-          <view class="page-title">发现黑客松</view>
-          <view class="page-subtitle">HackerTrip-助你探索好玩的黑客松赛事</view>
-        </view>
+<view class="cover-page">
+  <view class="cover-hero" style="padding-top: {{heroTopPadding}}px;">
+    <image class="cover-hero-bg" src="/images/home-brand-cover.jpg" mode="aspectFill" />
+    <view class="cover-hero-overlay"></view>
+    <view class="cover-brand">
+      <image class="cover-logo" src="/images/logo-transparent.png" mode="aspectFit" />
+      <view class="cover-brand-copy">
+        <text class="cover-brand-name">HackerTrip</text>
+        <text class="cover-brand-sub">你的一站式AI黑客松平台!</text>
       </view>
     </view>
-
-    <!-- loading 骨架屏 -->
-    <view wx:if="{{loading}}" class="skeleton">
-      <view class="skeleton-card">
-        <view class="skeleton-line skeleton-line--title"></view>
-        <view class="skeleton-line skeleton-line--mid"></view>
-        <view class="skeleton-line skeleton-line--short"></view>
-      </view>
-      <view class="skeleton-card">
-        <view class="skeleton-line skeleton-line--title"></view>
-        <view class="skeleton-line skeleton-line--mid"></view>
-        <view class="skeleton-line skeleton-line--short"></view>
-      </view>
-      <view class="skeleton-hint">加载中…</view>
+    <view class="cover-slogan">
+      <text class="cover-kicker">FIND · TEAM · BUILD</text>
+      <text class="cover-title">把想法带上路</text>
+      <text class="cover-title cover-title--second">去黑客松里见真章</text>
+      <text class="cover-desc">发现赛事、找到队友、推广作品，从这里开始。</text>
     </view>
-
-    <!-- 内容区 -->
-    <block wx:else>
-    <view class="featured-switch">
-        <button
-          class="featured-switch-item {{activeFeaturedTab === 'featured' ? 'featured-switch-item--active' : ''}}"
-          data-tab="featured"
-          bindtap="onFeaturedTabTap"
-        >精选推荐</button>
-        <button
-          class="featured-switch-item {{activeFeaturedTab === 'mine' ? 'featured-switch-item--active' : ''}}"
-          data-tab="mine"
-          bindtap="onFeaturedTabTap"
-        >适合我的</button>
+    <view class="cover-actions">
+      <button class="cover-action cover-action--primary" bindtap="goJoinHackathon">
+        <text class="cover-action-title">参加黑客松</text>
+        <text class="cover-action-meta">JOIN</text>
+        <text class="cover-action-arrow">→</text>
+      </button>
+      <button class="cover-action" bindtap="goHostHackathon">
+        <text class="cover-action-title">举办黑客松</text>
+        <text class="cover-action-meta">HOST</text>
+        <text class="cover-action-arrow">→</text>
+      </button>
     </view>
-    <view class="featured-head-line"></view>
-    <view wx:if="{{activeFeaturedTab === 'mine' && recommendationState === 'login'}}" class="recommendation-guide">
-      <view class="recommendation-guide-copy">
-        <view class="recommendation-guide-title">登录后生成个人推荐</view>
-        <view class="recommendation-guide-text">用你的技能、GitHub、作品和 Skills 同步结果匹配更适合的黑客松。</view>
-      </view>
-      <button class="recommendation-guide-btn" bindtap="openRecommendationLogin">微信登录</button>
-    </view>
-    <view wx:elif="{{activeFeaturedTab === 'mine' && recommendationState === 'profile'}}" class="recommendation-guide">
-      <view class="recommendation-guide-copy">
-        <view class="recommendation-guide-title">补充资料后更准确</view>
-        <view class="recommendation-guide-text">完善技能、GitHub 或同步 Skills，推荐会更贴合你的阶段和能力。</view>
-      </view>
-      <view class="recommendation-guide-actions">
-        <button class="recommendation-guide-btn recommendation-guide-btn--ghost" bindtap="goEditProfile">编辑资料</button>
-        <button class="recommendation-guide-btn" bindtap="goSyncSkills">同步 Skills</button>
-      </view>
-    </view>
-    <view wx:if="{{activeFeaturedTab === 'mine' && recommendationState === 'ready' && recommendationHint}}" class="recommendation-hint">{{recommendationHint}}</view>
-    <scroll-view wx:if="{{featured.length}}" class="featured-scroll" scroll-x enable-flex>
-      <navigator
-        wx:for="{{featured}}"
-        wx:key="id"
-        class="featured-card"
-        url="/pages/detail/detail?id={{item.id}}"
-        hover-class="featured-card--active"
-      >
-        <view class="featured-title">{{item.shortName || item.name}}</view>
-        <view wx:if="{{activeFeaturedTab === 'mine' && item.fitReason}}" class="featured-reason">{{item.fitReason}}</view>
-        <view class="featured-info">
-          <view class="featured-info-row">
-            <text class="featured-info-label">时间</text>
-            <text class="featured-info-value">{{item.featuredDateText || '待确认'}}</text>
-          </view>
-          <view class="featured-info-row">
-            <text class="featured-info-label">地点</text>
-            <text class="featured-info-value featured-info-value--location">{{item.location || item.city || '待确认'}}</text>
-          </view>
-          <view class="featured-info-row featured-info-row--split">
-            <view class="featured-inline">
-              <text class="featured-info-label">模式</text>
-              <text class="featured-mode-pill">{{item.modeText || '待确认'}}</text>
-            </view>
-            <view class="featured-inline featured-inline--prize">
-              <text class="featured-info-label">奖金</text>
-              <text class="featured-info-value featured-prize">{{item.prizePool || '待确认'}}</text>
-            </view>
-          </view>
-        </view>
-      </navigator>
-    </scroll-view>
-    <view wx:elif="{{activeFeaturedTab === 'mine'}}" class="recommendation-empty">
-      完成上方操作后，这里只展示真正适合你的黑客松。
-    </view>
-
-    <view class="list-head">
-      <view class="section-title list-head-title">更多黑客松</view>
-      <view class="list-head-line"></view>
-    </view>
-
-    <view class="search-row">
-      <view class="city-row search-city" bindtap="openCityPicker">
-        <text class="city-name">{{city}}</text>
-        <text class="city-caret">▾</text>
-      </view>
-      <view class="search-box">
-        <t-icon name="search" size="34rpx" color="#000000" />
-        <input
-          class="search-input"
-          value="{{query}}"
-          placeholder="搜索更多黑客松"
-          confirm-type="search"
-          bindinput="onSearchInput"
-          bindconfirm="onSearchConfirm"
-        />
-        <button wx:if="{{query}}" class="search-clear" aria-label="清空搜索" bindtap="clearSearch">×</button>
-      </view>
-      <view class="sort-chip" bindtap="openSortPicker">
-        <text>{{sortLabel}}</text>
-        <text class="sort-caret">▾</text>
-      </view>
-    </view>
-
-    <hackathon-card
-      wx:for="{{hackathons}}"
-      wx:key="id"
-      item="{{item}}"
-      bookmarked="{{item.bookmarked}}"
-      bind:bookmark="onBookmark"
-      bind:tapcard="goDetail"
-      bind:register="onRegister"
-    />
-
-    <!-- 搜索 / 筛选后无结果的空态（区别于 loading） -->
-    <view wx:if="{{hackathons.length === 0}}" class="empty-state">
-      <view class="empty-state-title">没找到匹配的黑客松</view>
-      <view class="empty-state-text">换个关键词或筛选条件再试试。</view>
-    </view>
-    </block>
   </view>
-
-  <page-container show="{{cityPickerVisible}}" round bindbeforeleave="closeCityPicker" bindclickoverlay="closeCityPicker">
-    <view class="city-picker">
-      <view class="city-picker-title">选择城市</view>
-      <scroll-view scroll-y class="city-picker-list">
-        <view
-          wx:for="{{cities}}"
-          wx:key="*this"
-          class="city-picker-item {{city === item ? 'on' : ''}}"
-          data-city="{{item}}"
-          bindtap="onCityPick"
-        >{{item}}</view>
-      </scroll-view>
-    </view>
-  </page-container>
-  <page-container show="{{sortPickerVisible}}" round bindbeforeleave="closeSortPicker" bindclickoverlay="closeSortPicker">
-    <view class="sort-picker">
-      <view class="sort-picker-title">排序方式</view>
-      <view
-        wx:for="{{sortOptions}}"
-        wx:key="key"
-        class="sort-picker-item {{sortKey === item.key ? 'on' : ''}}"
-        data-key="{{item.key}}"
-        bindtap="onSortPick"
-      >{{item.label}}</view>
-    </view>
-  </page-container>
-  <auth-modal id="authModal" />
 </view>

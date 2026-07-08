@@ -4,7 +4,7 @@ Component({
     color: '#7A7A75',
     selectedColor: '#0C51ED',
     list: [
-      { pagePath: '/pages/index/index', text: '发现', icon: 'star' },
+      { pagePath: '/pages/discover/discover', text: '发现', icon: 'star' },
       { pagePath: '/pages/schedule/schedule', text: '赛程', icon: 'calendar' },
       { pagePath: '/pages/inbox/inbox', text: '消息', icon: 'chat' },
       { pagePath: '/pages/profile/profile', text: '我的', icon: 'user-circle' },

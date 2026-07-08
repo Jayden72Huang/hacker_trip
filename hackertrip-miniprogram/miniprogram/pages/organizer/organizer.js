@@ -14,6 +14,8 @@ Page({
     claimSubmitting: false,
     claimEventId: '',
     claimEvent: null,
+    fromCover: false,
+    redirectAfterSubmit: '',
     claimStatus: 'none',
     claimStatusText: '待提交认领',
     claimStatusHint: '',
@@ -37,37 +39,45 @@ Page({
   },
 
   onShow() {
-    this.refresh();
+    // 本地缓存状态立即渲染（已认证用户直接看到"已认证"，不闪"未申请"），云端校验放后台
+    this.renderLocal();
+    this.revalidate();
   },
 
   onLoad(options) {
     const ai = parseAIEntry(options);
     const claimEventId = options && options.claim ? decodeURIComponent(options.claim) : '';
+    const fromCover = options && options.from === 'cover';
+    const redirectAfterSubmit = options && options.redirect ? decodeURIComponent(options.redirect) : '';
     this.setData({
       aiBanner: ai.fromAI,
       aiIntentText: ai.intent || 'organizer.apply',
       claimEventId,
+      fromCover,
+      redirectAfterSubmit,
     });
-    // 从赛事详情「认领」跳转而来：提示用户先完成组织者认证
-    if (claimEventId) {
+    // 从赛事详情「认领」跳转而来且尚未通过认证时，才提示先完成组织者认证
+    if (claimEventId && !api.isOrganizerApproved()) {
       wx.showToast({ title: '先完成组织者认证，再提交赛事认领', icon: 'none', duration: 2600 });
     }
-    this.refresh();
+    // 渲染统一在 onShow 里做（onLoad 后必触发 onShow）
   },
 
-  async refresh() {
-    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
+  /** 只读本地 storage 的同步渲染，进页面即出，不等云端 */
+  renderLocal() {
     const app = api.getOrganizerApplication();
     const claims = api.getHackathonClaims().map((claim) => this.decorateClaim(claim));
     const ownedHackathons = api.getOwnedHackathons().map((item) => this.decorateOwnedHackathon(item));
     const claimEventId = this.data.claimEventId;
     let claimEvent = this.data.claimEvent;
     if (claimEventId && (!claimEvent || claimEvent.id !== claimEventId)) {
-      claimEvent = await api.getHackathonDetail(claimEventId).catch(() => null);
+      // 优先用缓存的赛事列表补齐认领赛事信息，云端详情由 revalidate 兜底
+      claimEvent = api.getCachedHackathons({ includeEnded: true })
+        .find((h) => h.id === claimEventId) || null;
     }
     const currentClaim = claimEventId ? (api.getHackathonClaim(claimEventId) || null) : null;
     const claimStatus = currentClaim ? currentClaim.status : 'none';
-    this.setData({
+    const payload = {
       status: app.status,
       statusText: this.getStatusText(app.status),
       statusActionText: this.getStatusActionText(app.status),
@@ -77,25 +87,43 @@ Page({
       claimStatusText: this.getClaimStatusText(claimStatus, app.status),
       claimStatusHint: this.getClaimStatusHint(claimStatus, app.status, currentClaim),
       claimActionText: this.getClaimActionText(claimStatus, app.status),
-      claimForm: {
-        claimRole: currentClaim && currentClaim.claimRole ? currentClaim.claimRole : (app.role || ''),
-        contact: currentClaim && currentClaim.contact ? currentClaim.contact : (app.contact || ''),
-        proofUrl: currentClaim && currentClaim.proofUrl ? currentClaim.proofUrl : (claimEvent && claimEvent.website ? claimEvent.website : app.website || ''),
-        note: currentClaim && currentClaim.note ? currentClaim.note : '',
-      },
-      form: {
-        orgName: app.orgName || '',
-        role: app.role || '',
-        contact: app.contact || '',
-        website: app.website || '',
-        note: app.note || '',
-      },
       drafts: api.getHackathonDrafts().map((draft) => Object.assign({}, draft, {
         statusText: this.getDraftStatusText(draft.status),
       })),
       claims,
       ownedHackathons,
-    });
+    };
+    // 用户正在编辑的表单不被后台刷新覆盖
+    if (!this._claimFormDirty) {
+      payload.claimForm = {
+        claimRole: currentClaim && currentClaim.claimRole ? currentClaim.claimRole : (app.role || ''),
+        contact: currentClaim && currentClaim.contact ? currentClaim.contact : (app.contact || ''),
+        proofUrl: currentClaim && currentClaim.proofUrl ? currentClaim.proofUrl : (claimEvent && claimEvent.website ? claimEvent.website : app.website || ''),
+        note: currentClaim && currentClaim.note ? currentClaim.note : '',
+      };
+    }
+    if (!this._orgFormDirty) {
+      payload.form = {
+        orgName: app.orgName || '',
+        role: app.role || '',
+        contact: app.contact || '',
+        website: app.website || '',
+        note: app.note || '',
+      };
+    }
+    this.setData(payload);
+  },
+
+  /** 后台云端校验：同步组织者/认领状态 + 拉取认领赛事最新详情，有变化才引起重绘 */
+  async revalidate() {
+    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
+    const claimEventId = this.data.claimEventId;
+    if (claimEventId) {
+      // 始终拉一次云端详情，刷新缓存快照可能过期的赛事信息
+      const claimEvent = await api.getHackathonDetail(claimEventId).catch(() => null);
+      if (claimEvent) this.setData({ claimEvent });
+    }
+    this.renderLocal();
   },
 
   getStatusText(status) {
@@ -206,18 +234,23 @@ Page({
   onFieldInput(e) {
     const field = e.currentTarget.dataset.field;
     if (!field) return;
+    this._orgFormDirty = true;
     this.setData({ [`form.${field}`]: e.detail.value });
   },
 
   onClaimFieldInput(e) {
     const field = e.currentTarget.dataset.field;
     if (!field) return;
+    this._claimFormDirty = true;
     this.setData({ [`claimForm.${field}`]: e.detail.value });
   },
 
   async submitApplication() {
     if (this.data.submitting) return;
-    const auth = await api.requireAuth(this, '/pages/organizer/organizer', '登录后才能提交组织者认证申请。');
+    const authPath = this.data.fromCover
+      ? '/pages/organizer/organizer?from=cover&redirect=discover'
+      : '/pages/organizer/organizer';
+    const auth = await api.requireAuth(this, authPath, '登录后才能提交组织者认证申请。');
     if (!auth) return;
     const form = this.data.form;
     if (!form.orgName.trim() || !form.role.trim() || !form.contact.trim()) {
@@ -241,11 +274,18 @@ Page({
       return;
     }
     wx.showToast({ title: '已提交申请', icon: 'success' });
-    this.refresh();
+    this._orgFormDirty = false;
+    this.renderLocal();
+    if (this.data.fromCover && this.data.redirectAfterSubmit === 'discover') {
+      setTimeout(() => {
+        wx.switchTab({ url: '/pages/discover/discover' });
+      }, 900);
+    }
   },
 
   onAuthLogin() {
-    this.refresh();
+    this.renderLocal();
+    this.revalidate();
   },
 
   onStatusAction() {
@@ -342,7 +382,8 @@ Page({
       return;
     }
     wx.showToast({ title: '认领已提交', icon: 'success' });
-    this.refresh();
+    this._claimFormDirty = false;
+    this.renderLocal();
   },
 
   goOwnedDetail(e) {

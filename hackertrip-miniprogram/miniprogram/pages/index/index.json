@@ -1,8 +1,5 @@
 {
-  "navigationBarTitleText": "发现黑客松",
-  "usingComponents": {
-    "navbar": "/components/navbar/index",
-    "hackathon-card": "/components/hackathon-card/index",
-    "t-icon": "tdesign-miniprogram/icon/icon"
-  }
+  "navigationBarTitleText": "HackerTrip",
+  "navigationBarTextStyle": "white",
+  "navigationBarBackgroundColor": "#000000"
 }

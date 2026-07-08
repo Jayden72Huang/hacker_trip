@@ -49,13 +49,13 @@ Component({
       }
 
       wx.switchTab({
-        url: '/pages/index/index',
+        url: '/pages/discover/discover',
       });
     },
 
     goHome() {
       wx.switchTab({
-        url: '/pages/index/index',
+        url: '/pages/discover/discover',
       });
     },
   },
