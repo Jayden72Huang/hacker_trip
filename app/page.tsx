@@ -12,6 +12,7 @@ import { HackathonListSection } from '@/components/HackathonListSection';
 import { OrganizerCTA } from '@/components/OrganizerCTA';
 import { HeroRotatingText } from '@/components/HeroRotatingText';
 import { SkillPromo } from '@/components/SkillPromo';
+import { HomeLogoLoop } from '@/components/HomeLogoLoop';
 import { HeroVideo } from '@/components/HeroVideo';
 
 // Event Radar 每小时重新生成，自动同步报名截止倒计时
@@ -225,6 +226,9 @@ export default async function Home() {
 
         {/* AI Skill 推广 */}
         <SkillPromo />
+
+        {/* Logo 无限循环滚动带 */}
+        <HomeLogoLoop />
 
         {/* 黑客松列表（带 Tab + 搜索 + 筛选） */}
         <HackathonListSection />
