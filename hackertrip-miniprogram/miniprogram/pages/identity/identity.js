@@ -53,6 +53,7 @@ Page({
     fromSync: false,
     rolePanelOpen: false,
     configPanelOpen: false,
+    inviteCode: '',
   },
 
   async onLoad(options) {
@@ -80,10 +81,34 @@ Page({
       });
     }
     this.recompute();
+    this.loadInviteCode();
   },
 
   onReady() {
     this.initCanvas();
+  },
+
+  // SWR：先展示本地缓存的暗号，云端结果回来再刷新
+  loadInviteCode() {
+    const growth = api.getGrowth();
+    if (growth.inviteCode) this.setData({ inviteCode: growth.inviteCode });
+    api.getInviteCode().then((res) => {
+      if (res && res.ok && res.code) this.setData({ inviteCode: res.code });
+    }).catch(() => {});
+  },
+
+  copyInviteCode() {
+    const code = this.data.inviteCode;
+    if (!code) {
+      wx.showToast({ title: '暗号生成中，稍后再试', icon: 'none' });
+      return;
+    }
+    wx.setClipboardData({
+      data: `我在 HackerTrip 组队，我的暗号是 ${code}。打开小程序，在 Haki 聊天里对上暗号，解锁限定卡、看我的组队雷达！`,
+      success: () => {
+        wx.showToast({ title: '暗号已复制，发给朋友吧', icon: 'none' });
+      },
+    });
   },
 
   /* ---------------- 角色判定 ---------------- */

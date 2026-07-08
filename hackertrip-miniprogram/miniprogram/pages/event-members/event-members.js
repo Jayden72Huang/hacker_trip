@@ -9,9 +9,10 @@ Page({
     loading: true,
   },
 
-  async onLoad(options) {
+  onLoad(options) {
     this.setData({ eventId: (options && (options.id || options.eventId)) || '' });
-    await this.load();
+    // revalidate：不阻塞首屏，loading 态先渲染
+    this.load();
   },
 
   async onPullDownRefresh() {

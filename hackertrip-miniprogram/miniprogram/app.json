@@ -23,6 +23,10 @@
     "pages/achievements/achievements",
     "pages/form-assistant/form-assistant",
     "pages/organizer-verify/organizer-verify",
+    "pages/event-checkin/event-checkin",
+    "pages/event-members/event-members",
+    "pages/team-builder/team-builder",
+    "pages/handshake/handshake",
     "pages/settings/settings",
     "pages/login/login",
     "pages/share/share"

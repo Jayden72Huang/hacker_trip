@@ -41,6 +41,7 @@
           </button>
         </view>
         <view class="share-status flow-share-status">{{previewReady ? (qrReady ? (cardSaved ? '已保存到我的 · 可转发' : '已绑定公开主页') : (qrError || '正在生成小程序码')) : '先完成步骤 2 生成预览'}}</view>
+        <view class="flow-invite" bindtap="copyInviteCode">🔑 组队暗号 <text class="flow-invite-code">{{inviteCode || 'HT-····'}}</text> · 点我复制发给朋友</view>
       </view>
     </view>
   </view>

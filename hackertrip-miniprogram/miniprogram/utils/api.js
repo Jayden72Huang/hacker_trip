@@ -26,6 +26,7 @@ const STORAGE = {
   HACKATHON_DRAFTS: 'ht_hackathon_drafts', // 组织者提交的赛事草稿
   GROWTH: 'ht_growth', // 裂变成长态：暗号 / 招募值 / 被邀请 / 已解锁卡面
   SUBSCRIPTIONS: 'ht_message_subscriptions', // 微信订阅消息授权记录
+  HEAT_MAP: 'ht_heat_map', // 列表页批量热度缓存（5 分钟）
   EVENT_CHECKINS: 'ht_event_checkins', // 活动签到缓存
   EVENT_PROFILES: 'ht_event_profiles', // 活动内身份缓存
   EVENT_MEMBERS: 'ht_event_members', // 活动成员缓存
@@ -358,17 +359,41 @@ async function getHackathonHeat(id) {
 function getLocalHackathonHeat(id) {
   const key = String(id || '').trim();
   if (!key) return { ok: false, message: '缺少赛事 id' };
-  // 本地派生：稳定 hash → 拟真热度，叠加本人收藏/报名，使开发者工具可演示
-  let hash = 0;
-  for (let i = 0; i < key.length; i += 1) { hash = ((hash << 5) - hash) + key.charCodeAt(i); hash |= 0; }
-  hash = Math.abs(hash);
-  const baseRegs = 6 + (hash % 40);
-  const baseMarks = 10 + ((hash >> 3) % 80);
-  const mineReg = getRegistrations().some((r) => r.id === key) ? 1 : 0;
-  const mineMark = isBookmarked(key) ? 1 : 0;
-  const registrations = baseRegs + mineReg;
-  const bookmarks = baseMarks + mineMark;
+  // 本地兜底只统计本人真实动作，不再用 hash 拟真假热度（诚实展示，宁缺毋滥）
+  const registrations = getRegistrations().some((r) => r.id === key) ? 1 : 0;
+  const bookmarks = isBookmarked(key) ? 1 : 0;
   return { ok: true, local: true, id: key, registrations, bookmarks, fans: registrations + bookmarks, heat: registrations * 3 + bookmarks };
+}
+
+const HEAT_MAP_TTL = 5 * 60 * 1000;
+
+/**
+ * 批量拉取赛事真实热度（列表页用）。带 5 分钟本地缓存；云端不可用返回 null，
+ * 调用方应隐藏热度而不是展示假数据。
+ */
+async function getHackathonHeatMap(ids) {
+  const keys = Array.from(new Set((Array.isArray(ids) ? ids : [])
+    .map((x) => String(x || '').trim())
+    .filter(Boolean))).slice(0, 50);
+  if (!keys.length || !cloudReady()) return null;
+
+  const cached = getStorage(STORAGE.HEAT_MAP, null);
+  if (cached && cached.updatedAt && Date.now() - cached.updatedAt < HEAT_MAP_TTL
+    && keys.every((key) => cached.heats && cached.heats[key])) {
+    return cached.heats;
+  }
+
+  try {
+    const res = await callFn('getHackathonHeat', { ids: keys });
+    if (res && res.ok && res.heats) {
+      const merged = Object.assign({}, cached && cached.heats, res.heats);
+      setStorage(STORAGE.HEAT_MAP, { heats: merged, updatedAt: Date.now() });
+      return merged;
+    }
+  } catch (e) {
+    console.warn('[api] getHackathonHeatMap 云端失败', e);
+  }
+  return cached && cached.heats ? cached.heats : null;
 }
 
 function collectRecommendationSignals() {
@@ -508,7 +533,8 @@ async function toggleBookmark(id) {
 }
 async function getBookmarkedHackathons() {
   const ids = getBookmarks();
-  const all = await getHackathons({});
+  // includeEnded：收藏的已结束赛事也返回，与「已加入赛程」口径一致，避免凭空消失
+  const all = await getHackathons({ includeEnded: true });
   return all.filter((h) => ids.indexOf(h.id) !== -1);
 }
 
@@ -1657,6 +1683,21 @@ async function requestMessageSubscriptions(types, source, preferences) {
   return { ok: true, records, acceptedTypes, rejectedTypes, raw: result };
 }
 
+/**
+ * 收藏赛事时顺带唤起「截止提醒 + 上新」订阅消息授权。
+ * 微信一次性订阅消息一次授权只能推送一次，所以每次收藏都请求，累积推送配额；
+ * 用户勾选「总是保持以上选择」后不再弹窗、静默累积。
+ * 注意：必须在用户 tap 调用链内先调用本函数，再 await 云函数（iOS 上
+ * 先 await 异步请求会丢失手势上下文导致授权弹窗被拒）。
+ */
+function subscribeBookmarkReminders(hackathonId, source) {
+  return requestMessageSubscriptions(
+    [SUBSCRIBE_TYPES.DEADLINE_REMINDER, SUBSCRIBE_TYPES.NEW_HACKATHON],
+    source || 'bookmark',
+    hackathonId ? { hackathonId } : {},
+  ).catch(() => ({ ok: false }));
+}
+
 async function sendHackathonNotifications(payload) {
   if (!cloudReady()) {
     return { ok: false, code: 'CLOUD_REQUIRED', message: '需要连接云开发后才能发送通知' };
@@ -1816,6 +1857,7 @@ module.exports = {
   getCachedHackathons,
   getHackathonDetail,
   getHackathonHeat,
+  getHackathonHeatMap,
   getLocalHackathonHeat,
   getRecommendedHackathons,
   getBookmarks,
@@ -1874,6 +1916,7 @@ module.exports = {
   getSubscribeTemplates,
   getSubscriptionCache,
   requestMessageSubscriptions,
+  subscribeBookmarkReminders,
   sendHackathonNotifications,
   aiChat,
   getGrowth,

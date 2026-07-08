@@ -16,15 +16,18 @@ function getSortLabel(key) {
   return option ? option.label : SORT_OPTIONS[0].label;
 }
 
-function decorateCardItem(item) {
-  const heat = api.getLocalHackathonHeat(item.id);
-  const bookmarkCount = heat && heat.ok ? heat.bookmarks : 0;
+/**
+ * 装饰列表卡片。heatMap 为 api.getHackathonHeatMap 拉到的真实热度；
+ * 没有真值时热度/订阅数留空不展示（不再用 hash 拟真假数据）。
+ */
+function decorateCardItem(item, heatMap) {
+  const heat = heatMap && heatMap[item.id];
   return Object.assign({}, item, {
     bookmarked: api.isBookmarked(item.id),
-    heatValue: heat && heat.ok ? heat.heat : 0,
-    heatText: heat && heat.ok ? String(heat.heat) : '0',
-    bookmarkCount,
-    bookmarkCountText: String(bookmarkCount),
+    heatValue: heat ? heat.heat : 0,
+    heatText: heat ? String(heat.heat) : '',
+    bookmarkCount: heat ? heat.bookmarks : 0,
+    bookmarkCountText: heat && heat.bookmarks ? String(heat.bookmarks) : '',
     cityText: item.city || '待确认',
     locationText: item.location || item.city || '待确认',
     dateText: item.startDate
@@ -41,6 +44,7 @@ function sortCardItems(list, sortKey) {
   if (key === 'time') {
     next.sort((a, b) => dateValue(a.startDate) - dateValue(b.startDate));
   } else {
+    // 热度优先：真实热度降序，无热度按时间最近兜底
     next.sort((a, b) => {
       const diff = Number(b.heatValue || 0) - Number(a.heatValue || 0);
       return diff || dateValue(a.startDate) - dateValue(b.startDate);

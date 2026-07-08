@@ -2,88 +2,10 @@ const catalog = require('../../utils/catalog.js');
 const api = require('../../utils/api.js');
 const { parseAIEntry } = require('../../utils/ai.js');
 const share = require('../../utils/share.js');
+const registration = require('../../utils/registration-link.js');
 
 function joinText(list) {
   return Array.isArray(list) && list.length ? list.join(' / ') : '待确认';
-}
-
-function firstText(values) {
-  for (let i = 0; i < values.length; i += 1) {
-    const value = values[i];
-    if (typeof value === 'string' && value.trim()) return value.trim();
-  }
-  return '';
-}
-
-function resolveRegistrationLink(item) {
-  const source = item || {};
-  const miniProgram = source.registrationMiniProgram || source.miniProgram || {};
-  const path = firstText([
-    source.registrationMiniProgramPath,
-    source.miniProgramPath,
-    miniProgram.path,
-  ]);
-  if (path) {
-    return {
-      type: 'miniProgramPath',
-      value: path,
-      toast: '小程序报名路径已复制,请在微信内打开报名',
-    };
-  }
-
-  const url = firstText([
-    source.registrationUrl,
-    source.registerUrl,
-    source.applyUrl,
-    source.signupUrl,
-    source.officialUrl,
-    source.website,
-    source.registrationMiniProgramUrl,
-    source.miniProgramUrl,
-    source.miniProgramScheme,
-    miniProgram.url,
-    miniProgram.scheme,
-  ]);
-  if (!url) return null;
-  const isWechatArticle = /^https?:\/\/mp\.weixin\.qq\.com\//i.test(url);
-  const isMiniProgramLink = /^(weixin:\/\/|https?:\/\/wxaurl\.cn\/)/i.test(url);
-  return {
-    type: isMiniProgramLink ? 'miniProgramLink' : (isWechatArticle ? 'wechatArticle' : 'webUrl'),
-    value: url,
-    toast: isWechatArticle || isMiniProgramLink
-      ? '报名链接已复制,请在微信内打开报名'
-      : '报名链接已复制,请到浏览器打开报名',
-  };
-}
-
-function copyTextToClipboard(text, successToast) {
-  const data = String(text || '').trim();
-  if (!data) {
-    wx.showToast({ title: '暂无可复制内容', icon: 'none' });
-    return;
-  }
-  const attempt = (retried) => {
-    wx.setClipboardData({
-      data,
-      success: () => {
-        wx.showToast({ title: successToast || '链接已复制', icon: 'none' });
-      },
-      fail: (err) => {
-        if (!retried) {
-          setTimeout(() => attempt(true), 120);
-          return;
-        }
-        console.warn('[detail] setClipboardData failed', err);
-        wx.showModal({
-          title: '复制失败',
-          content: `请手动复制:\n${data}`,
-          confirmText: '知道了',
-          showCancel: false,
-        });
-      },
-    });
-  };
-  attempt(false);
 }
 
 function buildDetail(raw) {
@@ -91,7 +13,7 @@ function buildDetail(raw) {
   if (!item) return null;
   const logoUrl = item.logoUrl || item.logo || item.icon || '';
   const coverUrl = item.coverUrl || item.cover || item.banner || logoUrl;
-  const registrationLink = resolveRegistrationLink(item);
+  const registrationLink = registration.resolveRegistrationLink(item);
 
   return Object.assign({}, item, {
     dateText: `${item.startDate || '待确认'} - ${item.endDate || '待确认'}`,
@@ -105,7 +27,7 @@ function buildDetail(raw) {
     tagsText: joinText(item.tags),
     deadlineText: item.registrationDeadline || item.startDate || '待确认',
     registrationLink,
-    registrationCtaText: registrationLink ? '报名链接' : '平台报名',
+    registrationCtaText: registrationLink ? (registrationLink.cta || '报名链接') : '平台报名',
   });
 }
 
@@ -166,10 +88,16 @@ Page({
         { label: '报名截止', value: item.deadlineText },
         { label: '赛道', value: item.tracksText },
         { label: '技术栈', value: item.stackText },
-        { label: '官网', value: item.website || '待确认' },
+        { label: '官网', value: item.website || '待确认', copyValue: item.website || '' },
       ],
     });
     this.loadHeat(item.id);
+  },
+
+  onMetaRowTap(e) {
+    const value = e.currentTarget.dataset.copy;
+    if (!value) return;
+    registration.copyTextToClipboard(value, '官网链接已复制');
   },
 
   async loadHeat(id) {
@@ -236,6 +164,10 @@ Page({
   async toggleBookmark() {
     const item = this.data.item;
     if (!item || !item.id) return;
+    // 订阅动作：在 tap 手势内先唤起微信订阅消息授权，再走异步收藏
+    const subscribePromise = !api.isBookmarked(item.id) && api.isLoggedIn()
+      ? api.subscribeBookmarkReminders(item.id, 'detail_bookmark')
+      : null;
     const auth = await api.requireAuth(
       this,
       '/pages/detail/detail?id=' + item.id,
@@ -244,8 +176,13 @@ Page({
     if (!auth) return;
     try {
       const active = await api.toggleBookmark(item.id);
+      const subRes = subscribePromise ? await subscribePromise : null;
+      const reminderOn = !!(subRes && subRes.ok && subRes.acceptedTypes && subRes.acceptedTypes.length);
       this.setData({ bookmarked: active });
-      wx.showToast({ title: active ? '已收藏' : '已取消收藏', icon: 'none' });
+      wx.showToast({
+        title: active ? (reminderOn ? '已收藏，将提醒报名截止' : '已收藏') : '已取消收藏',
+        icon: 'none',
+      });
     } catch (e) {
       wx.showToast({ title: '收藏同步失败，请重试', icon: 'none' });
     }
@@ -258,6 +195,14 @@ Page({
     });
   },
 
+  goEventCheckin() {
+    const item = this.data.item || {};
+    if (!item.id) return;
+    wx.navigateTo({
+      url: `/pages/event-checkin/event-checkin?eventId=${item.id}`,
+    });
+  },
+
   async handleRegistrationCta() {
     const item = this.data.item;
     if (!item) {
@@ -265,11 +210,8 @@ Page({
       return;
     }
 
-    const link = item.registrationLink || resolveRegistrationLink(item);
-    if (link && link.value) {
-      copyTextToClipboard(link.value, link.toast);
-      return;
-    }
+    const link = registration.openRegistration(item);
+    if (link) return;
 
     await this.registerOnHackerTrip(item);
   },

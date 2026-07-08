@@ -8,7 +8,7 @@
     </view>
 
     <view class="page-title">消息</view>
-    <view class="page-subtitle">报名提醒、队友匹配和系统通知集中在这里。</view>
+    <view class="page-subtitle">报名与收藏赛事的截止提醒、系统通知集中在这里。</view>
 
     <navigator
       class="haki-entry"

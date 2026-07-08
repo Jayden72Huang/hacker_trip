@@ -3,7 +3,7 @@
     <view class="hcard-title">{{item.name}}</view>
     <button class="bookmark {{bookmarked ? 'active' : ''}}" catchtap="onBookmark" aria-label="订阅赛事">
       <text>{{bookmarked ? '已订阅' : '订阅'}}</text>
-      <text class="bookmark-count">{{item.bookmarkCountText || '0'}}</text>
+      <text wx:if="{{item.bookmarkCountText}}" class="bookmark-count">{{item.bookmarkCountText}}</text>
     </button>
   </view>
 
@@ -38,9 +38,9 @@
       <text class="metric-label">奖金</text>
       <text class="metric-value">{{item.prizeText || '待确认'}}</text>
     </view>
-    <view class="metric-block metric-block--heat">
+    <view wx:if="{{item.heatText}}" class="metric-block metric-block--heat">
       <text class="metric-label">热度</text>
-      <text class="metric-value">{{item.heatText || '0'}}</text>
+      <text class="metric-value">{{item.heatText}}</text>
     </view>
     <text class="status-tag {{item.status}}">{{statusText[item.status] || item.status}}</text>
   </view>

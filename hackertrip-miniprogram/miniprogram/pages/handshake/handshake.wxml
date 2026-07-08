@@ -1,7 +1,12 @@
 <view class="focus-page handshake-page">
   <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
   <view class="focus-content">
-    <view wx:if="{{error}}" class="brutal-box">
+    <view wx:if="{{loading}}" class="brutal-box">
+      <view class="box-title">正在生成破冰报告…</view>
+      <view class="box-copy">Haki 正在对比你们的技能、方向和角色互补，请稍候。</view>
+    </view>
+
+    <view wx:elif="{{error}}" class="brutal-box">
       <view class="box-title">生成失败</view>
       <view class="box-copy">{{error}}</view>
     </view>

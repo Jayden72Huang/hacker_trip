@@ -49,12 +49,21 @@ function toDeadlineItem(reg) {
   };
 }
 
-function buildGroups(registrations) {
+function buildGroups(registrations, bookmarked) {
   const regs = Array.isArray(registrations) ? registrations : [];
+  const marks = Array.isArray(bookmarked) ? bookmarked : [];
   const groups = [];
 
-  // 截止提醒：基于真实报名记录，按剩余天数升序（越紧急越靠前）
-  const deadlineItems = regs
+  // 截止提醒：报名 + 收藏的赛事都提醒，按 id 去重（报名记录优先），剩余天数升序
+  const seen = {};
+  const sources = [];
+  regs.forEach((item) => {
+    if (item && item.id && !seen[item.id]) { seen[item.id] = true; sources.push(item); }
+  });
+  marks.forEach((item) => {
+    if (item && item.id && !seen[item.id]) { seen[item.id] = true; sources.push(item); }
+  });
+  const deadlineItems = sources
     .map(toDeadlineItem)
     .filter(Boolean)
     .sort((a, b) => a._days - b._days);
@@ -62,7 +71,7 @@ function buildGroups(registrations) {
   groups.push({
     key: 'deadline',
     title: '截止提醒',
-    empty: deadlineItems.length === 0 ? '暂无提醒，去发现页关注赛事' : '',
+    empty: deadlineItems.length === 0 ? '暂无提醒，去发现页订阅或报名赛事' : '',
     items: deadlineItems,
   });
 
@@ -116,8 +125,14 @@ Page({
   async loadMessages() {
     this.setData({ loading: true });
     if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
+    let bookmarked = [];
+    try {
+      bookmarked = api.isLoggedIn() ? await api.getBookmarkedHackathons() : [];
+    } catch (e) {
+      bookmarked = [];
+    }
     this.setData({
-      groups: buildGroups(api.getRegistrations()),
+      groups: buildGroups(api.getRegistrations(), bookmarked),
       loading: false,
     });
   },

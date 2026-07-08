@@ -27,7 +27,7 @@ function scoreItem(item, stack, index) {
 
 Page({
   data: {
-    title: '匹配结果',
+    title: '赛事推荐',
     aiBanner: false,
     aiIntentText: '项目匹配',
     project: null,

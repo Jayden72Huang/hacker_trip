@@ -135,7 +135,7 @@ Page({
     }
     const messageMap = {
       NOT_ORGANIZER: '需先通过组织者认证',
-      NO_OPENID: '请先登录后再生成配对码',
+      NO_OPENID: '请先登录后再生成提交码',
       CLOUD_REQUIRED: '需要连接云开发后才能生成提交码',
     };
     const message = messageMap[res && res.code] || (res && res.message) || '提交码生成失败，请稍后重试';

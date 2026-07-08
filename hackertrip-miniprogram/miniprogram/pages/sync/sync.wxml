@@ -74,10 +74,19 @@
           <view class="tutorial-step-desc">往上翻到「生成同步码」，点一下拿到 6 位配对码。</view>
         </view>
         <view class="tutorial-step">
-          <view class="tutorial-step-title">3. 发布作品</view>
+          <view class="tutorial-step-title">3. 同步项目画像（本页主流程）</view>
+          <view class="tutorial-step-desc">在项目根目录执行，把技术栈、项目画像同步进小程序。上方「复制命令」已带好参数，直接粘贴即可。</view>
           <view class="tutorial-cmd-row">
-            <scroll-view scroll-x class="tutorial-cmd">hackertrip publish-work --pair-code 你的配对码</scroll-view>
-            <view class="tutorial-copy" data-cmd="hackertrip publish-work --pair-code 你的配对码" bindtap="copyTutorialCmd">复制</view>
+            <scroll-view scroll-x class="tutorial-cmd">npx hackertrip match --sync --sync-code 你的配对码</scroll-view>
+            <view class="tutorial-copy" data-cmd="npx hackertrip match --sync --sync-code 你的配对码" bindtap="copyTutorialCmd">复制</view>
+          </view>
+        </view>
+        <view class="tutorial-step">
+          <view class="tutorial-step-title">4. 发布作品（可选，另一条命令）</view>
+          <view class="tutorial-step-desc">想把项目作为作品发到你的公开主页，用 publish-work，同样用第 2 步的配对码。</view>
+          <view class="tutorial-cmd-row">
+            <scroll-view scroll-x class="tutorial-cmd">npx hackertrip publish-work --pair-code 你的配对码</scroll-view>
+            <view class="tutorial-copy" data-cmd="npx hackertrip publish-work --pair-code 你的配对码" bindtap="copyTutorialCmd">复制</view>
           </view>
         </view>
         <view class="tutorial-agent-note">

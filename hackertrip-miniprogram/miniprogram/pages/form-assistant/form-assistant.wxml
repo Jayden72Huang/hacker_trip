@@ -2,8 +2,8 @@
   <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
   <view class="focus-content">
     <view class="brutal-box blue-box">
-      <view class="focus-title form-title">把报名表交给 Haki 先整理</view>
-      <view class="form-sub">粘贴报名表问题或说明，HackerTrip 会从你的资料库生成草稿，并标出需要人工补充的地方。</view>
+      <view class="focus-title form-title">用资料库快速拼出报名草稿</view>
+      <view class="form-sub">基于你的个人资料（技能、项目、联系方式）按模板生成报名草稿，并标出需要人工补充的地方。</view>
     </view>
 
     <view class="brutal-box">
@@ -14,7 +14,7 @@
 
     <block wx:if="{{result}}">
       <view class="brutal-box yellow-box">
-        <view class="box-title">Agent 建议</view>
+        <view class="box-title">待补充清单</view>
         <view wx:for="{{result.advice}}" wx:key="*this" class="advice-line">{{item}}</view>
         <button class="native-link profile-btn" bindtap="goProfile">补充资料库</button>
       </view>

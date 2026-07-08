@@ -11,10 +11,11 @@ Page({
     avatarChar: 'H',
     activeCount: 0,
     savedCount: 0,
-    // 卡内数据指标：进行中赛事 + 身份卡数（初始占位，load 后填真实值）
+    // 卡内数据指标：真实履历数据（进行中赛事 / Skills 数 / 验证履历数，load 后填真实值）
     assetStats: [
       { label: '进行中', value: '—' },
-      { label: '身份卡', value: '—' },
+      { label: 'Skills', value: '—' },
+      { label: '验证履历', value: '—' },
     ],
     loading: true,
     isLoggedIn: false,
@@ -27,8 +28,9 @@ Page({
     organizerTools: [],
     tools: [
       { title: '我的身份卡', sub: '生成参赛身份卡，分享找队友', url: '/pages/identity/identity' },
-      { title: '报名助手', sub: '复用资料库生成报名草稿和缺失项', url: '/pages/form-assistant/form-assistant' },
+      { title: '可信履历', sub: '主办方验证的参赛与获奖记录', url: '/pages/achievements/achievements' },
       { title: '我的项目 / 作品', sub: '同步项目画像，管理提交作品', url: '/pages/my-works/my-works' },
+      { title: '报名资料模板', sub: '用资料库一键拼出报名草稿和缺失项', url: '/pages/form-assistant/form-assistant' },
     ],
     moreTools: [
       { title: '项目能力同步', sub: '把项目和技能同步给 AI 助手 Haki，赛事推荐更准', url: '/pages/agent/agent' },
@@ -73,8 +75,6 @@ Page({
       const latest = cachedEvents.find((h) => h.id === reg.id) || catalog.decorate(reg, today);
       return latest && latest.status === 'ongoing';
     }).length;
-    const cardsCount = api.getCards().length;
-
     const avatarChar = (profile.nickname || 'H').trim().charAt(0).toUpperCase() || 'H';
     // 编辑过资料 或 已登录 → storage 有 ht_profile，视为"已填写"，高亮展示；否则引导完善
     const hasProfile = !!(auth && wx.getStorageSync(api.STORAGE.PROFILE));
@@ -105,7 +105,8 @@ Page({
       profileMode,
       assetStats: [
         { label: '进行中', value: `${ongoing}` },
-        { label: '身份卡', value: `${cardsCount}` },
+        { label: 'Skills', value: `${(profile.skills || []).length}` },
+        { label: '验证履历', value: this._achievementCount != null ? `${this._achievementCount}` : '—' },
       ],
       organizerStatus: organizer.status,
       organizerStatusText: this.getOrganizerStatusText(organizer.status),
@@ -120,6 +121,11 @@ Page({
     await api.syncUserDataIfLoggedIn().catch(() => {});
     if (api.cloudReady()) {
       await api.checkHackathonAdmin().catch(() => ({ isAdmin: false }));
+      // 主办方验证的履历数（可信履历指标）
+      try {
+        const res = await api.listAchievements();
+        if (res && Array.isArray(res.achievements)) this._achievementCount = res.achievements.length;
+      } catch (e) { /* 拉不到保持 — */ }
     }
     this.renderLocal();
   },

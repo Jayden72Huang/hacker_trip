@@ -2,6 +2,7 @@ const api = require('../../utils/api.js');
 const { buildCityOptions, matchHackathonCity, matchHackathonQuery } = require('../../utils/hackathon-search.js');
 const { SORT_OPTIONS, decorateCardItem, sortCardItems, getSortLabel } = require('../../utils/hackathon-card-data.js');
 const share = require('../../utils/share.js');
+const registration = require('../../utils/registration-link.js');
 
 const FILTERS = [
   { key: 'all', label: '全部' },
@@ -70,6 +71,19 @@ Page({
       loading: false,
     });
     this.applyFilters(all);
+    this.loadHeatMap(all);
+  },
+
+  // 拉取真实热度后重绘（SWR：先出列表，热度到了再补），拉不到就不展示热度
+  loadHeatMap(all) {
+    const ids = (all || this.allEvents).map((item) => item.id).filter(Boolean);
+    if (!ids.length) return;
+    api.getHackathonHeatMap(ids).then((map) => {
+      if (map) {
+        this._heatMap = map;
+        this.applyFilters();
+      }
+    }).catch(() => {});
   },
 
   async onShow() {
@@ -136,7 +150,7 @@ Page({
       return matchFilter(item, activeFilter) && matchHackathonQuery(item, query);
     });
 
-    const marked = sortCardItems(hackathons.map(decorateCardItem), this.data.sortKey);
+    const marked = sortCardItems(hackathons.map((item) => decorateCardItem(item, this._heatMap)), this.data.sortKey);
 
     this.setData({
       hackathons: marked,
@@ -146,29 +160,32 @@ Page({
   },
 
   async onBookmark(e) {
-    const auth = await api.requireAuth(this, '/pages/hackathon-list/hackathon-list', '登录后才能订阅赛事，并在你的账号中同步查看。');
-    if (!auth) return;
     const id = e.detail.id;
     if (!id) return;
+    // 订阅动作：在 tap 手势内先唤起微信订阅消息授权，再走异步收藏
+    const subscribePromise = !api.isBookmarked(id) && api.isLoggedIn()
+      ? api.subscribeBookmarkReminders(id, 'list_bookmark')
+      : null;
+    const auth = await api.requireAuth(this, '/pages/hackathon-list/hackathon-list', '登录后才能订阅赛事，并在你的账号中同步查看。');
+    if (!auth) return;
     const active = await api.toggleBookmark(id);
+    const subRes = subscribePromise ? await subscribePromise : null;
+    const reminderOn = !!(subRes && subRes.ok && subRes.acceptedTypes && subRes.acceptedTypes.length);
     this.applyFilters();
-    wx.showToast({ title: active ? '已订阅' : '已取消订阅', icon: 'none' });
+    wx.showToast({
+      title: active ? (reminderOn ? '已订阅，将提醒报名截止' : '已订阅') : '已取消订阅',
+      icon: 'none',
+    });
   },
 
   onRegister(e) {
     const id = e.detail && e.detail.id;
     const item = this.data.hackathons.find((entry) => entry.id === id) || {};
-    const url = e.detail.url || item.registerUrl || item.website || '';
-    if (!url) {
-      wx.showToast({ title: '暂无报名链接', icon: 'none' });
-      return;
+    const link = registration.openRegistration(item);
+    if (!link) {
+      // 没有可信报名链接（资讯稿不算）：进详情页走平台报名
+      wx.navigateTo({ url: `/pages/detail/detail?id=${id || ''}` });
     }
-    wx.setClipboardData({
-      data: url,
-      success: () => {
-        wx.showToast({ title: '已经复制报名链接,请到浏览器打开报名', icon: 'none' });
-      },
-    });
   },
 
   goDetail(e) {

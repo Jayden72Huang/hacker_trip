@@ -26,6 +26,23 @@ function splitList(value) {
     .filter((item) => item);
 }
 
+function formFromSources(source, profile, pref) {
+  const src = source || {};
+  const prf = profile || {};
+  const pf = pref || {};
+  return {
+    displayName: src.displayName || prf.nickname || '',
+    role: src.role || prf.role || '参赛者',
+    city: src.city || prf.city || '',
+    skillsText: joinList(src.skills && src.skills.length ? src.skills : prf.skills),
+    projectIdea: src.projectIdea || pf.projectIdea || '',
+    lookingForText: joinList(src.lookingFor && src.lookingFor.length ? src.lookingFor : pf.lookingFor),
+    availability: src.availability || pf.availability || '',
+    openToMeet: src.openToMeet !== false,
+    contactHint: src.contactHint || '',
+  };
+}
+
 Page({
   data: {
     title: '现场签到',
@@ -49,7 +66,7 @@ Page({
     },
   },
 
-  async onLoad(options) {
+  onLoad(options) {
     const ai = parseAIEntry(options || {});
     const eventId = parseScene(options || {});
     this.setData({
@@ -57,7 +74,20 @@ Page({
       aiIntentText: ai.intent || 'event.checkin',
       eventId,
     });
-    await this.load();
+    // renderLocal：先用本地档案预填表单，避免首屏空白等待云端
+    this.renderLocal();
+    // revalidate：后台拉取云端活动身份，不阻塞首屏
+    this.load();
+  },
+
+  renderLocal() {
+    if (!this.data.eventId) {
+      this.setData({ loading: false });
+      return;
+    }
+    const profile = api.getProfile();
+    const pref = profile.teamPreference || {};
+    this.setData({ form: formFromSources({}, profile, pref) });
   },
 
   async load() {
@@ -71,22 +101,11 @@ Page({
     const pref = profile.teamPreference || {};
     const res = await api.getEventProfile(eventId);
     const eventProfile = res && res.eventProfile ? res.eventProfile : null;
-    const source = eventProfile || {};
     this.setData({
       loading: false,
       event: res && res.event ? res.event : null,
       checkedIn: !!(res && res.checkedIn),
-      form: {
-        displayName: source.displayName || profile.nickname || '',
-        role: source.role || profile.role || '参赛者',
-        city: source.city || profile.city || '',
-        skillsText: joinList(source.skills && source.skills.length ? source.skills : profile.skills),
-        projectIdea: source.projectIdea || pref.projectIdea || '',
-        lookingForText: joinList(source.lookingFor && source.lookingFor.length ? source.lookingFor : pref.lookingFor),
-        availability: source.availability || pref.availability || '',
-        openToMeet: source.openToMeet !== false,
-        contactHint: source.contactHint || '',
-      },
+      form: formFromSources(eventProfile, profile, pref),
     });
   },
 

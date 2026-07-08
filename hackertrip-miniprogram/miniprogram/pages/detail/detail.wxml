@@ -48,9 +48,9 @@
     <view class="brutal-box">
       <view class="box-title">赛事信息</view>
       <view class="meta-list detail-meta">
-        <view wx:for="{{metaRows}}" wx:key="label" class="meta-row">
+        <view wx:for="{{metaRows}}" wx:key="label" class="meta-row" data-copy="{{item.copyValue || ''}}" bindtap="onMetaRowTap">
           <text class="meta-label">{{item.label}}</text>
-          <text class="meta-value">{{item.value}}</text>
+          <text class="meta-value">{{item.value}}{{item.copyValue ? ' 📋' : ''}}</text>
         </view>
       </view>
     </view>
@@ -70,6 +70,12 @@
       <view class="box-title">问 AI 是否适合</view>
       <view class="box-copy">把赛事名称、日期、城市、赛道和技术栈带入 Haki，让它按你的项目方向判断适配度。</view>
       <button class="native-btn detail-ai-btn" bindtap="askAI">问AI是否适合</button>
+    </view>
+
+    <view class="brutal-box">
+      <view class="box-title">找队友 · 现场组队</view>
+      <view class="box-copy">到场后签到，查看同场开放组队的伙伴，AI 帮你破冰。</view>
+      <button class="native-btn detail-ai-btn" bindtap="goEventCheckin">进入现场组队</button>
     </view>
 
   </view>

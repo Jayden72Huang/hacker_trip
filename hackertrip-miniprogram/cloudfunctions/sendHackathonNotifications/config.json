@@ -3,5 +3,12 @@
     "openapi": [
       "subscribeMessage.send"
     ]
-  }
+  },
+  "triggers": [
+    {
+      "name": "daily-deadline-reminder",
+      "type": "timer",
+      "config": "0 0 10 * * * *"
+    }
+  ]
 }

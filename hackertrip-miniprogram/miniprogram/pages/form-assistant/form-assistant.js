@@ -2,7 +2,7 @@ const api = require('../../utils/api.js');
 
 Page({
   data: {
-    title: '报名助手',
+    title: '报名资料模板',
     formText: '',
     result: null,
   },

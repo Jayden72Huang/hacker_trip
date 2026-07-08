@@ -12,6 +12,16 @@ const TEMPLATE_ENV = {
   deadline_reminder: 'DEADLINE_REMINDER_TEMPLATE_ID',
 };
 
+// 与 miniprogram/env.js subscribeTemplates 保持一致；env 变量可覆盖
+const DEFAULT_TEMPLATES = {
+  new_hackathon: 'OGH7Fhna7wcRgOLkEfDcFiBk78In5MM7Ch6SBX5LTRg',
+  smart_recommendation: 'QlPVQ62U_JPoslrAvsKzGVtjQoUbgPY-9e_NzTPztvA',
+  deadline_reminder: '7eqO_KPQ0NtrGFvztJNvfn01GXWV5R3tHeTUJLIrF44',
+};
+
+// 定时扫描窗口：报名截止前 N 天内的赛事触发提醒
+const DEADLINE_WINDOW_DAYS = 3;
+
 function cleanText(value, maxLength) {
   return String(value || '').trim().slice(0, maxLength || 200);
 }
@@ -39,7 +49,8 @@ function templateIdFor(type, event) {
   const fromEvent = cleanText(event && event.templateId, 120);
   if (fromEvent) return fromEvent;
   const key = TEMPLATE_ENV[type];
-  return key ? cleanText(process.env[key], 120) : '';
+  const fromEnv = key ? cleanText(process.env[key], 120) : '';
+  return fromEnv || DEFAULT_TEMPLATES[type] || '';
 }
 
 function defaultPage(event) {
@@ -108,7 +119,7 @@ async function listSubscribers(type, templateId, limit) {
   return res.data || [];
 }
 
-async function logSend(type, item, payload, result) {
+async function logSend(type, item, payload, result, hackathonId) {
   const now = Date.now();
   await db.collection('notification_logs').add({
     data: {
@@ -116,6 +127,7 @@ async function logSend(type, item, payload, result) {
       type,
       templateId: item.templateId,
       page: payload.page,
+      hackathonId: cleanText(hackathonId, 100),
       ok: !!result.ok,
       errCode: result.errCode || '',
       errMsg: result.errMsg || '',
@@ -131,7 +143,122 @@ async function logSend(type, item, payload, result) {
   }).catch(() => {});
 }
 
+function pad2(n) {
+  return String(n).padStart(2, '0');
+}
+
+function dateStr(date) {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
+async function sendDeadlineReminder(sub, hackathon, page) {
+  const payload = {
+    templateId: sub.templateId,
+    page,
+    data: defaultData('deadline_reminder', { hackathon }),
+    miniprogramState: cleanText(process.env.MINIPROGRAM_STATE, 20) || 'formal',
+  };
+  try {
+    const sendRes = await cloud.openapi.subscribeMessage.send({
+      touser: sub.openid,
+      templateId: payload.templateId,
+      page: payload.page,
+      data: payload.data,
+      miniprogramState: payload.miniprogramState,
+    });
+    const result = { ok: true, errMsg: sendRes.errMsg || '' };
+    await logSend('deadline_reminder', sub, payload, result, hackathon.id);
+    return result;
+  } catch (e) {
+    const errCode = e && e.errCode ? e.errCode : '';
+    const result = {
+      ok: false,
+      errCode,
+      errMsg: String(e && e.errMsg ? e.errMsg : (e && e.message ? e.message : e)),
+    };
+    await logSend('deadline_reminder', sub, payload, result, hackathon.id);
+    // 43101 = 用户拒收/一次性配额用尽：标记等待下次收藏时重新授权
+    if (String(errCode) === '43101') {
+      await db.collection('message_subscriptions').doc(sub._id).update({
+        data: { status: 'exhausted', exhaustedAt: Date.now() },
+      }).catch(() => {});
+    }
+    return result;
+  }
+}
+
+// 定时触发：扫描临近报名截止的赛事，向「收藏了该赛事 + 授权过截止提醒」的用户精准发送。
+// 通过 notification_logs 去重，同一用户同一赛事只提醒一次。
+async function runDeadlineScan() {
+  const templateId = templateIdFor('deadline_reminder', {});
+  if (!templateId) return { ok: false, code: 'TEMPLATE_NOT_CONFIGURED' };
+
+  const today = new Date(Date.now() + 8 * 3600 * 1000); // 云函数为 UTC，换算北京时间
+  const from = dateStr(today);
+  const until = dateStr(new Date(today.getTime() + DEADLINE_WINDOW_DAYS * 86400000));
+
+  const hackathons = (await db.collection('hackathons')
+    .where({
+      isPublished: _.neq(false),
+      registrationDeadline: _.gte(from).and(_.lte(until)),
+    })
+    .limit(50)
+    .get()).data || [];
+  if (!hackathons.length) return { ok: true, scanned: 0, sent: 0, failed: 0 };
+
+  let sent = 0;
+  let failed = 0;
+  let skipped = 0;
+  for (const hackathon of hackathons) {
+    const hid = hackathon.id || hackathon._id;
+    const bookmarks = (await db.collection('bookmarks')
+      .where({ hackathonId: hid })
+      .limit(500)
+      .get()).data || [];
+    if (!bookmarks.length) continue;
+    const openids = bookmarks.map((b) => b.openid).filter(Boolean);
+
+    const subs = (await db.collection('message_subscriptions')
+      .where({
+        type: 'deadline_reminder',
+        templateId,
+        status: 'accept',
+        openid: _.in(openids.slice(0, 500)),
+      })
+      .limit(500)
+      .get()).data || [];
+
+    const page = `/pages/detail/detail?id=${encodeURIComponent(hid)}`;
+    for (const sub of subs) {
+      const already = await db.collection('notification_logs')
+        .where({ openid: sub.openid, type: 'deadline_reminder', hackathonId: hid, ok: true })
+        .limit(1)
+        .get();
+      if (already.data && already.data[0]) { skipped += 1; continue; }
+      const result = await sendDeadlineReminder(sub, Object.assign({ id: hid }, hackathon), page);
+      if (result.ok) sent += 1; else failed += 1;
+    }
+  }
+  return { ok: true, scanned: hackathons.length, sent, failed, skipped };
+}
+
+function isTimerEvent(event) {
+  return !!(event && (event.Type === 'Timer' || event.TriggerName));
+}
+
 exports.main = async (event) => {
+  // 定时触发器：无用户上下文，走截止提醒自动扫描
+  if (isTimerEvent(event)) {
+    try {
+      const res = await runDeadlineScan();
+      console.log('[deadline-scan]', JSON.stringify(res));
+      return res;
+    } catch (e) {
+      console.error('[deadline-scan] failed', e);
+      return { ok: false, code: 'SCAN_FAILED', message: String(e && e.message ? e.message : e) };
+    }
+  }
+
   const openid = (cloud.getWXContext() || {}).OPENID;
   const allowed = await isAdmin(openid);
   if (!allowed) return { ok: false, code: 'FORBIDDEN', message: '仅管理员可发送订阅消息' };
@@ -181,7 +308,7 @@ exports.main = async (event) => {
       });
       const result = { ok: true, errMsg: sendRes.errMsg || '' };
       results.push(Object.assign({ openid: maskOpenid(item.openid) }, result));
-      await logSend(type, item, payload, result);
+      await logSend(type, item, payload, result, event && event.hackathonId);
     } catch (e) {
       const result = {
         ok: false,
@@ -189,7 +316,7 @@ exports.main = async (event) => {
         errMsg: String(e && e.errMsg ? e.errMsg : (e && e.message ? e.message : e)),
       };
       results.push(Object.assign({ openid: maskOpenid(item.openid) }, result));
-      await logSend(type, item, payload, result);
+      await logSend(type, item, payload, result, event && event.hackathonId);
     }
   }
 

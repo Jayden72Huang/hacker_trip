@@ -581,3 +581,12 @@
   border-radius: 16rpx;
   box-shadow: 8rpx 8rpx 0 0 #000000;
 }
+
+/* 组队暗号（裂变发起端） */
+.flow-invite {
+  margin-top: 14rpx; padding: 14rpx 20rpx;
+  font-size: 24rpx; font-weight: 700; color: #3D3D3D;
+  background: #ECF2FF; border: 2rpx dashed #0C51ED; border-radius: 10rpx;
+}
+.flow-invite:active { opacity: 0.7; }
+.flow-invite-code { color: #0C51ED; font-weight: 900; letter-spacing: 2rpx; }

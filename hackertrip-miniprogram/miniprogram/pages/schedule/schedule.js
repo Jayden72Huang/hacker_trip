@@ -11,6 +11,28 @@ function buildPhases(activeIndex) {
   }));
 }
 
+/** 距今天数：>0 未来，=0 今天，<0 已过；无效日期返回 null */
+function daysFromToday(dateStr) {
+  if (!dateStr) return null;
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const today = new Date(`${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T00:00:00`);
+  const target = new Date(`${String(dateStr)}T00:00:00`);
+  if (isNaN(target.getTime())) return null;
+  return Math.round((target - today) / 86400000);
+}
+
+/** 由赛事真实日期推导当前所处阶段（不再拍脑袋写死） */
+function phaseIndexFor(event) {
+  if (!event) return 0;
+  if (event.status === 'ended') return PHASES.length; // 全部 done
+  if (event.status === 'ongoing') return 4; // 开发中
+  // upcoming：报名截止前=报名阶段，截止后开赛前=组队阶段
+  const ddl = daysFromToday(event.registrationDeadline);
+  if (ddl !== null && ddl < 0) return 2;
+  return 1;
+}
+
 Page({
   data: {
     title: '赛程',
@@ -82,7 +104,7 @@ Page({
       bookmarkedEvents,
       hasJoined: myEvents.length > 0,
       hasBookmarks: bookmarkedEvents.length > 0,
-      phases: activeEvent ? buildPhases(activeEvent.status === 'upcoming' ? 1 : 4) : [],
+      phases: activeEvent ? buildPhases(phaseIndexFor(activeEvent)) : [],
       todos: this.buildTodos(activeEvent),
       loading: false,
     });
@@ -103,32 +125,54 @@ Page({
     this.load();
   },
 
+  // 基于真实状态生成待办（不再展示写死的假时间表）
   buildTodos(event) {
     if (!event) return [];
+    const todos = [];
 
-    return [
-      {
-        time: '10:00',
-        title: '确认赛事资料',
-        sub: `${event.shortName || event.name} · ${event.city} · ${event.modeText}`,
+    // 1. 报名截止（真实日期派生）
+    const ddl = daysFromToday(event.registrationDeadline);
+    if (event.status !== 'ended' && ddl !== null && ddl >= 0) {
+      todos.push({
+        time: ddl === 0 ? '今天' : `${ddl} 天后`,
+        title: '报名截止，别错过',
+        sub: `${event.shortName || event.name} · ${event.registrationDeadline} 截止报名`,
         action: '查看详情',
         url: `/pages/detail/detail?id=${event.id}`,
-      },
-      {
-        time: '14:00',
-        title: '同步团队技能',
-        sub: '补全技术栈，提升组队匹配质量',
+      });
+    }
+
+    // 2. 资料完善度（真实档案判断）
+    const profile = api.getProfile();
+    const scan = api.getScanResults();
+    if (!profile.skills || !profile.skills.length) {
+      todos.push({
+        time: '建议',
+        title: '补全技术栈',
+        sub: '完善技能标签，赛事推荐和组队匹配更准',
+        action: '去完善',
+        url: '/pages/identity-edit/identity-edit',
+      });
+    } else if (!scan || !scan.syncedAt) {
+      todos.push({
+        time: '建议',
+        title: '同步 Skills 履历',
+        sub: '用 CLI 把项目画像同步进来，生成更强的身份卡',
         action: '去同步',
         url: '/pages/sync/sync',
-      },
-      {
-        time: '20:00',
-        title: '生成参赛身份卡',
-        sub: '用于社群分享和队友招募',
-        action: '生成卡片',
-        url: '/pages/identity/identity',
-      },
-    ];
+      });
+    }
+
+    // 3. 身份卡（组队传播抓手，始终提供入口）
+    todos.push({
+      time: '组队',
+      title: '生成参赛身份卡',
+      sub: '分享到赛事群，让队友找到你',
+      action: '生成卡片',
+      url: '/pages/identity/identity',
+    });
+
+    return todos;
   },
 
   openEvent(e) {

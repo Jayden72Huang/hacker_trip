@@ -22,6 +22,17 @@
     <view class="cb-progress-sub">招募值 {{recruitScore}} · 邀请越多解锁越多稀有卡</view>
   </view>
 
+  <!-- 我的专属暗号：裂变发起端 -->
+  <view class="cb-invite">
+    <view class="cb-invite-head">
+      <text class="cb-invite-title">我的专属暗号</text>
+      <text class="cb-invite-count">{{redeemCount}} 人已对上</text>
+    </view>
+    <view class="cb-invite-code" bindtap="copyInviteCode">{{inviteCode || 'HT-····'}}</view>
+    <view class="cb-invite-sub">发给朋友，Ta 在 Haki 聊天里输入暗号即可解锁限定卡，你的招募值 +1</view>
+    <button class="cb-invite-btn" bindtap="copyInviteCode">复制暗号发给朋友</button>
+  </view>
+
   <!-- 卡片网格 -->
   <view class="cb-grid">
     <view

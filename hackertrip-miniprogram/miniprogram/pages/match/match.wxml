@@ -6,8 +6,8 @@
       <text>{{aiIntentText}}</text>
     </view>
 
-    <view class="focus-title">匹配结果</view>
-    <view class="focus-subtitle">按项目技术栈匹配本地赛事 catalog，标题、日期、城市、奖金和推荐理由全部文本化。</view>
+    <view class="focus-title">赛事推荐</view>
+    <view class="focus-subtitle">按你同步的项目技术栈推荐适合参加的黑客松，附推荐理由。</view>
 
     <!-- loading 骨架屏 -->
     <view wx:if="{{loading}}" class="skeleton">

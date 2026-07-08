@@ -17,16 +17,18 @@ Page({
     loading: false,
   },
 
-  async onLoad(options) {
+  onLoad(options) {
     const eventId = (options && (options.id || options.eventId)) || '';
     const profile = api.getProfile();
     const pref = profile.teamPreference || {};
+    // renderLocal：表单先用本地组队偏好填好
     this.setData({
       eventId,
       goal: pref.projectIdea || '',
       missingRolesText: Array.isArray(pref.lookingFor) ? pref.lookingFor.join(', ') : '',
     });
-    if (eventId) await this.generate();
+    // revalidate：后台生成推荐，不阻塞首屏
+    if (eventId) this.generate();
   },
 
   onInput(e) {
