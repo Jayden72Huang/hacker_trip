@@ -96,3 +96,6 @@ hackertrip-miniprogram/screenshots/
 hackertrip-miniprogram/design/**/*.png
 hackertrip-miniprogram/design/**/*.jpg
 hackertrip-miniprogram/design/**/*.webp
+
+# standalone repo (pushed to its own GitHub)
+hackertrip-cli/
