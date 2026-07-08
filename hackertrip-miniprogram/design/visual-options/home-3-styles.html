@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HackerTrip 首页 · 3 套视觉方向对比</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#1a1c20;
+    font-family:-apple-system,"PingFang SC","Helvetica Neue",Arial,sans-serif;
+    color:#e8e8ea; padding:40px 24px 80px; -webkit-font-smoothing:antialiased;
+  }
+  .page-head { text-align:center; margin-bottom:40px; }
+  .page-head h1 { font-size:24px; font-weight:800; letter-spacing:.5px; }
+  .page-head p { color:#8b8d93; margin-top:8px; font-size:14px; }
+  .stage { display:flex; gap:48px; justify-content:center; flex-wrap:wrap; align-items:flex-start; }
+  .col { display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .col > .name { font-size:15px; font-weight:700; letter-spacing:.3px; }
+  .col > .desc { font-size:12px; color:#8b8d93; max-width:360px; text-align:center; line-height:1.6; margin-top:-8px; }
+
+  /* 手机外壳 */
+  .phone {
+    width:390px; border-radius:40px; padding:10px;
+    background:#000; box-shadow:0 24px 60px rgba(0,0,0,.5);
+  }
+  .screen {
+    width:100%; border-radius:32px; overflow:hidden;
+    background:var(--bg);
+    padding:18px 20px 30px;
+    display:flex; flex-direction:column; gap:18px;
+    font-family:var(--font, inherit);
+  }
+
+  /* ===== 主题变量 ===== */
+  .a {
+    --bg:#0B0B14; --surface:#16161F; --bd:rgba(255,255,255,.10); --bd-w:1px;
+    --tp:#EDEDED; --ts:#B4B4CD; --tm:#6F6F85;
+    --accent:#7C5DFF; --accent2:#4DE1FF; --on-accent:#fff;
+    --card-r:16px; --r:12px; --title-size:30px;
+    --icon-tint:rgba(124,93,255,.14); --shadow:none; --cd:var(--accent2);
+  }
+  .b {
+    --bg:#F5F2EA; --surface:#FFFFFF; --bd:#1A1A1A; --bd-w:1.5px;
+    --tp:#1A1A1A; --ts:#4A4A4A; --tm:#8A8A82;
+    --accent:#1A1A1A; --accent2:#E2483D; --on-accent:#F5F2EA;
+    --card-r:3px; --r:2px; --title-size:34px;
+    --icon-tint:rgba(26,26,26,.05); --shadow:none; --cd:var(--accent2);
+    --font:-apple-system,"PingFang SC",sans-serif;
+  }
+  .c {
+    --bg:#EEF1F5; --surface:#FFFFFF; --bd:transparent; --bd-w:0px;
+    --tp:#1C1E21; --ts:#5B6470; --tm:#9AA3AF;
+    --accent:#2563EB; --accent2:#F97316; --on-accent:#fff;
+    --card-r:18px; --r:14px; --title-size:28px;
+    --icon-tint:rgba(37,99,235,.10); --shadow:0 6px 18px rgba(20,30,60,.08); --cd:var(--accent2);
+  }
+
+  /* ===== 区块 ===== */
+  .nav { display:flex; align-items:center; justify-content:space-between; }
+  .nav .menu { font-size:20px; color:var(--tp); }
+  .nav .brand { font-size:18px; font-weight:800; color:var(--tp); }
+  .nav .bell { font-size:16px; }
+
+  .tag {
+    align-self:flex-start; display:inline-flex; align-items:center; gap:6px;
+    padding:6px 12px; border-radius:999px;
+    background:color-mix(in srgb, var(--accent) 14%, transparent);
+    color:var(--accent2); font-size:12px; font-weight:700;
+  }
+  .tag i { width:7px; height:7px; border-radius:50%; background:var(--accent2); display:block; }
+
+  .title-row { display:flex; align-items:center; justify-content:space-between; }
+  .title-row h1 { font-size:var(--title-size); font-weight:800; color:var(--tp); line-height:1.1; }
+  .b .title-row h1 { font-family:"Songti SC",Georgia,"Times New Roman",serif; letter-spacing:.5px; }
+  .title-row .bm { font-size:16px; opacity:.7; }
+  .sub { font-size:13px; color:var(--ts); margin-top:-12px; }
+
+  .countdown {
+    display:flex; align-items:center; gap:8px;
+    padding:12px 14px; border-radius:var(--r);
+    background:var(--surface); border:var(--bd-w) solid var(--bd); box-shadow:var(--shadow);
+  }
+  .countdown .icon { font-size:14px; }
+  .countdown .lbl { flex:1; font-size:12px; color:var(--ts); }
+  .countdown b { font-size:14px; color:var(--cd); font-weight:800; }
+
+  .timeline { display:flex; justify-content:space-between; }
+  .timeline .step { display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .timeline .d { width:14px; height:14px; border-radius:50%; }
+  .timeline .done .d { background:var(--accent); }
+  .timeline .cur  .d { background:var(--bg); border:2px solid var(--accent2); }
+  .timeline .future .d { background:color-mix(in srgb, var(--tm) 40%, transparent); }
+  .timeline .step span { font-size:9px; color:var(--ts); }
+  .timeline .future span { color:var(--tm); }
+
+  .next-card {
+    padding:14px 16px; border-radius:var(--card-r);
+    background:var(--accent); color:var(--on-accent); box-shadow:var(--shadow);
+    display:flex; flex-direction:column; gap:4px;
+  }
+  .next-card small { font-size:11px; font-weight:700; opacity:.85; }
+  .next-card .t { font-size:15px; font-weight:800; }
+
+  .grid { display:flex; justify-content:space-between; }
+  .grid .item { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .grid .box {
+    width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+    background:var(--icon-tint); border:var(--bd-w) solid var(--bd); box-shadow:var(--shadow); font-size:22px;
+  }
+  .grid .item span { font-size:11px; color:var(--ts); font-weight:500; }
+
+  .sec-head { display:flex; align-items:center; justify-content:space-between; }
+  .sec-head h2 { font-size:15px; font-weight:800; color:var(--tp); }
+  .b .sec-head h2 { font-family:"Songti SC",Georgia,serif; }
+  .sec-head .all { font-size:12px; color:var(--tm); }
+
+  .rec-card {
+    display:flex; align-items:center; gap:12px;
+    padding:14px; border-radius:var(--card-r);
+    background:var(--surface); border:var(--bd-w) solid var(--bd); box-shadow:var(--shadow);
+  }
+  .rec-card .ib {
+    width:40px; height:40px; flex:none; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    background:var(--icon-tint); font-size:18px;
+  }
+  .rec-card .tx { display:flex; flex-direction:column; gap:3px; }
+  .rec-card .tx b { font-size:14px; font-weight:700; color:var(--tp); }
+  .rec-card .tx small { font-size:11px; color:var(--tm); }
+
+  .ai-bar {
+    padding:14px; border-radius:18px;
+    background:var(--surface); border:var(--bd-w) solid var(--bd); box-shadow:var(--shadow);
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .ai-bar .ph { font-size:14px; color:var(--tm); }
+  .ai-bar .row { display:flex; align-items:center; justify-content:space-between; }
+  .ai-bar .pill {
+    display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px;
+    background:color-mix(in srgb, var(--accent) 12%, transparent); color:var(--ts); font-size:12px; font-weight:500;
+  }
+  .ai-bar .send {
+    width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:var(--accent); color:var(--on-accent); font-size:18px; font-weight:700;
+  }
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1>HackerTrip 小程序首页 · 3 套视觉方向</h1>
+    <p>同一套信息结构，三种设计语言。挑一套，或混搭（例：A 的配色 + C 的卡片质感）</p>
+  </div>
+  <div class="stage" id="stage"></div>
+
+<script>
+const STYLES = [
+  { cls:'a', name:'A · 深色霓虹', desc:'暗黑紫青，贴 hackertrip.space 官网。极客 / 科技感，与 web 端视觉统一' },
+  { cls:'b', name:'B · 杂志编辑', desc:'米白底 + 衬线大标题 + 硬黑边 + 朱红点缀。高级、内容导向、有态度' },
+  { cls:'c', name:'C · 科技卡片', desc:'浅灰底 + 柔和阴影 + 大圆角 + 蓝橙强调。干净、亲和、主流 App 观感' },
+];
+
+function screenHTML(){ return `
+  <div class="screen">
+    <nav class="nav"><span class="menu">☰</span><span class="brand">HackerTrip</span><span class="bell">🔔</span></nav>
+    <div class="tag"><i></i>当前参赛中</div>
+    <div class="title-row"><h1>AdventureX 2026</h1><span class="bm">🔖</span></div>
+    <p class="sub">第 3 / 7 个项目 · 进行中</p>
+    <div class="countdown"><span class="icon">⏱</span><span class="lbl">距项目目标提交</span><b>3天 08小时</b></div>
+    <div class="timeline">
+      <div class="step done"><div class="d"></div><span>报名</span></div>
+      <div class="step done"><div class="d"></div><span>项目</span></div>
+      <div class="step cur"><div class="d"></div><span>初赛</span></div>
+      <div class="step future"><div class="d"></div><span>中期</span></div>
+      <div class="step future"><div class="d"></div><span>路演</span></div>
+      <div class="step future"><div class="d"></div><span>Demo</span></div>
+    </div>
+    <div class="next-card"><small>下一步</small><div class="t">同步 GitHub，完善项目介绍 →</div></div>
+    <div class="grid">
+      <div class="item"><div class="box">📅</div><span>赛程</span></div>
+      <div class="item"><div class="box">📦</div><span>作品</span></div>
+      <div class="item"><div class="box">🪪</div><span>身份卡</span></div>
+      <div class="item"><div class="box">🤖</div><span>Agent</span></div>
+    </div>
+    <div class="sec-head"><h2>为你推荐的行动</h2><span class="all">全部 ›</span></div>
+    <div class="rec-card"><div class="ib">🔍</div><div class="tx"><b>AI 帮你检查作品缺口</b><small>对照评审维度，找出还差什么</small></div></div>
+    <div class="rec-card"><div class="ib">📝</div><div class="tx"><b>生成路演演讲稿</b><small>根据项目自动生成 90 秒讲稿</small></div></div>
+    <div class="ai-bar">
+      <div class="ph">我适合参加哪个黑客松？</div>
+      <div class="row"><span class="pill">🎯 AdventureX ▾</span><span class="send">→</span></div>
+    </div>
+  </div>`;
+}
+
+document.getElementById('stage').innerHTML = STYLES.map(s => `
+  <div class="col">
+    <div class="name">${s.name}</div>
+    <div class="desc">${s.desc}</div>
+    <div class="phone ${s.cls}">${screenHTML()}</div>
+  </div>
+`).join('');
+</script>
+</body>
+</html>

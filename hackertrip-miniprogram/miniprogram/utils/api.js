@@ -30,6 +30,8 @@ const STORAGE = {
   EVENT_PROFILES: 'ht_event_profiles', // 活动内身份缓存
   EVENT_MEMBERS: 'ht_event_members', // 活动成员缓存
   ACHIEVEMENTS: 'ht_achievements', // 主办方验证履历缓存
+  HACKATHONS_CACHE: 'ht_hackathons_cache', // 赛事列表缓存（公共数据，首屏秒开用）
+  ADMIN_FLAG: 'ht_admin_flag', // 审核员标记缓存（避免每次进「我的」都等云端）
 };
 
 const SUBSCRIBE_TYPES = {
@@ -134,6 +136,10 @@ function getAuth() {
 function setAuth(auth) {
   const app = getApp();
   if (app && app.globalData) app.globalData.auth = auth || null;
+  // 登录态变化：下一次云同步不走节流缓存，且在途的旧请求作废
+  lastSyncOkAt = 0;
+  syncGeneration += 1;
+  syncInFlight = null;
   if (auth) setStorage('ht_auth', auth);
   else {
     try { wx.removeStorageSync('ht_auth'); } catch (e) {}
@@ -150,6 +156,7 @@ function clearUserSession() {
     STORAGE.AGENT_CONFIG,
     STORAGE.PROFILE,
     STORAGE.GROWTH,
+    STORAGE.ORGANIZER,
     STORAGE.HACKATHON_CLAIMS,
     STORAGE.OWNED_HACKATHONS,
     STORAGE.SUBSCRIPTIONS,
@@ -157,6 +164,7 @@ function clearUserSession() {
     STORAGE.EVENT_PROFILES,
     STORAGE.EVENT_MEMBERS,
     STORAGE.ACHIEVEMENTS,
+    STORAGE.ADMIN_FLAG,
   ].forEach((key) => {
     try { wx.removeStorageSync(key); } catch (e) {}
   });
@@ -256,7 +264,31 @@ function filterLocal(list, params) {
   return r;
 }
 
-async function getHackathons(params) {
+/** 是否为无筛选的全量查询（只有这种结果可以整体缓存复用） */
+function isDefaultHackathonQuery(options) {
+  return !options.q && !options.mode && !options.status && !options.sort;
+}
+
+/**
+ * 读取上次云端拉回的赛事列表缓存（首屏秒开）。
+ * 返回与 getHackathons 相同 shape 的 decorated 列表；无缓存返回 []。
+ */
+function getCachedHackathons(params) {
+  const options = params || {};
+  const cached = getStorage(STORAGE.HACKATHONS_CACHE, null);
+  if (!cached || !Array.isArray(cached.list) || !cached.list.length) return [];
+  const today = catalog.formatDate(new Date());
+  const list = cached.list.map((item) => catalog.decorate(item, today));
+  if (options.includeEnded) return list;
+  return list.filter((item) => item.status !== 'ended');
+}
+
+/**
+ * 拉取赛事列表并附带数据来源标记。
+ * fromCloud=false 表示云端未成功响应（走了本地 bundled 降级），
+ * 页面可据此决定是否保留已渲染的缓存数据，避免被旧种子数据覆盖。
+ */
+async function getHackathonsWithMeta(params) {
   const options = params || {};
   const today = catalog.formatDate(new Date());
   let raw = null;
@@ -264,17 +296,28 @@ async function getHackathons(params) {
   if (cloudReady()) {
     try {
       const res = await callFn('getHackathons', options);
-      if (res && Array.isArray(res.list)) raw = res.list;
+      // 云函数出错时返回 { ok:false, list:[] }，必须判 ok，否则空数组会污染缓存
+      if (res && res.ok && Array.isArray(res.list)) raw = res.list;
+      // 全量查询成功 → 写缓存，下次冷启动直接秒开
+      if (raw && isDefaultHackathonQuery(options)) {
+        setStorage(STORAGE.HACKATHONS_CACHE, { list: raw, cachedAt: Date.now() });
+      }
     } catch (e) {
       console.warn('[api] getHackathons 云端失败，降级本地', e);
     }
   }
+  const fromCloud = !!raw;
   if (!raw) raw = filterLocal(LOCAL_HACKATHONS, options);
 
   // 统一 status 派生（云端/本地数据都经过 decorate，shape 与 catalog 一致）
   const list = raw.map((item) => catalog.decorate(item, today));
-  if (options.includeEnded) return list;
-  return list.filter((item) => item.status !== 'ended');
+  if (options.includeEnded) return { list, fromCloud };
+  return { list: list.filter((item) => item.status !== 'ended'), fromCloud };
+}
+
+async function getHackathons(params) {
+  const res = await getHackathonsWithMeta(params);
+  return res.list;
 }
 
 async function getHackathonDetail(id) {
@@ -1274,7 +1317,13 @@ async function adminHackathonManage(action, payload) {
 async function checkHackathonAdmin() {
   if (!cloudReady() || !isLoggedIn()) return { ok: false, isAdmin: false, skipped: true };
   const res = await adminHackathonManage('check', {});
+  setStorage(STORAGE.ADMIN_FLAG, !!(res && res.isAdmin));
   return res || { ok: false, isAdmin: false };
+}
+
+/** 上次云端校验的审核员标记（本地缓存，仅用于首屏渲染，入口页面自身仍会二次校验） */
+function getCachedAdminFlag() {
+  return isLoggedIn() && !!getStorage(STORAGE.ADMIN_FLAG, false);
 }
 
 /* --------------------- 裂变成长态 / 暗号（F1） --------------------- */
@@ -1681,11 +1730,40 @@ async function requireAuth(pageOrRedirect, redirectPage, reason) {
   });
 }
 
+/**
+ * 云同步的去重 + 节流：
+ * - 并发调用共享同一个 in-flight Promise（多页面同时进入只打一次云端）
+ * - 成功后 30 秒内的重复调用直接返回，避免每次切页都请求 getProfile
+ */
+let syncInFlight = null;
+let lastSyncOkAt = 0;
+let syncGeneration = 0; // 登录态每变化一次 +1，旧请求的结果不再写回 storage
+const SYNC_MIN_INTERVAL = 30 * 1000;
+
 /** 登录后从云端拉取收藏/报名/卡片/同步结果，合并进本地 storage(云端为准) */
-async function syncFromCloud() {
-  if (!cloudReady() || !isLoggedIn()) return { ok: false, skipped: true };
+function syncFromCloud(options) {
+  if (!cloudReady() || !isLoggedIn()) return Promise.resolve({ ok: false, skipped: true });
+  if (syncInFlight) return syncInFlight;
+  if (!(options && options.force) && Date.now() - lastSyncOkAt < SYNC_MIN_INTERVAL) {
+    return Promise.resolve({ ok: true, throttled: true });
+  }
+  const gen = syncGeneration;
+  syncInFlight = doSyncFromCloud(gen).then((res) => {
+    syncInFlight = null;
+    if (res && res.ok && gen === syncGeneration) lastSyncOkAt = Date.now();
+    return res;
+  }, () => {
+    syncInFlight = null;
+    return { ok: false };
+  });
+  return syncInFlight;
+}
+
+async function doSyncFromCloud(gen) {
   try {
     const res = await callFn('getProfile', {});
+    // 请求期间登录态变了（登出/换号），丢弃结果，避免写回已清空的 storage
+    if (gen !== syncGeneration) return { ok: false, stale: true };
     if (res && res.ok) {
       if (Array.isArray(res.bookmarkIds)) setStorage(STORAGE.BOOKMARKS, mergeIds(res.bookmarkIds, getBookmarks()));
       if (Array.isArray(res.registrations)) {
@@ -1716,9 +1794,9 @@ async function syncFromCloud() {
   return { ok: false };
 }
 
-async function syncUserDataIfLoggedIn() {
+async function syncUserDataIfLoggedIn(options) {
   if (!isLoggedIn()) return { ok: false, skipped: true };
-  return syncFromCloud();
+  return syncFromCloud(options);
 }
 
 module.exports = {
@@ -1734,6 +1812,8 @@ module.exports = {
   syncFromCloud,
   syncUserDataIfLoggedIn,
   getHackathons,
+  getHackathonsWithMeta,
+  getCachedHackathons,
   getHackathonDetail,
   getHackathonHeat,
   getLocalHackathonHeat,
@@ -1781,6 +1861,7 @@ module.exports = {
   submitHackathonDraft,
   adminHackathonManage,
   checkHackathonAdmin,
+  getCachedAdminFlag,
   getPortfolioProjects,
   getScanResults,
   setScanResults,

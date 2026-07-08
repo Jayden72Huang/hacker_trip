@@ -117,9 +117,12 @@
   background: #FBD902;
 }
 
-.flow-btn--share.is-disabled {
+.flow-btn--share.is-disabled,
+.flow-btn--yellow.is-disabled,
+.flow-btn--preview.is-disabled {
   color: #6F6F6F;
   background: #E7E4DC;
+  box-shadow: 3rpx 3rpx 0 0 #000000;
 }
 
 .flow-btn::after {
@@ -175,9 +178,50 @@
   margin-bottom: 16rpx;
 }
 .preview {
+  position: relative;
   display: flex;
   justify-content: center;
   padding: 8rpx 0 16rpx;
+  overflow: hidden;
+}
+
+/* 未生成预览时的占位卡 */
+.preview-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 540rpx;
+  min-height: 420rpx;
+  padding: 40rpx 36rpx;
+  box-sizing: border-box;
+  text-align: center;
+  background: #F4F1E8;
+  border: 3rpx dashed #0C51ED;
+  border-radius: 18rpx;
+}
+.preview-empty-icon {
+  font-size: 64rpx;
+  line-height: 1;
+}
+.preview-empty-title {
+  margin-top: 18rpx;
+  font-size: 28rpx;
+  font-weight: 900;
+  color: #000000;
+}
+.preview-empty-copy {
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: #55524A;
+}
+
+/* canvas 不能销毁重建，未生成时移出可视区保持节点存活 */
+.card-canvas--offstage {
+  position: absolute;
+  left: -9999rpx;
+  top: 0;
 }
 
 /* 当前角色：只读一行 */
@@ -248,6 +292,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  min-width: 0; /* 覆盖原生 button 默认最小宽度，防止撑破三列 grid */
+  box-sizing: border-box;
   padding: 18rpx 12rpx;
   margin: 0;
   color: #000000;

@@ -50,6 +50,20 @@ Page({
     agentPrompt: '先点击“生成同步码”，再复制给电脑端 Agent。',
     result: null,
     resultSkills: [],
+    tutorialOpen: false,
+  },
+
+  toggleTutorial() {
+    this.setData({ tutorialOpen: !this.data.tutorialOpen });
+  },
+
+  copyTutorialCmd(e) {
+    const cmd = e.currentTarget.dataset.cmd;
+    if (!cmd) return;
+    wx.setClipboardData({
+      data: cmd,
+      success: () => wx.showToast({ title: '已复制', icon: 'success' }),
+    });
   },
 
   onLoad(options) {

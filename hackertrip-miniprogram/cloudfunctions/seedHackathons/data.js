@@ -1,5 +1,5 @@
-// 本地降级数据：云开发未配置或调用失败时使用。源自 hackertrip-cli/data/hackathons-bundled.json
-// 字段与云数据库 hackathons 集合保持一致
+// 本地降级数据：云开发未配置或调用失败时使用。
+// 由 scripts/sync-from-feishu.ts 自动生成，请勿手动修改
 module.exports = [
   {
     "name": "春潮 Spring｜深圳黑客松",
@@ -9,6 +9,7 @@ module.exports = [
     "city": "深圳",
     "country": "中国",
     "mode": "offline",
+    "modeText": "线下",
     "theme": "多赛道综合创新",
     "tracks": [
       "软件社交",
@@ -38,6 +39,8 @@ module.exports = [
     "location": "深圳, 中国",
     "registrationDeadline": null,
     "isPast": true,
+    "isPublished": true,
+    "organizerName": "",
     "id": "ht-00"
   },
   {
@@ -48,6 +51,7 @@ module.exports = [
     "city": "上海",
     "country": "中国",
     "mode": "offline",
+    "modeText": "线下",
     "theme": "AI+硬件创新",
     "tracks": [
       "硬件赛道",
@@ -74,6 +78,8 @@ module.exports = [
     "location": "上海, 中国",
     "registrationDeadline": null,
     "isPast": true,
+    "isPublished": true,
+    "organizerName": "",
     "id": "ht-01"
   },
   {
@@ -84,6 +90,7 @@ module.exports = [
     "city": "杭州",
     "country": "中国",
     "mode": "offline",
+    "modeText": "线下",
     "theme": "青年创造者极限创新",
     "tracks": [
       "ReMake 重新发明",
@@ -114,6 +121,8 @@ module.exports = [
     "location": "杭州, 中国",
     "registrationDeadline": null,
     "isPast": true,
+    "isPublished": true,
+    "organizerName": "",
     "id": "ht-02"
   },
   {
@@ -124,6 +133,7 @@ module.exports = [
     "city": "北京",
     "country": "中国",
     "mode": "offline",
+    "modeText": "线下",
     "theme": "AI落地与创新应用",
     "tracks": [
       "AI应用落地",
@@ -150,6 +160,8 @@ module.exports = [
     "location": "北京, 中国",
     "registrationDeadline": null,
     "isPast": true,
+    "isPublished": true,
+    "organizerName": "",
     "id": "ht-03"
   },
   {
@@ -160,6 +172,7 @@ module.exports = [
     "city": "上海",
     "country": "中国",
     "mode": "offline",
+    "modeText": "线下",
     "theme": "以太坊 × AI × Web3",
     "tracks": [
       "以太坊生态",
@@ -188,7 +201,9 @@ module.exports = [
     "summary": "ETHShanghai 2025十月重返上海！聚焦以太坊生态创新，获奖团队可获得Grants和生态支持。",
     "location": "上海, 中国",
     "registrationDeadline": null,
-    "isPast": false,
+    "isPast": true,
+    "isPublished": true,
+    "organizerName": "",
     "id": "ht-04"
   },
   {
@@ -199,6 +214,7 @@ module.exports = [
     "city": "北京/上海/广州",
     "country": "中国",
     "mode": "offline",
+    "modeText": "线下",
     "theme": "XR / 空间计算",
     "tracks": [
       "XR应用",
@@ -230,7 +246,9 @@ module.exports = [
     "summary": "由VRplay社区主办，北京、上海、广州三城同步举办的XR黑客松，48小时极限开发。",
     "location": "北京/上海/广州, 中国",
     "registrationDeadline": null,
-    "isPast": false,
+    "isPast": true,
+    "isPublished": true,
+    "organizerName": "",
     "id": "ht-05"
   },
   {
@@ -241,6 +259,7 @@ module.exports = [
     "city": "北京/上海/多城",
     "country": "中国",
     "mode": "offline",
+    "modeText": "线下",
     "theme": "AI × 高校创新",
     "tracks": [
       "AI应用创新",
@@ -270,7 +289,9 @@ module.exports = [
     "summary": "2026国内首个黑客松顶尖高校联赛，12所高校包括北大、复旦、清华等，2489个年轻人参与。",
     "location": "北京/上海/多城, 中国",
     "registrationDeadline": null,
-    "isPast": false,
+    "isPast": true,
+    "isPublished": true,
+    "organizerName": "",
     "id": "ht-06"
   },
   {
@@ -281,6 +302,7 @@ module.exports = [
     "city": "上海/北京/深圳",
     "country": "中国",
     "mode": "hybrid",
+    "modeText": "混合",
     "theme": "AI赋能人力资源",
     "tracks": [
       "AI招聘",
@@ -309,6 +331,8 @@ module.exports = [
     "location": "上海/北京/深圳, 中国",
     "registrationDeadline": null,
     "isPast": false,
+    "isPublished": true,
+    "organizerName": "",
     "id": "ht-07"
   },
   {
@@ -319,6 +343,7 @@ module.exports = [
     "city": "香港",
     "country": "中国",
     "mode": "offline",
+    "modeText": "线下",
     "theme": "AI × Web3 × 跨境支付",
     "tracks": [
       "AI × Web3",
@@ -347,6 +372,8 @@ module.exports = [
     "location": "香港, 中国",
     "registrationDeadline": null,
     "isPast": true,
+    "isPublished": true,
+    "organizerName": "",
     "id": "ht-08"
   },
   {
@@ -357,6 +384,7 @@ module.exports = [
     "city": "杭州",
     "country": "中国",
     "mode": "hybrid",
+    "modeText": "混合",
     "theme": "AI × 罕见病诊断",
     "tracks": [
       "基因诊断AI",
@@ -384,6 +412,8 @@ module.exports = [
     "location": "杭州, 中国",
     "registrationDeadline": null,
     "isPast": true,
+    "isPublished": true,
+    "organizerName": "",
     "id": "ht-09"
   },
   {
@@ -394,6 +424,7 @@ module.exports = [
     "city": "北京",
     "country": "中国",
     "mode": "offline",
+    "modeText": "线下",
     "theme": "面向青年创变者的84小时极限创造挑战",
     "tracks": [
       "Horizon Canvas",
@@ -423,6 +454,156 @@ module.exports = [
     "location": "北京, 中国",
     "registrationDeadline": null,
     "isPast": false,
+    "isPublished": true,
+    "organizerName": "",
     "id": "ht-10"
+  },
+  {
+    "name": "REBUILD-Z × GEIA AI 黑客松 S2",
+    "shortName": "REBUILD-Z·具身黑客松",
+    "startDate": "2026-09-08",
+    "endDate": "2026-09-11",
+    "city": "深圳",
+    "country": "中国",
+    "mode": "offline",
+    "modeText": "线下",
+    "theme": "具身智能 + 大健康",
+    "tracks": [
+      "具身智能",
+      "大健康"
+    ],
+    "techStack": [
+      "具身智能",
+      "3D打印",
+      "灵巧手",
+      "机器人",
+      "算力"
+    ],
+    "tags": [
+      "具身智能",
+      "深圳",
+      "48小时",
+      "大健康",
+      "VC对接"
+    ],
+    "prizePool": "",
+    "website": "https://www.rebuild-z.com/",
+    "summary": "REBUILD-Z 第二季 S2，与 GEIA GBA 粤港澳大湾区具身智能创新周联办，深圳·大中华喜来登酒店，48 小时驻场。1600+产业精英、VC 对接。",
+    "location": "深圳·大中华喜来登酒店",
+    "registrationDeadline": "2026-09-08",
+    "isPast": false,
+    "isPublished": true,
+    "organizerName": "",
+    "id": "ht-rebuild-z-geia-ai-黑客松-s2-4f9082e1"
+  },
+  {
+    "name": "AdventureX 2026",
+    "shortName": "AdventureX",
+    "startDate": "2026-07-22",
+    "endDate": "2026-07-26",
+    "city": "杭州",
+    "country": "中国",
+    "mode": "offline",
+    "modeText": "线下",
+    "theme": "青年开发者 72 小时黑客松",
+    "tracks": [
+      "开放创新"
+    ],
+    "techStack": [
+      "AI",
+      "全栈",
+      "硬件"
+    ],
+    "tags": [
+      "青年",
+      "72小时",
+      "杭州",
+      "免费食宿",
+      "国内最大"
+    ],
+    "prizePool": "$150,000+",
+    "website": "https://adventure-x.org",
+    "summary": "中国最大青年黑客松，800+ 开发者在杭州未来科技城集结，72 小时不眠开发。免费参赛、管三餐+提供住宿睡袋。",
+    "location": "杭州·未来科技城(学术交流中心+琥珀创新研究中心)",
+    "registrationDeadline": "2026-07-22",
+    "isPast": false,
+    "isPublished": true,
+    "organizerName": "",
+    "id": "ht-adventurex-2026-4e03a6c5"
+  },
+  {
+    "name": "2026「探月计划」Physical AI 黑客松",
+    "shortName": "探月·Physical AI",
+    "startDate": "2026-07-10",
+    "endDate": "2026-07-12",
+    "city": "北京",
+    "country": "中国",
+    "mode": "offline",
+    "modeText": "线下",
+    "theme": "Physical AI / 具身智能机器人",
+    "tracks": [
+      "Physical AI",
+      "具身智能",
+      "机器人"
+    ],
+    "techStack": [
+      "Physical AI",
+      "机器人",
+      "硬件",
+      "具身智能"
+    ],
+    "tags": [
+      "北京",
+      "中关村",
+      "具身智能",
+      "硬件",
+      "Frontier"
+    ],
+    "prizePool": "~￥10万",
+    "website": "https://mp.weixin.qq.com/s/IBvlzMW6NHmqu1WV00_S9A",
+    "summary": "主题「WE ARE FRONTIER」。探月具身智能社区承办、中关村科学城出品推广。面向 Physical AI/具身/机器人/硬件开发者。",
+    "location": "北京·海淀中关村",
+    "registrationDeadline": "2026-07-09",
+    "isPast": false,
+    "isPublished": true,
+    "organizerName": "",
+    "id": "ht-2026-探月计划-physical-ai-黑客松-5c8fb69d"
+  },
+  {
+    "name": "腾讯云黑客松·游戏开发挑战赛 2026",
+    "shortName": "腾讯云·游戏黑客松",
+    "startDate": "2026-04-17",
+    "endDate": "2026-09-01",
+    "city": "深圳",
+    "country": "中国",
+    "mode": "offline",
+    "modeText": "线下",
+    "theme": "AI 驱动游戏创作",
+    "tracks": [
+      "小红花游戏",
+      "文化表达游戏",
+      "叙事剧情游戏"
+    ],
+    "techStack": [
+      "AI",
+      "游戏开发",
+      "CodeBuddy"
+    ],
+    "tags": [
+      "游戏",
+      "腾讯",
+      "高校",
+      "48小时",
+      "五大赛区"
+    ],
+    "prizePool": "￥100万",
+    "website": "https://tch.cloud.tencent.com/",
+    "summary": "腾讯云主办，AI 驱动游戏创作，面向全球高校开发者，1-3 人团队。三大赛题、五大赛区路演，2026.09 深圳总决赛。",
+    "location": "深圳(腾讯滨海大厦)+ 五大赛区",
+    "registrationDeadline": "2026-04-17",
+    "isPast": false,
+    "isPublished": true,
+    "organizerName": "",
+    "id": "ht-腾讯云黑客松-游戏开发挑战赛-2026-1c4d5175"
   }
 ];

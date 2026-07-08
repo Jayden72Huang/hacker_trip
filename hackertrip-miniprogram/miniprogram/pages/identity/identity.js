@@ -21,7 +21,8 @@ Page({
     aiIntent: '',
     aiIntentText: '生成身份卡',
     aiSource: 'direct',
-    variant: 'identity', // identity | config
+    variant: '', // identity | config，未选择时为空，选择并点「生成预览」后才绘制
+    previewReady: false,
     // 表单（techStack 在 onLoad 用统一档案 skills 初始化）
     techStack: [],
     aiTools: [],
@@ -185,7 +186,7 @@ Page({
   },
 
   render() {
-    if (!this.ctx) return;
+    if (!this.ctx || !this.data.variant || !this.data.previewReady) return;
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.clearRect(0, 0, W * this.dpr, H * this.dpr);
     drawCard(this.ctx, {
@@ -208,6 +209,16 @@ Page({
   switchVariant(e) {
     this.setData({ variant: e.currentTarget.dataset.v }, () => this.render());
   },
+  generatePreview() {
+    if (!this.data.variant) {
+      wx.showToast({ title: '请先选择卡片风格', icon: 'none' });
+      return;
+    }
+    this.setData({ previewReady: true }, () => {
+      this.render();
+      wx.pageScrollTo({ selector: '.preview', duration: 300 });
+    });
+  },
   goEditProfile() {
     wx.navigateTo({ url: '/pages/identity-edit/identity-edit' });
   },
@@ -229,6 +240,10 @@ Page({
     }
   },
   async regenerateCard() {
+    if (!this.data.variant) {
+      wx.showToast({ title: '请先在上方选择卡片风格', icon: 'none' });
+      return;
+    }
     const auth = await api.requireAuth(this, '/pages/identity/identity', '登录后才能生成带小程序码的身份卡，并同步到你的公开 profile。');
     if (!auth) return;
     const profile = api.getProfile();
@@ -237,6 +252,7 @@ Page({
       profile,
       techStack: (profile.skills && profile.skills.length) ? profile.skills.slice() : this.data.techStack,
       stats: { projects: userStats.projects, hackathons: userStats.hackathons, awards: this.data.stats.awards },
+      previewReady: true,
       qrReady: false,
       qrError: '',
       cardSaved: false,
@@ -339,6 +355,10 @@ Page({
     const auth = await api.requireAuth(this, '/pages/identity/identity', '登录后才能生成带小程序码的身份卡图片。');
     if (!auth) return;
     if (this.data.saving) return;
+    if (!this.data.previewReady) {
+      wx.showToast({ title: '请先选择风格并生成预览', icon: 'none' });
+      return;
+    }
     if (!this.data.canvasReady || !this.canvas) {
       wx.showToast({ title: '卡片生成中，请稍候', icon: 'none' });
       return;
@@ -375,14 +395,17 @@ Page({
   },
 
   prepareShare() {
-    if (!this.data.qrReady) return;
+    if (!this.data.qrReady || !this.data.previewReady) {
+      if (!this.data.previewReady) wx.showToast({ title: '请先选择风格并生成预览', icon: 'none' });
+      return;
+    }
     this.saveCard({ silent: true });
   },
 
   buildShareQuery() {
     const params = [
       `role=${encodeURIComponent(this.data.role)}`,
-      `variant=${encodeURIComponent(this.data.variant)}`,
+      `variant=${encodeURIComponent(this.data.variant || 'identity')}`,
     ];
     const uid = this.data.profile && this.data.profile.publicId;
     if (uid) params.push(`uid=${encodeURIComponent(uid)}`);

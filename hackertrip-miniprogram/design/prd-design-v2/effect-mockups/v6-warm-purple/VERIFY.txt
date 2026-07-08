@@ -1,0 +1,8 @@
+01-home.png: 393x852
+02-discovery.png: 393x852
+03-chat.png: 393x852
+04-match.png: 393x852
+05-event.png: 393x852
+06-schedule.png: 393x852
+07-identity.png: 393x852
+08-sync.png: 393x852

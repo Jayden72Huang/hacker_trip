@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "Agent 技能库",
+  "navigationBarTitleText": "Haki 授权",
   "usingComponents": {
     "navbar": "/components/navbar/index",
     "t-icon": "tdesign-miniprogram/icon/icon"

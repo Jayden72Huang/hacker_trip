@@ -18,64 +18,64 @@
     <block wx:else>
       <view class="submit-tabs">
         <button class="submit-tab {{submitMode === 'manual' ? 'submit-tab--active' : ''}}" data-mode="manual" bindtap="switchSubmitMode">人工填写提交</button>
-        <button class="submit-tab {{submitMode === 'agent' ? 'submit-tab--active' : ''}}" data-mode="agent" bindtap="switchSubmitMode">Agent自动提交</button>
+        <button class="submit-tab {{submitMode === 'agent' ? 'submit-tab--active' : ''}}" data-mode="agent" bindtap="switchSubmitMode">让 AI 帮我提交</button>
       </view>
 
       <view wx:if="{{submitMode === 'agent'}}" class="brutal-box submit-pair-card">
-        <view class="box-title">Agent自动提交</view>
-        <view class="box-copy">适合已经在电脑端用 Agent 整理好赛事资料的主办方。CLI 负责提交，Agent / Skills 负责把官网、海报或活动说明整理成结构化赛事资料。</view>
+        <view class="box-title">让 AI 帮我提交</view>
+        <view class="box-copy">不想一栏一栏手动填表？把海报或官网丢给 AI，让它整理成一份赛事资料，跟着下面四步、三次复制粘贴就能提交，平台审核后上架。</view>
         <view class="agent-submit-steps">
           <view class="agent-submit-step">
             <view class="agent-step-index">1</view>
             <view class="agent-step-body">
-              <view class="agent-step-title">电脑端准备 CLI</view>
-              <view class="agent-step-copy">打开电脑终端，先用 npx 直接检查 CLI；不想每次写 npx，也可以全局安装。</view>
+              <view class="agent-step-title">在电脑上装好提交小工具</view>
+              <view class="agent-step-copy">打开电脑上的终端，把下面的命令粘贴进去回车，装好 hackertrip 这个提交小工具。不熟悉终端也没关系，可以让 Claude、Codex 这类 AI 助手替你跑。</view>
               <view class="agent-step-command">
                 <view>npx hackertrip --help</view>
                 <view>npm i -g hackertrip</view>
               </view>
-              <button class="native-btn agent-step-btn" bindtap="copyCliCommand">复制 CLI 准备命令</button>
+              <button class="native-btn agent-step-btn" bindtap="copyCliCommand">复制安装命令</button>
             </view>
           </view>
           <view class="agent-submit-step">
             <view class="agent-step-index">2</view>
             <view class="agent-step-body">
-              <view class="agent-step-title">让 Agent / Skills 整理资料</view>
-              <view class="agent-step-copy">把官网、海报或活动说明发给 Codex / Claude Code / Cursor，让它按模板生成 event.json；没有 Skills 也可以手动填这个 JSON。</view>
+              <view class="agent-step-title">让 AI 把赛事整理成一份资料文件</view>
+              <view class="agent-step-copy">把官网链接、海报或活动说明发给 Claude、Codex、Cursor 这类 AI 助手，让它照下面的模板整理成一份赛事资料文件（event.json）。你也可以照着模板自己填。</view>
               <view class="agent-step-command">
                 <view>{ "name": "赛事名称",</view>
                 <view>  "city": "城市 / 线上",</view>
                 <view>  "startDate": "YYYY-MM-DD",</view>
                 <view>  "website": "https://" }</view>
               </view>
-              <button class="native-btn agent-step-btn" bindtap="copyEventJsonTemplate">复制 event.json 模板</button>
+              <button class="native-btn agent-step-btn" bindtap="copyEventJsonTemplate">复制赛事资料模板</button>
             </view>
           </view>
           <view class="agent-submit-step">
             <view class="agent-step-index">3</view>
             <view class="agent-step-body">
-              <view class="agent-step-title">生成配对码和上传凭证</view>
-              <view class="agent-step-copy">点击下方按钮，拿到 6 位配对码和上传凭证。凭证只用于本次提交，30 分钟内有效。</view>
+              <view class="agent-step-title">点一下，拿到 6 位提交码</view>
+              <view class="agent-step-copy">点下面的按钮，拿到一个 6 位提交码和一把提交密钥，就像取件码，只用于这一次提交，30 分钟内有效。</view>
               <button
                 class="native-btn agent-step-btn"
                 bindtap="createSubmitPair"
                 loading="{{pairCreating}}"
                 disabled="{{pairCreating}}"
-              >{{pairCreating ? '生成中...' : '生成提交配对码'}}</button>
+              >{{pairCreating ? '生成中...' : '生成提交码'}}</button>
             </view>
           </view>
           <view class="agent-submit-step">
             <view class="agent-step-index">4</view>
             <view class="agent-step-body">
-              <view class="agent-step-title">电脑端执行提交命令</view>
-              <view class="agent-step-copy">用复制的命令模板替换配对码和凭证，提交后仍会进入平台审核。</view>
+              <view class="agent-step-title">回电脑粘贴命令，提交完成</view>
+              <view class="agent-step-copy">把下面的命令复制到电脑终端回车，提交就完成了，之后平台审核通过就会上架。命令里已自动填好你的提交码和密钥。</view>
               <view class="agent-step-command">
                 <view>npx hackertrip submit-event \</view>
                 <view>  --pair-code {{pairCode || 'PAIR_CODE'}} \</view>
                 <view>  --sync-token {{pairUploadToken || 'UPLOAD_TOKEN'}} \</view>
                 <view>  --from event.json</view>
               </view>
-              <button class="native-btn agent-step-btn" bindtap="copySubmitCommand">复制提交命令模板</button>
+              <button class="native-btn agent-step-btn" bindtap="copySubmitCommand">复制提交命令</button>
             </view>
           </view>
         </view>
@@ -83,11 +83,11 @@
         <view wx:if="{{pairCode}}" class="pair-result">
           <view class="pair-code">{{pairCode}}</view>
           <view class="pair-meta">有效期 {{pairExpireText || '30 分钟'}} · {{pairCountdown}}</view>
-          <view class="pair-token-label">上传凭证</view>
+          <view class="pair-token-label">提交密钥</view>
           <view class="pair-token">{{pairUploadToken}}</view>
           <view class="pair-actions">
-            <button class="native-btn pair-copy" bindtap="copyPairCode">复制配对码</button>
-            <button class="native-btn native-btn--yellow pair-copy" bindtap="copyPairToken">复制凭证</button>
+            <button class="native-btn pair-copy" bindtap="copyPairCode">复制提交码</button>
+            <button class="native-btn native-btn--yellow pair-copy" bindtap="copyPairToken">复制密钥</button>
           </view>
         </view>
         <view wx:else class="pair-status">{{pairStatusText}}</view>

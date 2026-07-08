@@ -15,7 +15,7 @@ Page({
     pairExpireAt: '',
     pairExpireText: '',
     pairCountdown: '',
-    pairStatusText: '点击生成后会得到 6 位配对码和上传凭证，再复制命令模板到电脑端提交。',
+    pairStatusText: '点下面的按钮，拿到 6 位提交码和一把提交密钥，再把命令复制到电脑终端就能提交。',
     form: {
       name: '',
       city: '',
@@ -111,7 +111,7 @@ Page({
 
   async createSubmitPair() {
     if (this.data.pairCreating) return;
-    const auth = await api.requireAuth(this, '/pages/hackathon-create/hackathon-create', '登录后才能生成赛事提交配对码。');
+    const auth = await api.requireAuth(this, '/pages/hackathon-create/hackathon-create', '登录后才能生成赛事提交码。');
     if (!auth) return;
     if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
     if (!api.isOrganizerApproved()) {
@@ -119,7 +119,7 @@ Page({
       wx.showToast({ title: '需先通过组织者认证', icon: 'none' });
       return;
     }
-    this.setData({ pairCreating: true, pairStatusText: '正在生成提交配对码...' });
+    this.setData({ pairCreating: true, pairStatusText: '正在生成提交码...' });
     const res = await api.createEventSubmitPair();
     this.setData({ pairCreating: false });
     if (res && res.ok && res.code && res.uploadToken) {
@@ -130,38 +130,38 @@ Page({
         pairExpireText: this.formatExpireAt(res.expireAt),
         pairStatusText: '已生成，30 分钟内一次性有效。',
       }, () => this.startPairTimer());
-      wx.showToast({ title: '配对码已生成', icon: 'success' });
+      wx.showToast({ title: '提交码已生成', icon: 'success' });
       return;
     }
     const messageMap = {
       NOT_ORGANIZER: '需先通过组织者认证',
       NO_OPENID: '请先登录后再生成配对码',
-      CLOUD_REQUIRED: '需要连接云开发后才能生成配对码',
+      CLOUD_REQUIRED: '需要连接云开发后才能生成提交码',
     };
-    const message = messageMap[res && res.code] || (res && res.message) || '配对码生成失败，请稍后重试';
+    const message = messageMap[res && res.code] || (res && res.message) || '提交码生成失败，请稍后重试';
     this.setData({ pairStatusText: message });
     wx.showToast({ title: message, icon: 'none' });
   },
 
   copyPairCode() {
     if (!this.data.pairCode) {
-      wx.showToast({ title: '请先生成配对码', icon: 'none' });
+      wx.showToast({ title: '请先生成提交码', icon: 'none' });
       return;
     }
     wx.setClipboardData({
       data: this.data.pairCode,
-      success: () => wx.showToast({ title: '配对码已复制', icon: 'success' }),
+      success: () => wx.showToast({ title: '提交码已复制', icon: 'success' }),
     });
   },
 
   copyPairToken() {
     if (!this.data.pairUploadToken) {
-      wx.showToast({ title: '请先生成凭证', icon: 'none' });
+      wx.showToast({ title: '请先生成密钥', icon: 'none' });
       return;
     }
     wx.setClipboardData({
       data: this.data.pairUploadToken,
-      success: () => wx.showToast({ title: '凭证已复制', icon: 'success' }),
+      success: () => wx.showToast({ title: '密钥已复制', icon: 'success' }),
     });
   },
 
@@ -172,7 +172,7 @@ Page({
     ].join('\n');
     wx.setClipboardData({
       data: command,
-      success: () => wx.showToast({ title: 'CLI 命令已复制', icon: 'success' }),
+      success: () => wx.showToast({ title: '安装命令已复制', icon: 'success' }),
     });
   },
 
@@ -190,7 +190,7 @@ Page({
     };
     wx.setClipboardData({
       data: JSON.stringify(template, null, 2),
-      success: () => wx.showToast({ title: 'JSON 模板已复制', icon: 'success' }),
+      success: () => wx.showToast({ title: '赛事资料模板已复制', icon: 'success' }),
     });
   },
 
@@ -205,7 +205,7 @@ Page({
     ].join('\n');
     wx.setClipboardData({
       data: command,
-      success: () => wx.showToast({ title: '命令模板已复制', icon: 'success' }),
+      success: () => wx.showToast({ title: '提交命令已复制', icon: 'success' }),
     });
   },
 

@@ -56,6 +56,36 @@ function resolveRegistrationLink(item) {
   };
 }
 
+function copyTextToClipboard(text, successToast) {
+  const data = String(text || '').trim();
+  if (!data) {
+    wx.showToast({ title: '暂无可复制内容', icon: 'none' });
+    return;
+  }
+  const attempt = (retried) => {
+    wx.setClipboardData({
+      data,
+      success: () => {
+        wx.showToast({ title: successToast || '链接已复制', icon: 'none' });
+      },
+      fail: (err) => {
+        if (!retried) {
+          setTimeout(() => attempt(true), 120);
+          return;
+        }
+        console.warn('[detail] setClipboardData failed', err);
+        wx.showModal({
+          title: '复制失败',
+          content: `请手动复制:\n${data}`,
+          confirmText: '知道了',
+          showCancel: false,
+        });
+      },
+    });
+  };
+  attempt(false);
+}
+
 function buildDetail(raw) {
   const item = raw;
   if (!item) return null;
@@ -237,15 +267,7 @@ Page({
 
     const link = item.registrationLink || resolveRegistrationLink(item);
     if (link && link.value) {
-      wx.setClipboardData({
-        data: link.value,
-        success: () => {
-          wx.showToast({ title: link.toast, icon: 'none' });
-        },
-        fail: () => {
-          wx.showToast({ title: '复制失败,请重试', icon: 'none' });
-        },
-      });
+      copyTextToClipboard(link.value, link.toast);
       return;
     }
 

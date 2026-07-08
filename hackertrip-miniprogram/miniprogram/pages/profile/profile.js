@@ -1,4 +1,5 @@
 const api = require('../../utils/api.js');
+const catalog = require('../../utils/catalog.js');
 const { parseAIEntry } = require('../../utils/ai.js');
 const share = require('../../utils/share.js');
 
@@ -30,7 +31,7 @@ Page({
       { title: '我的项目 / 作品', sub: '同步项目画像，管理提交作品', url: '/pages/my-works/my-works' },
     ],
     moreTools: [
-      { title: '项目能力同步', sub: '同步 Skills，并配置 Haki 可读取内容', url: '/pages/agent/agent' },
+      { title: '项目能力同步', sub: '把项目和技能同步给 AI 助手 Haki，赛事推荐更准', url: '/pages/agent/agent' },
       { title: '卡册 · 成就解锁', sub: '查看已解锁的限定卡面', url: '/pages/cardbook/cardbook' },
     ],
     settings: [],
@@ -41,8 +42,9 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().syncSelected();
     }
-    // 收藏/报名/身份卡变化后返回时刷新资产
-    this.load();
+    // 本地缓存立即渲染（无闪烁），云端校验放后台
+    this.renderLocal();
+    this.revalidate();
   },
 
   onLoad(options) {
@@ -52,30 +54,25 @@ Page({
       aiBanner: !!ai.fromAI,
       aiIntentText: ai.intent || '个人中心',
     });
-    this.load();
+    // 渲染统一在 onShow 里做（onLoad 后必触发 onShow）
   },
 
-  async load() {
+  /** 只读本地 storage 的同步渲染，进页面即出，不等云端 */
+  renderLocal() {
     const auth = api.getAuth();
-    if (auth) await api.syncUserDataIfLoggedIn().catch(() => {});
     const stats = api.getUserStats();
     const profile = api.getProfile();
     const profileMode = api.getProfileMode();
     const organizer = api.getOrganizerApplication();
-    const adminState = auth && api.cloudReady()
-      ? await api.checkHackathonAdmin().catch(() => ({ isAdmin: false }))
-      : { isAdmin: false };
-    // 我加入的进行中赛事数（用 api 取最新状态）
+    const isAdmin = api.getCachedAdminFlag();
+    // 进行中赛事数：优先用缓存的赛事列表，缓存未命中时按报名快照的日期重新派生 status
+    const today = catalog.formatDate(new Date());
     const regs = api.getRegistrations();
-    let joined = [];
-    try {
-      joined = await Promise.all(
-        regs.map(async (reg) => (await api.getHackathonDetail(reg.id)) || reg),
-      );
-    } catch (err) {
-      joined = regs;
-    }
-    const ongoing = joined.filter((item) => item && item.status === 'ongoing').length;
+    const cachedEvents = api.getCachedHackathons({ includeEnded: true });
+    const ongoing = regs.filter((reg) => {
+      const latest = cachedEvents.find((h) => h.id === reg.id) || catalog.decorate(reg, today);
+      return latest && latest.status === 'ongoing';
+    }).length;
     const cardsCount = api.getCards().length;
 
     const avatarChar = (profile.nickname || 'H').trim().charAt(0).toUpperCase() || 'H';
@@ -113,8 +110,18 @@ Page({
       organizerStatus: organizer.status,
       organizerStatusText: this.getOrganizerStatusText(organizer.status),
       organizerTools: this.buildOrganizerTools(organizer.status),
-      settings: this.buildSettings(!!(adminState && adminState.isAdmin)),
+      settings: this.buildSettings(isAdmin),
     });
+  },
+
+  /** 后台云端校验：档案/组织者状态同步 + admin 标记，数据有变化才引起重绘 */
+  async revalidate() {
+    if (!api.getAuth()) return;
+    await api.syncUserDataIfLoggedIn().catch(() => {});
+    if (api.cloudReady()) {
+      await api.checkHackathonAdmin().catch(() => ({ isAdmin: false }));
+    }
+    this.renderLocal();
   },
 
   buildSettings(isAdmin) {
@@ -140,11 +147,15 @@ Page({
     const modal = this.selectComponent('#authModal');
     if (!modal || !modal.open) return;
     const auth = await modal.open({ reason: '登录后可以同步你的身份卡、赛程、收藏和 Skills 结果。' });
-    if (auth) this.load();
+    if (auth) {
+      this.renderLocal();
+      this.revalidate();
+    }
   },
 
   onAuthLogin() {
-    this.load();
+    this.renderLocal();
+    this.revalidate();
   },
 
   getOrganizerStatusText(status) {

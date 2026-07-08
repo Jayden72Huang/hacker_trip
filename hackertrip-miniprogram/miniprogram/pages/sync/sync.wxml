@@ -56,6 +56,40 @@
       <button class="native-btn action-btn action-btn--primary sync-btn" bindtap="syncNow">{{syncing ? '拉取中...' : '拉取结果'}}</button>
     </view>
 
+    <view class="tutorial-card">
+      <view class="tutorial-head" bindtap="toggleTutorial">
+        <view class="tutorial-head-title">💻 终端里怎么用</view>
+        <view class="tutorial-arrow {{tutorialOpen ? 'tutorial-arrow--open' : ''}}">⌄</view>
+      </view>
+      <view wx:if="{{tutorialOpen}}" class="tutorial-body">
+        <view class="tutorial-step">
+          <view class="tutorial-step-title">1. 安装 CLI</view>
+          <view class="tutorial-cmd-row">
+            <scroll-view scroll-x class="tutorial-cmd">npm i -g hackertrip</scroll-view>
+            <view class="tutorial-copy" data-cmd="npm i -g hackertrip" bindtap="copyTutorialCmd">复制</view>
+          </view>
+        </view>
+        <view class="tutorial-step">
+          <view class="tutorial-step-title">2. 生成配对码</view>
+          <view class="tutorial-step-desc">往上翻到「生成同步码」，点一下拿到 6 位配对码。</view>
+        </view>
+        <view class="tutorial-step">
+          <view class="tutorial-step-title">3. 发布作品</view>
+          <view class="tutorial-cmd-row">
+            <scroll-view scroll-x class="tutorial-cmd">hackertrip publish-work --pair-code 你的配对码</scroll-view>
+            <view class="tutorial-copy" data-cmd="hackertrip publish-work --pair-code 你的配对码" bindtap="copyTutorialCmd">复制</view>
+          </view>
+        </view>
+        <view class="tutorial-agent-note">
+          <view class="tutorial-agent-text">想让 AI 帮你跑全程？装好 Skills 后，对 Claude 说「帮我把作品发到 HackerTrip」即可。</view>
+          <view class="tutorial-cmd-row">
+            <scroll-view scroll-x class="tutorial-cmd">npx hackertrip install-skills --player</scroll-view>
+            <view class="tutorial-copy" data-cmd="npx hackertrip install-skills --player" bindtap="copyTutorialCmd">复制</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
     <view wx:if="{{result}}" class="brutal-box sync-result">
       <view class="box-title">同步结果</view>
       <view class="result-name">{{result.project.name || '未命名项目'}}</view>

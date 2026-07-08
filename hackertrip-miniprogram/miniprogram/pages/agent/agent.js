@@ -40,12 +40,12 @@ function buildRows(config, scan) {
 
 Page({
   data: {
-    title: 'Agent 配置',
+    title: 'Haki 授权',
     aiBanner: false,
     aiIntentText: 'agent.skills',
     hasScan: false,
     scanTitle: '未同步项目',
-    scanMeta: '先完成 Skills 同步，再配置 Haki 可读取的上下文。',
+    scanMeta: '先在电脑上同步你的项目能力，Haki 才有依据帮你推荐。',
     rows: [],
     sourceSteps: [],
     savingKey: '',
@@ -77,12 +77,12 @@ Page({
       scanTitle: project.name || (scan ? '已同步项目' : '未同步项目'),
       scanMeta: scan
         ? `${project.summary || project.description || '项目画像已同步'}`
-        : '先完成 Skills 同步，再配置 Haki 可读取的上下文。',
+        : '先在电脑上同步你的项目能力，Haki 才有依据帮你推荐。',
       rows: buildRows(config, scan),
       sourceSteps: [
         {
-          title: 'Skills 同步',
-          desc: project.name ? `已同步 ${project.name}` : '从桌面端 CLI 扫描项目简介、技术栈和公开作品',
+          title: '项目能力同步',
+          desc: project.name ? `已同步 ${project.name}` : '在电脑上扫描你的项目简介、技术栈和公开作品（代码不上传）',
           ready: !!(project.name || project.summary || project.description),
         },
         {
@@ -94,7 +94,7 @@ Page({
         },
         {
           title: '赛事匹配',
-          desc: matches.length ? `已有 ${matches.length} 个匹配结果会进入 Haki 上下文` : '同步或匹配后，Haki 可以读取推荐赛事',
+          desc: matches.length ? `已有 ${matches.length} 个匹配结果，Haki 能看到` : '同步或匹配后，Haki 就能看到推荐赛事',
           ready: matches.length > 0,
         },
       ],
@@ -104,7 +104,7 @@ Page({
   async toggleRow(e) {
     const key = e.currentTarget.dataset.key;
     if (this.data.savingKey) return;
-    const auth = await api.requireAuth(this, '/pages/agent/agent', '登录后才能把 Agent 配置同步到你的 HackerTrip 账号。');
+    const auth = await api.requireAuth(this, '/pages/agent/agent', '登录后才能把授权设置同步到你的 HackerTrip 账号。');
     if (!auth) return;
     const current = api.getAgentConfig();
     const prev = Object.assign({}, current);

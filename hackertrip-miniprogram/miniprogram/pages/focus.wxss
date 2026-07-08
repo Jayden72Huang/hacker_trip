@@ -149,6 +149,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 0; /* 原生 button 自带最小宽度，放进 grid/flex 窄列会撑破容器 */
+  box-sizing: border-box;
   min-height: 88rpx;
   padding: 0 26rpx;
   color: #FFFFFF;
@@ -295,4 +297,121 @@
   font-size: 24rpx;
   font-weight: 700;
   line-height: 1.45;
+}
+
+/* 折叠式 CLI 教程区块，sync / organizer 共用 */
+.tutorial-card {
+  margin: 24rpx 0 28rpx;
+  background: #FFFFFF;
+  border: 4rpx solid #000000;
+  border-radius: 16rpx;
+  box-shadow: 8rpx 8rpx 0 0 #000000;
+  overflow: hidden;
+}
+
+.tutorial-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14rpx;
+  padding: 24rpx;
+}
+
+.tutorial-head-title {
+  color: #000000;
+  font-size: 30rpx;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.tutorial-arrow {
+  flex: 0 0 auto;
+  color: #000000;
+  font-size: 30rpx;
+  font-weight: 900;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.tutorial-arrow--open {
+  transform: rotate(180deg);
+}
+
+.tutorial-body {
+  padding: 4rpx 24rpx 24rpx;
+  border-top: 2rpx solid #000000;
+}
+
+.tutorial-step {
+  margin-top: 20rpx;
+}
+
+.tutorial-step-title {
+  color: #000000;
+  font-size: 26rpx;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.tutorial-step-desc {
+  margin-top: 8rpx;
+  color: #3D3D3D;
+  font-size: 23rpx;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.tutorial-cmd-row {
+  display: flex;
+  align-items: stretch;
+  gap: 12rpx;
+  margin-top: 12rpx;
+}
+
+.tutorial-cmd {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 16rpx;
+  color: #FFFFFF;
+  background: #000000;
+  border-radius: 10rpx;
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  font-size: 21rpx;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.tutorial-copy {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 22rpx;
+  color: #FFFFFF;
+  background: #0C51ED;
+  border: 3rpx solid #000000;
+  border-radius: 10rpx;
+  font-size: 22rpx;
+  font-weight: 900;
+}
+
+.tutorial-copy:active {
+  transform: translate(2rpx, 2rpx);
+}
+
+.tutorial-agent-note {
+  margin-top: 24rpx;
+  padding: 18rpx;
+  background: #F4F1E8;
+  border: 3rpx solid #000000;
+  border-radius: 12rpx;
+}
+
+.tutorial-agent-text {
+  color: #000000;
+  font-size: 22rpx;
+  font-weight: 800;
+  line-height: 1.5;
 }

@@ -22,12 +22,18 @@ Page({
       targetUid: (options && (options.uid || options.targetUid)) || '',
     });
     this.setData({ form });
-    await this.refresh();
+    this.refresh();
   },
 
-  async refresh() {
-    if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
+  /** 本地缓存先渲染认证态；options.wait=true 时强制等云端同步完成（提交前校验，需绕过节流） */
+  async refresh(options) {
     this.setData({ isApproved: api.isOrganizerApproved() });
+    if (!api.isLoggedIn()) return;
+    const wait = !!(options && options.wait);
+    const sync = api.syncUserDataIfLoggedIn(wait ? { force: true } : undefined)
+      .catch(() => {})
+      .then(() => this.setData({ isApproved: api.isOrganizerApproved() }));
+    if (wait) await sync;
   },
 
   onInput(e) {
@@ -57,7 +63,7 @@ Page({
     if (this.data.submitting) return;
     const auth = await api.requireAuth(this, '/pages/organizer-verify/organizer-verify', '登录并通过组织者认证后才能验证选手履历。');
     if (!auth) return;
-    await this.refresh();
+    await this.refresh({ wait: true });
     if (!this.data.isApproved) {
       wx.showModal({
         title: '需要组织者认证',

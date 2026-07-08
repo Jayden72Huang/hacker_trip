@@ -18,7 +18,7 @@
         <view class="login-title">{{authAccount.name}}</view>
         <view class="login-sub">{{authAccount.copy}}</view>
       </view>
-      <button class="login-btn" bindtap="openLogin">{{isLoggedIn ? '已登录' : '微信登录'}}</button>
+      <button wx:if="{{!isLoggedIn}}" class="login-btn" bindtap="openLogin">微信登录</button>
     </view>
 
     <view class="role-tabs" aria-label="身份选择">

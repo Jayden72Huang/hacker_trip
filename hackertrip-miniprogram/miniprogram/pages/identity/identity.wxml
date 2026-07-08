@@ -26,29 +26,37 @@
           <view class="style-chip {{variant === 'identity' ? 'on' : ''}}" data-v="identity" bindtap="switchVariant">身份卡</view>
           <view class="style-chip {{variant === 'config' ? 'on' : ''}}" data-v="config" bindtap="switchVariant">配置卡</view>
         </view>
+        <button class="flow-btn flow-btn--preview {{variant ? '' : 'is-disabled'}}" bindtap="generatePreview">
+          {{previewReady ? '重新生成预览' : '生成预览'}}
+        </button>
       </view>
       <view class="flow-step">
         <text class="flow-index">3</text>
         <view class="flow-title">导出分享</view>
         <view class="flow-copy">保存图片到相册，或转发带公开主页入口的身份卡。</view>
         <view class="flow-actions flow-actions--inline">
-          <button class="flow-btn flow-btn--yellow" bindtap="saveToAlbum">{{saving || savingCard ? '保存中…' : '保存图片'}}</button>
-          <button class="flow-btn flow-btn--share {{qrReady ? '' : 'is-disabled'}}" open-type="share" disabled="{{!qrReady}}" bindtap="prepareShare">
-            {{qrReady ? '分享卡片' : '生成中…'}}
+          <button class="flow-btn flow-btn--yellow {{previewReady ? '' : 'is-disabled'}}" bindtap="saveToAlbum">{{saving || savingCard ? '保存中…' : '保存图片'}}</button>
+          <button class="flow-btn flow-btn--share {{qrReady && previewReady ? '' : 'is-disabled'}}" open-type="share" disabled="{{!qrReady || !previewReady}}" bindtap="prepareShare">
+            {{previewReady ? (qrReady ? '分享卡片' : '生成中…') : '分享卡片'}}
           </button>
         </view>
-        <view class="share-status flow-share-status">{{qrReady ? (cardSaved ? '已保存到我的 · 可转发' : '已绑定公开主页') : (qrError || '正在生成小程序码')}}</view>
+        <view class="share-status flow-share-status">{{previewReady ? (qrReady ? (cardSaved ? '已保存到我的 · 可转发' : '已绑定公开主页') : (qrError || '正在生成小程序码')) : '先完成步骤 2 生成预览'}}</view>
       </view>
     </view>
   </view>
 
-  <!-- 卡片预览（首屏主角） -->
+  <!-- 卡片预览：选择风格并点「生成预览」后展示 -->
   <view class="preview">
-    <canvas type="2d" id="cardCanvas" class="card-canvas" style="width: 540rpx; height: 720rpx;" />
+    <view wx:if="{{!previewReady}}" class="preview-empty">
+      <view class="preview-empty-icon">🃏</view>
+      <view class="preview-empty-title">还没有生成预览</view>
+      <view class="preview-empty-copy">在上方步骤 2 选择「身份卡」或「配置卡」风格，点击「生成预览」，卡片会展示在这里。</view>
+    </view>
+    <canvas type="2d" id="cardCanvas" class="card-canvas {{previewReady ? '' : 'card-canvas--offstage'}}" style="width: 540rpx; height: 720rpx;" />
   </view>
 
-  <!-- 当前角色（只读一行） -->
-  <view class="role-line">
+  <!-- 当前角色（只读一行）：生成预览后才展示，避免默认角色被误认为写死 -->
+  <view wx:if="{{previewReady}}" class="role-line">
     <text class="role-line__emoji">{{roleMeta.emoji}}</text>
     <view class="role-line__text">
       <text class="role-line__name">{{roleMeta.name}}</text>

@@ -1,9 +1,11 @@
-// 云函数：主办方活动提交（外部 CLI / HTTP 触发器入口）。
+// 云函数：主办方活动提交 / 审核状态查询（外部 CLI / HTTP 触发器入口）。
 //   action='submit' —— 主办方通过 CLI 提交活动信息，写入 hackathon_drafts 草稿箱。
+//   action='status' —— 主办方凭同一个配对码只读查询自己提交过的赛事审核状态。
 //
 // 安全边界（防垃圾 + 绑账号 + 格式校验）：
 //   1) 必须带 pairCode + uploadToken：主办方先在小程序「主办方后台」生成配对码(pairSync create)，
 //      eventSync 校验 sync_pairs(code+token+未过期+有 openid)，把赛事绑定到主办方 openid。取消匿名入口。
+//      submit 要求配对码未 eventBound（一次性）；status 是只读查询，允许 eventBound 的配对码复用。
 //   2) 必填齐全 + 格式硬校验（日期 YYYY-MM-DD、起止先后、官网 http(s)），不过直接拒绝、不写库。
 //   3) 用主办方 openid 调微信内容安全 msgSecCheck，risky 拒绝。
 //   4) 配对码一次性：提交后标记 eventBound，防重复刷。
@@ -17,6 +19,21 @@ const REQUIRED_FIELDS = ['name', 'city', 'startDate', 'endDate', 'website'];
 const RECOMMENDED_FIELDS = ['summary', 'prizePool', 'registrationDeadline', 'organizerContact', 'tracks'];
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const PAIR_RE = /^\d{6}$/;
+
+// 草稿审核状态可读文案（取值来源：eventSync 写入 pending_manual_review、
+// adminHackathonManage approveDraft→approved / rejectDraft→rejected，
+// 以及 listData 过滤用到的 pending_review / security_review）。
+const STATUS_TEXT = {
+  pending_review: '待审核',
+  pending_manual_review: '待人工审核',
+  security_review: '内容安全复核中',
+  approved: '已通过',
+  rejected: '已拒绝',
+};
+
+function statusText(status) {
+  return STATUS_TEXT[status] || status || '';
+}
 
 function cleanText(value, maxLength) {
   return String(value == null ? '' : value).trim().slice(0, maxLength || 500);
@@ -168,44 +185,84 @@ async function getApprovedOrganizer(openid) {
   return res.data && res.data[0] ? res.data[0] : null;
 }
 
-exports.main = async (rawEvent, context) => {
-  const event = normalizeEvent(rawEvent);
-  const action = cleanText((event || {}).action || 'submit', 40);
-
-  if (action !== 'submit') {
-    return { ok: false, code: 'UNKNOWN_ACTION', message: '未知 action' };
-  }
-
-  // ---- 防滥用①：配对码 + token，绑定主办方小程序账号（取消匿名提交）----
+// 公共鉴权：配对码 + uploadToken 校验（sync_pairs：code 匹配、token 相等、未过期、有 openid）。
+// allowEventBound=false 时（submit）额外要求配对码未被用于提交过；status 只读查询传 true 允许复用。
+// 返回 { pairDoc } 或 { error: { ok:false, code, message } }。
+async function validatePair(rawEvent, event, options) {
+  const allowEventBound = options && options.allowEventBound;
   const pairCode = cleanText(event.pairCode || event.code, 10);
   const uploadToken = readSubmitToken(rawEvent, event);
   if (!PAIR_RE.test(pairCode)) {
-    return { ok: false, code: 'BAD_PAIR', message: '请在小程序「主办方后台」生成 6 位提交配对码' };
+    return { error: { ok: false, code: 'BAD_PAIR', message: '请在小程序「主办方后台」生成 6 位提交配对码' } };
   }
   if (!uploadToken) {
-    return { ok: false, code: 'BAD_PAIR', message: '缺少提交凭证(uploadToken)，请在小程序生成配对码时一并获取' };
+    return { error: { ok: false, code: 'BAD_PAIR', message: '缺少提交凭证(uploadToken)，请在小程序生成配对码时一并获取' } };
   }
 
-  const now = Date.now();
   let pairDoc = null;
   try {
     const pairRes = await db.collection('sync_pairs').where({ code: pairCode }).limit(1).get();
     pairDoc = pairRes.data && pairRes.data[0];
   } catch (e) {
-    return { ok: false, code: 'PAIR_LOOKUP_FAILED', message: String(e) };
+    return { error: { ok: false, code: 'PAIR_LOOKUP_FAILED', message: String(e) } };
   }
   if (!pairDoc || pairDoc.uploadToken !== uploadToken) {
-    return { ok: false, code: 'BAD_PAIR', message: '配对码无效或凭证不匹配，请在小程序重新生成' };
+    return { error: { ok: false, code: 'BAD_PAIR', message: '配对码无效或凭证不匹配，请在小程序重新生成' } };
   }
-  if (pairDoc.expireAt && pairDoc.expireAt < now) {
-    return { ok: false, code: 'BAD_PAIR', message: '配对码已过期，请在小程序重新生成' };
+  if (pairDoc.expireAt && pairDoc.expireAt < Date.now()) {
+    return { error: { ok: false, code: 'BAD_PAIR', message: '配对码已过期，请在小程序重新生成' } };
   }
   if (!pairDoc.openid) {
-    return { ok: false, code: 'BAD_PAIR', message: '配对会话未绑定账号，请在小程序重新生成' };
+    return { error: { ok: false, code: 'BAD_PAIR', message: '配对会话未绑定账号，请在小程序重新生成' } };
   }
-  if (pairDoc.eventBound) {
-    return { ok: false, code: 'BAD_PAIR', message: '该配对码已用于提交赛事，请重新生成' };
+  if (!allowEventBound && pairDoc.eventBound) {
+    return { error: { ok: false, code: 'BAD_PAIR', message: '该配对码已用于提交赛事，请重新生成' } };
   }
+  return { pairDoc };
+}
+
+// action='status'：主办方凭配对码只读查询自己提交过的赛事审核状态（最多 20 条）。
+async function handleStatus(rawEvent, event) {
+  const pairResult = await validatePair(rawEvent, event, { allowEventBound: true });
+  if (pairResult.error) return pairResult.error;
+  const organizerOpenid = pairResult.pairDoc.openid;
+
+  let drafts = [];
+  try {
+    const res = await db.collection('hackathon_drafts')
+      .where({ organizerOpenid })
+      .orderBy('submittedAt', 'desc')
+      .limit(20)
+      .get();
+    drafts = res.data || [];
+  } catch (e) {
+    return { ok: false, code: 'STATUS_QUERY_FAILED', message: String(e) };
+  }
+
+  // 字段最小化：只回可公开的审核进度，不带 openid/securityResult 等内部字段。
+  const items = drafts.map((draft) => {
+    const admission = (draft && draft.admissionCheck) || {};
+    return {
+      id: draft._id,
+      name: cleanText(draft.name, 100),
+      status: draft.status || '',
+      statusText: statusText(draft.status),
+      submittedAt: draft.submittedAt || 0,
+      updatedAt: draft.updatedAt || 0,
+      missing: Array.isArray(admission.missing) ? admission.missing : [],
+      note: cleanText(draft.rejectReason || '', 300),
+    };
+  });
+
+  return { ok: true, items };
+}
+
+async function handleSubmit(rawEvent, event) {
+  // ---- 防滥用①：配对码 + token，绑定主办方小程序账号（取消匿名提交）----
+  const pairResult = await validatePair(rawEvent, event, { allowEventBound: false });
+  if (pairResult.error) return pairResult.error;
+  const pairDoc = pairResult.pairDoc;
+  const now = Date.now();
   const organizerOpenid = pairDoc.openid;
 
   let organizer = null;
@@ -299,4 +356,13 @@ exports.main = async (rawEvent, context) => {
   } catch (e) {
     return { ok: false, code: 'DRAFT_SAVE_FAILED', message: String(e) };
   }
+}
+
+exports.main = async (rawEvent, context) => {
+  const event = normalizeEvent(rawEvent);
+  const action = cleanText((event || {}).action || 'submit', 40);
+
+  if (action === 'submit') return handleSubmit(rawEvent, event);
+  if (action === 'status') return handleStatus(rawEvent, event);
+  return { ok: false, code: 'UNKNOWN_ACTION', message: '未知 action' };
 };

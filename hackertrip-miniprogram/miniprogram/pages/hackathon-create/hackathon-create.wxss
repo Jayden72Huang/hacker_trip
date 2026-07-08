@@ -236,6 +236,9 @@
 }
 
 .pair-copy {
+  width: 100%;
+  min-width: 0; /* 覆盖原生 button 默认最小宽度，防止撑破两列 grid */
+  box-sizing: border-box;
   min-height: 74rpx;
   margin: 0;
   font-size: 23rpx;

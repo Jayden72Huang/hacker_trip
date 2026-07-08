@@ -108,6 +108,40 @@
       <view class="list-title">{{item.name}}</view>
       <view class="list-subtitle">{{item.city}} · {{item.startDate}} - {{item.endDate}} · {{item.statusText}}</view>
     </view>
+
+    <view class="tutorial-card">
+      <view class="tutorial-head" bindtap="toggleTutorial">
+        <view class="tutorial-head-title">💻 终端里怎么提交赛事</view>
+        <view class="tutorial-arrow {{tutorialOpen ? 'tutorial-arrow--open' : ''}}">⌄</view>
+      </view>
+      <view wx:if="{{tutorialOpen}}" class="tutorial-body">
+        <view class="tutorial-step">
+          <view class="tutorial-step-title">1. 安装 CLI</view>
+          <view class="tutorial-cmd-row">
+            <scroll-view scroll-x class="tutorial-cmd">npm i -g hackertrip</scroll-view>
+            <view class="tutorial-copy" data-cmd="npm i -g hackertrip" bindtap="copyTutorialCmd">复制</view>
+          </view>
+        </view>
+        <view class="tutorial-step">
+          <view class="tutorial-step-title">2. 生成提交码</view>
+          <view class="tutorial-step-desc">在本页生成提交码，绑定你的组织者账号后再回终端使用。</view>
+        </view>
+        <view class="tutorial-step">
+          <view class="tutorial-step-title">3. 提交赛事</view>
+          <view class="tutorial-cmd-row">
+            <scroll-view scroll-x class="tutorial-cmd">hackertrip submit-event --pair-code 你的提交码 --name "赛事名" --city "城市" --start 2026-08-01 --end 2026-08-03 --website "https://..."</scroll-view>
+            <view class="tutorial-copy" data-cmd='hackertrip submit-event --pair-code 你的提交码 --name "赛事名" --city "城市" --start 2026-08-01 --end 2026-08-03 --website "https://..."' bindtap="copyTutorialCmd">复制</view>
+          </view>
+        </view>
+        <view class="tutorial-agent-note">
+          <view class="tutorial-agent-text">也可以装好 Skills 后，把海报图丢给 Claude 说「帮我把这个黑客松发到 HackerTrip」。</view>
+          <view class="tutorial-cmd-row">
+            <scroll-view scroll-x class="tutorial-cmd">npx hackertrip install-skills --organizer</scroll-view>
+            <view class="tutorial-copy" data-cmd="npx hackertrip install-skills --organizer" bindtap="copyTutorialCmd">复制</view>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
   <auth-modal id="authModal" bind:login="onAuthLogin" />
 </view>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HackerTrip 首页 · 新版（BlueStone 风格）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6F7F9; --surface:#FFFFFF;
+    --primary:#2D6FF7; --primary-d:#1B5FE0;
+    --ink:#171A21; --sub:#6B7280; --mut:#A0A6B1; --line:#EEF0F3;
+    --orange:#FF8A3D; --purple:#7C5CFC; --green:#22C55E; --pink:#FF5D8F;
+    --r-card:20px; --r-box:15px;
+    --sh:0 8px 26px rgba(23,42,80,.07);
+    --sh-sm:0 4px 14px rgba(23,42,80,.05);
+    --font:'Poppins',-apple-system,"PingFang SC","Helvetica Neue",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:#e9ebf0; font-family:var(--font);
+    padding:44px 0 70px; -webkit-font-smoothing:antialiased; color:var(--ink);
+  }
+  .wrap{display:flex;flex-direction:column;align-items:center;gap:18px;}
+  .cap{font-size:13px;color:#7a7e88;letter-spacing:.3px;}
+  .cap b{color:#2b2e36;}
+
+  .phone{width:392px;border-radius:44px;padding:11px;background:#0d0f14;box-shadow:0 30px 70px rgba(0,0,0,.28);}
+  .screen{position:relative;width:100%;border-radius:34px;overflow:hidden;background:var(--bg);
+    padding:16px 18px 0;display:flex;flex-direction:column;}
+
+  /* 彩色几何装饰 */
+  .blob{position:absolute;z-index:0;border-radius:50%;filter:blur(2px);opacity:.85;}
+  .blob.g{width:70px;height:70px;background:var(--green);right:-18px;top:64px;border-radius:42% 58% 60% 40%;}
+  .blob.o{width:26px;height:26px;background:var(--orange);right:60px;top:120px;}
+  .blob.p{width:16px;height:16px;background:var(--purple);left:120px;top:78px;}
+  .screen>*{position:relative;z-index:1;}
+
+  /* 顶部导航 */
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:8px 2px 0;}
+  .logo{display:flex;align-items:center;gap:9px;}
+  .logo .mark{width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,#3B82F6,#2D6FF7);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;
+    box-shadow:0 6px 14px rgba(45,111,247,.35);}
+  .logo .nm{font-weight:800;font-size:18px;color:var(--ink);letter-spacing:-.2px;}
+  .nav .right{display:flex;align-items:center;gap:12px;}
+  .nav .bell{position:relative;font-size:18px;}
+  .nav .bell i{position:absolute;top:-1px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--pink);border:2px solid var(--bg);}
+  .nav .ava{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#FFB36B,#FF5D8F);
+    display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:var(--sh-sm);}
+
+  /* Hero */
+  .hero{padding:22px 2px 18px;}
+  .tag{display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:999px;
+    background:rgba(45,111,247,.10);color:var(--primary);font-size:12px;font-weight:700;}
+  .tag i{width:7px;height:7px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 3px rgba(45,111,247,.18);}
+  .hero h1{font-size:33px;font-weight:800;line-height:1.12;letter-spacing:-.5px;margin-top:14px;}
+  .hero h1 .bl{color:var(--primary);}
+  .hero .sub{margin-top:9px;font-size:13.5px;color:var(--sub);font-weight:500;}
+
+  /* 倒计时焦点卡 */
+  .cd{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;
+    padding:18px 20px;border-radius:var(--r-card);
+    background:linear-gradient(135deg,#3B82F6 0%,#2D6FF7 55%,#1B5FE0 100%);
+    box-shadow:0 14px 30px rgba(45,111,247,.30);}
+  .cd::after{content:"";position:absolute;width:150px;height:150px;border-radius:50%;
+    background:rgba(255,255,255,.10);right:-46px;top:-50px;}
+  .cd .l{display:flex;flex-direction:column;gap:5px;color:#fff;}
+  .cd .l span{font-size:12px;opacity:.85;font-weight:500;}
+  .cd .l b{font-size:23px;font-weight:800;letter-spacing:.2px;}
+  .cd .ic{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.18);
+    display:flex;align-items:center;justify-content:center;font-size:22px;}
+
+  /* 进度卡 */
+  .prog{margin-top:16px;padding:16px 18px;border-radius:var(--r-card);background:var(--surface);box-shadow:var(--sh);}
+  .prog .h{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .prog .h b{font-size:14px;font-weight:700;}
+  .prog .h span{font-size:12px;color:var(--primary);font-weight:700;}
+  .timeline{display:flex;justify-content:space-between;}
+  .timeline .step{display:flex;flex-direction:column;align-items:center;gap:7px;flex:1;}
+  .timeline .d{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:10px;color:#fff;font-weight:800;}
+  .timeline .done .d{background:var(--primary);}
+  .timeline .cur .d{background:#fff;border:2.5px solid var(--primary);box-shadow:0 0 0 4px rgba(45,111,247,.14);}
+  .timeline .future .d{background:#E5E8EE;}
+  .timeline .step span{font-size:10px;font-weight:600;color:var(--sub);}
+  .timeline .future span{color:var(--mut);}
+
+  /* 快捷入口 */
+  .quick{display:flex;justify-content:space-between;margin-top:20px;}
+  .quick .it{display:flex;flex-direction:column;align-items:center;gap:9px;flex:1;}
+  .quick .bx{width:58px;height:58px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:25px;box-shadow:var(--sh-sm);}
+  .quick .bx.b1{background:rgba(45,111,247,.12);}
+  .quick .bx.b2{background:rgba(255,138,61,.14);}
+  .quick .bx.b3{background:rgba(124,92,252,.13);}
+  .quick .bx.b4{background:rgba(34,197,94,.13);}
+  .quick .it span{font-size:11.5px;font-weight:600;color:#3c4250;}
+
+  /* section */
+  .sec{display:flex;align-items:center;justify-content:space-between;margin:24px 2px 13px;}
+  .sec b{font-size:17px;font-weight:800;letter-spacing:-.2px;}
+  .sec a{font-size:12.5px;color:var(--primary);font-weight:700;text-decoration:none;}
+
+  /* 推荐卡 */
+  .rec{display:flex;align-items:center;gap:13px;padding:14px;border-radius:var(--r-card);
+    background:var(--surface);box-shadow:var(--sh-sm);margin-bottom:12px;}
+  .rec .ib{width:48px;height:48px;flex:none;border-radius:var(--r-box);display:flex;align-items:center;justify-content:center;font-size:21px;}
+  .rec .ib.i1{background:rgba(45,111,247,.12);}
+  .rec .ib.i2{background:rgba(124,92,252,.13);}
+  .rec .tx{flex:1;display:flex;flex-direction:column;gap:3px;}
+  .rec .tx b{font-size:14.5px;font-weight:700;}
+  .rec .tx small{font-size:11.5px;color:var(--mut);font-weight:500;}
+  .rec .go{color:var(--mut);font-size:18px;font-weight:700;}
+
+  /* AI 输入 */
+  .ai{display:flex;align-items:center;gap:10px;margin-top:6px;padding:9px 9px 9px 18px;border-radius:999px;
+    background:var(--surface);box-shadow:var(--sh);}
+  .ai .ph{flex:1;font-size:13.5px;color:var(--mut);font-weight:500;}
+  .ai .send{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#3B82F6,#2D6FF7);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:19px;font-weight:700;box-shadow:0 8px 18px rgba(45,111,247,.4);}
+
+  /* tab bar */
+  .tabs{display:flex;justify-content:space-around;align-items:center;margin:18px -18px 0;padding:12px 24px 22px;
+    background:var(--surface);border-top:1px solid var(--line);}
+  .tabs .t{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:20px;color:#C2C7D0;}
+  .tabs .t span{font-size:10px;font-weight:600;}
+  .tabs .t.on{color:var(--primary);}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="cap"><b>HackerTrip 首页 · 新版</b> —— 参考 BlueStone（亮蓝 / 白卡 / 彩色图标 / 大圆角 / 留白）</div>
+    <div class="phone"><div class="screen">
+      <span class="blob g"></span><span class="blob o"></span><span class="blob p"></span>
+
+      <div class="nav">
+        <div class="logo"><div class="mark">H</div><div class="nm">HackerTrip</div></div>
+        <div class="right">
+          <div class="bell">🔔<i></i></div>
+          <div class="ava">🦾</div>
+        </div>
+      </div>
+
+      <div class="hero">
+        <span class="tag"><i></i>当前参赛中</span>
+        <h1>AdventureX <span class="bl">2026</span></h1>
+        <div class="sub">第 3 / 7 个项目 · 进行中</div>
+      </div>
+
+      <div class="cd">
+        <div class="l"><span>距项目目标提交</span><b>3 天 08 小时</b></div>
+        <div class="ic">⏱</div>
+      </div>
+
+      <div class="prog">
+        <div class="h"><b>项目进度</b><span>3 / 7 阶段</span></div>
+        <div class="timeline">
+          <div class="step done"><div class="d">✓</div><span>报名</span></div>
+          <div class="step done"><div class="d">✓</div><span>项目</span></div>
+          <div class="step cur"><div class="d"></div><span>初赛</span></div>
+          <div class="step future"><div class="d"></div><span>中期</span></div>
+          <div class="step future"><div class="d"></div><span>路演</span></div>
+          <div class="step future"><div class="d"></div><span>Demo</span></div>
+        </div>
+      </div>
+
+      <div class="quick">
+        <div class="it"><div class="bx b1">📅</div><span>赛程</span></div>
+        <div class="it"><div class="bx b2">📦</div><span>作品</span></div>
+        <div class="it"><div class="bx b3">🪪</div><span>身份卡</span></div>
+        <div class="it"><div class="bx b4">🤖</div><span>Agent</span></div>
+      </div>
+
+      <div class="sec"><b>为你推荐的行动</b><a href="#">全部 ›</a></div>
+      <div class="rec">
+        <div class="ib i1">🔍</div>
+        <div class="tx"><b>AI 帮你检查作品缺口</b><small>对照评审维度，找出还差什么</small></div>
+        <div class="go">›</div>
+      </div>
+      <div class="rec">
+        <div class="ib i2">📝</div>
+        <div class="tx"><b>生成路演演讲稿</b><small>根据项目自动生成 90 秒讲稿</small></div>
+        <div class="go">›</div>
+      </div>
+
+      <div class="ai">
+        <div class="ph">问问 AI：我适合参加哪个黑客松？</div>
+        <div class="send">→</div>
+      </div>
+
+      <div class="tabs">
+        <div class="t on">🏠<span>首页</span></div>
+        <div class="t">🏆<span>赛事</span></div>
+        <div class="t">💬<span>消息</span></div>
+        <div class="t">👤<span>我的</span></div>
+      </div>
+    </div></div>
+  </div>
+</body>
+</html>
