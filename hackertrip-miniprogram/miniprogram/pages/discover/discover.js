@@ -140,7 +140,7 @@ Page({
   },
 
   openCityPicker() {
-    this.setData({ cityPickerVisible: true });
+    this.setData({ cityPickerVisible: true, sortPickerVisible: false });
   },
 
   closeCityPicker() {
@@ -148,7 +148,10 @@ Page({
   },
 
   openSortPicker() {
-    this.setData({ sortPickerVisible: true });
+    this.setData({
+      sortPickerVisible: !this.data.sortPickerVisible,
+      cityPickerVisible: false,
+    });
   },
 
   closeSortPicker() {

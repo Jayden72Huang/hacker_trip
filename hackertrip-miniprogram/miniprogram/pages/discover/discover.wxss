@@ -96,6 +96,7 @@
 }
 
 .search-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12rpx;
@@ -145,6 +146,41 @@
 .sort-caret {
   color: #0C51ED;
   font-size: 20rpx;
+}
+
+.sort-popover {
+  position: absolute;
+  top: 90rpx;
+  right: 0;
+  z-index: 20;
+  width: 220rpx;
+  padding: 10rpx;
+  background: #F4F1E8;
+  border: 4rpx solid #000000;
+  border-radius: 14rpx;
+  box-shadow: 8rpx 8rpx 0 0 #000000;
+}
+
+.sort-popover-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 68rpx;
+  color: #000000;
+  background: #FFFFFF;
+  border: 3rpx solid #000000;
+  border-radius: 10rpx;
+  font-size: 24rpx;
+  font-weight: 900;
+}
+
+.sort-popover-item + .sort-popover-item {
+  margin-top: 10rpx;
+}
+
+.sort-popover-item.on {
+  color: #FFFFFF;
+  background: #0C51ED;
 }
 
 .search-input {

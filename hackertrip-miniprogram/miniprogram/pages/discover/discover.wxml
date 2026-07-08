@@ -127,6 +127,15 @@
         <text>{{sortLabel}}</text>
         <text class="sort-caret">▾</text>
       </view>
+      <view wx:if="{{sortPickerVisible}}" class="sort-popover">
+        <view
+          wx:for="{{sortOptions}}"
+          wx:key="key"
+          class="sort-popover-item {{sortKey === item.key ? 'on' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="onSortPick"
+        >{{item.label}}</view>
+      </view>
     </view>
 
     <hackathon-card
@@ -159,18 +168,6 @@
           bindtap="onCityPick"
         >{{item}}</view>
       </scroll-view>
-    </view>
-  </page-container>
-  <page-container show="{{sortPickerVisible}}" round bindbeforeleave="closeSortPicker" bindclickoverlay="closeSortPicker">
-    <view class="sort-picker">
-      <view class="sort-picker-title">排序方式</view>
-      <view
-        wx:for="{{sortOptions}}"
-        wx:key="key"
-        class="sort-picker-item {{sortKey === item.key ? 'on' : ''}}"
-        data-key="{{item.key}}"
-        bindtap="onSortPick"
-      >{{item.label}}</view>
     </view>
   </page-container>
   <auth-modal id="authModal" />

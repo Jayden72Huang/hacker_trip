@@ -82,3 +82,17 @@ skills/
 !hackertrip-miniprogram/miniprogram/skills/
 skills-lock.json
 .gstack/
+
+# scraping / generation scratch
+.firecrawl/
+generated_images/
+generated-walkers/
+gemini-frame*.png
+walk-frame*.png
+lib/OPC_MKT_Agent_OS_backup/
+
+# heavy design renders (specs .md/.html stay tracked)
+hackertrip-miniprogram/screenshots/
+hackertrip-miniprogram/design/**/*.png
+hackertrip-miniprogram/design/**/*.jpg
+hackertrip-miniprogram/design/**/*.webp
