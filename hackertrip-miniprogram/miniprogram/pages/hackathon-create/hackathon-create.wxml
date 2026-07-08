@@ -29,14 +29,26 @@
             <view class="agent-step-index">1</view>
             <view class="agent-step-body">
               <view class="agent-step-title">电脑端准备 CLI</view>
-              <view class="agent-step-copy">打开终端运行 npx hackertrip --help；也可以先执行 npm i -g hackertrip 全局安装。</view>
+              <view class="agent-step-copy">打开电脑终端，先用 npx 直接检查 CLI；不想每次写 npx，也可以全局安装。</view>
+              <view class="agent-step-command">
+                <view>npx hackertrip --help</view>
+                <view>npm i -g hackertrip</view>
+              </view>
+              <button class="native-btn agent-step-btn" bindtap="copyCliCommand">复制 CLI 准备命令</button>
             </view>
           </view>
           <view class="agent-submit-step">
             <view class="agent-step-index">2</view>
             <view class="agent-step-body">
               <view class="agent-step-title">让 Agent / Skills 整理资料</view>
-              <view class="agent-step-copy">把官网、海报或活动说明发给 Codex / Claude Code / Cursor，让它生成 event.json；没有 Skills 也可以手动准备 submit-event 参数。</view>
+              <view class="agent-step-copy">把官网、海报或活动说明发给 Codex / Claude Code / Cursor，让它按模板生成 event.json；没有 Skills 也可以手动填这个 JSON。</view>
+              <view class="agent-step-command">
+                <view>{ "name": "赛事名称",</view>
+                <view>  "city": "城市 / 线上",</view>
+                <view>  "startDate": "YYYY-MM-DD",</view>
+                <view>  "website": "https://" }</view>
+              </view>
+              <button class="native-btn agent-step-btn" bindtap="copyEventJsonTemplate">复制 event.json 模板</button>
             </view>
           </view>
           <view class="agent-submit-step">
@@ -44,6 +56,12 @@
             <view class="agent-step-body">
               <view class="agent-step-title">生成配对码和上传凭证</view>
               <view class="agent-step-copy">点击下方按钮，拿到 6 位配对码和上传凭证。凭证只用于本次提交，30 分钟内有效。</view>
+              <button
+                class="native-btn agent-step-btn"
+                bindtap="createSubmitPair"
+                loading="{{pairCreating}}"
+                disabled="{{pairCreating}}"
+              >{{pairCreating ? '生成中...' : '生成提交配对码'}}</button>
             </view>
           </view>
           <view class="agent-submit-step">
@@ -51,17 +69,16 @@
             <view class="agent-step-body">
               <view class="agent-step-title">电脑端执行提交命令</view>
               <view class="agent-step-copy">用复制的命令模板替换配对码和凭证，提交后仍会进入平台审核。</view>
+              <view class="agent-step-command">
+                <view>npx hackertrip submit-event \</view>
+                <view>  --pair-code {{pairCode || 'PAIR_CODE'}} \</view>
+                <view>  --sync-token {{pairUploadToken || 'UPLOAD_TOKEN'}} \</view>
+                <view>  --from event.json</view>
+              </view>
+              <button class="native-btn agent-step-btn" bindtap="copySubmitCommand">复制提交命令模板</button>
             </view>
           </view>
         </view>
-        <view class="agent-command">npx hackertrip submit-event --pair-code PAIR_CODE --sync-token UPLOAD_TOKEN --from event.json</view>
-        <button class="native-btn agent-command-copy" bindtap="copySubmitCommand">复制提交命令模板</button>
-        <button
-          class="native-btn submit-pair-btn"
-          bindtap="createSubmitPair"
-          loading="{{pairCreating}}"
-          disabled="{{pairCreating}}"
-        >{{pairCreating ? '生成中...' : '生成提交配对码'}}</button>
 
         <view wx:if="{{pairCode}}" class="pair-result">
           <view class="pair-code">{{pairCode}}</view>

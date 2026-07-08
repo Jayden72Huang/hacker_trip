@@ -165,6 +165,35 @@ Page({
     });
   },
 
+  copyCliCommand() {
+    const command = [
+      'npx hackertrip --help',
+      'npm i -g hackertrip',
+    ].join('\n');
+    wx.setClipboardData({
+      data: command,
+      success: () => wx.showToast({ title: 'CLI 命令已复制', icon: 'success' }),
+    });
+  },
+
+  copyEventJsonTemplate() {
+    const template = {
+      name: '赛事名称',
+      city: '城市 / 线上',
+      mode: 'offline',
+      startDate: 'YYYY-MM-DD',
+      endDate: 'YYYY-MM-DD',
+      website: 'https://',
+      prizePool: '奖金 / 资源',
+      tracks: 'AI Agent, Web3, 硬件',
+      summary: '一句话说明活动主题、参赛对象、亮点和报名要求',
+    };
+    wx.setClipboardData({
+      data: JSON.stringify(template, null, 2),
+      success: () => wx.showToast({ title: 'JSON 模板已复制', icon: 'success' }),
+    });
+  },
+
   copySubmitCommand() {
     const pairCode = this.data.pairCode || 'PAIR_CODE';
     const syncToken = this.data.pairUploadToken || 'UPLOAD_TOKEN';

@@ -161,26 +161,23 @@
   line-height: 1.5;
 }
 
-.agent-command {
-  margin-top: 20rpx;
+.agent-step-command {
+  margin-top: 14rpx;
   padding: 18rpx;
   color: #FFFFFF;
   background: #000000;
   border-radius: 12rpx;
-  font-size: 21rpx;
+  font-size: 20rpx;
   font-weight: 800;
   line-height: 1.45;
   word-break: break-all;
 }
 
-.agent-command-copy {
+.agent-step-btn {
+  width: 100%;
   min-height: 74rpx;
   margin-top: 16rpx;
   font-size: 23rpx;
-}
-
-.submit-pair-btn {
-  margin-top: 24rpx;
 }
 
 .pair-result {
