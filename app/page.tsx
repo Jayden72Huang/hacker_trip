@@ -9,6 +9,7 @@ import { OrganizerCTA } from '@/components/OrganizerCTA';
 import { HeroRotatingText } from '@/components/HeroRotatingText';
 import { HyperspeedHero } from '@/components/HyperspeedHero';
 import { SkillPromo } from '@/components/SkillPromo';
+import { HomeLogoLoop } from '@/components/HomeLogoLoop';
 
 export default function Home() {
   return (
@@ -69,6 +70,9 @@ export default function Home() {
 
         {/* AI Skill 推广 */}
         <SkillPromo />
+
+        {/* Logo 无限循环滚动带 */}
+        <HomeLogoLoop />
 
         {/* 黑客松列表（带 Tab + 搜索 + 筛选） */}
         <HackathonListSection />
