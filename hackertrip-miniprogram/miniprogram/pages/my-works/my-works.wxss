@@ -103,3 +103,17 @@
   padding: 0 12rpx;
   font-size: 23rpx;
 }
+
+/* 手动添加/编辑作品 */
+.work-add-btn { margin: 20rpx 0 8rpx; }
+.work-form { margin-top: 20rpx; }
+.work-form-field { margin-top: 20rpx; }
+.work-form-label { font-size: 24rpx; font-weight: 700; color: #3D3D3D; margin-bottom: 8rpx; }
+.work-form-input {
+  width: 100%; box-sizing: border-box;
+  height: 76rpx; line-height: 44rpx;
+  padding: 16rpx 20rpx; font-size: 26rpx; color: #000000;
+  background: #FFFFFF; border: 2rpx solid #000000; border-radius: 10rpx;
+}
+.work-form-textarea { height: auto; min-height: 140rpx; line-height: 1.5; }
+.work-form-actions { display: flex; gap: 16rpx; margin-top: 28rpx; }

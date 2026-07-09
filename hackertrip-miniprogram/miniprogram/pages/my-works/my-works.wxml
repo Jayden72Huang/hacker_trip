@@ -2,7 +2,42 @@
   <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
   <view class="focus-content">
     <view class="focus-title">我的作品</view>
-    <view class="focus-subtitle">审核 CLI 提交到当前账号下的作品，决定哪些展示到公开主页。</view>
+    <view class="focus-subtitle">手动添加或审核 CLI 提交的作品，决定哪些展示到公开主页。</view>
+
+    <button class="native-btn work-add-btn" bindtap="openCreateForm">＋ 添加作品</button>
+
+    <!-- 手动添加 / 编辑表单 -->
+    <view wx:if="{{formOpen}}" class="brutal-box work-form">
+      <view class="box-title">{{editingId ? '编辑作品' : '添加作品'}}</view>
+      <view class="work-form-field">
+        <view class="work-form-label">作品名称 *</view>
+        <input class="work-form-input" value="{{form.name}}" data-field="name" bindinput="onFormInput" maxlength="60" placeholder="例如：HackerTrip 小程序" />
+      </view>
+      <view class="work-form-field">
+        <view class="work-form-label">一句话简介</view>
+        <textarea class="work-form-input work-form-textarea" value="{{form.summary}}" data-field="summary" bindinput="onFormInput" maxlength="200" placeholder="它解决什么问题、用了什么技术" />
+      </view>
+      <view class="work-form-field">
+        <view class="work-form-label">获奖情况</view>
+        <input class="work-form-input" value="{{form.awards}}" data-field="awards" bindinput="onFormInput" maxlength="80" placeholder="例如：AdventureX 2026 一等奖" />
+      </view>
+      <view class="work-form-field">
+        <view class="work-form-label">代码仓库链接</view>
+        <input class="work-form-input" value="{{form.repo}}" data-field="repo" bindinput="onFormInput" maxlength="300" placeholder="https://github.com/..." />
+      </view>
+      <view class="work-form-field">
+        <view class="work-form-label">Demo 链接</view>
+        <input class="work-form-input" value="{{form.demo}}" data-field="demo" bindinput="onFormInput" maxlength="300" placeholder="https://..." />
+      </view>
+      <view class="work-form-field">
+        <view class="work-form-label">技术栈（用顿号或空格分隔）</view>
+        <input class="work-form-input" value="{{form.techText}}" data-field="techText" bindinput="onFormInput" maxlength="200" placeholder="例如：React、Node.js、CloudBase" />
+      </view>
+      <view class="work-form-actions">
+        <button class="native-btn work-action" bindtap="closeForm">取消</button>
+        <button class="native-btn native-btn--yellow work-action" bindtap="submitForm">{{saving ? '保存中…' : (editingId ? '保存修改' : '添加作品')}}</button>
+      </view>
+    </view>
 
     <view wx:if="{{loading}}" class="list-card">
       <view class="list-title">正在加载</view>
@@ -16,7 +51,7 @@
 
     <view wx:elif="{{!works.length}}" class="list-card">
       <view class="list-title">暂无作品</view>
-      <view class="list-subtitle">电脑端提交作品后，会出现在这里等待发布或下架。</view>
+      <view class="list-subtitle">点上方「＋ 添加作品」手动录入，或在电脑端用 CLI 提交，都会出现在这里等待发布。</view>
     </view>
 
     <view wx:for="{{works}}" wx:key="_id" class="list-card work-card">
@@ -43,6 +78,11 @@
             data-action="{{item.primaryAction}}"
             bindtap="runAction"
           >{{item.primaryActionText}}</button>
+          <button
+            class="native-btn work-action"
+            data-id="{{item._id}}"
+            bindtap="openEditForm"
+          >编辑</button>
           <button
             class="native-btn native-btn--danger work-action"
             data-id="{{item._id}}"

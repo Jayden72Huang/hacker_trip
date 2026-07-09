@@ -31,12 +31,18 @@ function normalizeWork(work) {
   });
 }
 
+const EMPTY_FORM = { name: '', summary: '', awards: '', repo: '', demo: '', techText: '' };
+
 Page({
   data: {
     title: '我的作品',
     loading: false,
     error: '',
     works: [],
+    formOpen: false,
+    editingId: '',
+    form: Object.assign({}, EMPTY_FORM),
+    saving: false,
   },
 
   onLoad() {
@@ -110,5 +116,74 @@ Page({
 
   onAuthLogin() {
     this.loadWorks();
+  },
+
+  /* ---------------- 手动添加 / 编辑作品 ---------------- */
+
+  openCreateForm() {
+    this.setData({ formOpen: true, editingId: '', form: Object.assign({}, EMPTY_FORM) });
+  },
+
+  openEditForm(e) {
+    const work = this.data.works.find((item) => item._id === e.currentTarget.dataset.id);
+    if (!work) return;
+    this.setData({
+      formOpen: true,
+      editingId: work._id,
+      form: {
+        name: work.name || '',
+        summary: work.summary || '',
+        awards: work.awards || '',
+        repo: work.repo || '',
+        demo: work.demo || '',
+        techText: (work.techStack || []).join('、'),
+      },
+    });
+  },
+
+  closeForm() {
+    this.setData({ formOpen: false, editingId: '' });
+  },
+
+  onFormInput(e) {
+    const field = e.currentTarget.dataset.field;
+    if (!field) return;
+    this.setData({ [`form.${field}`]: e.detail.value });
+  },
+
+  async submitForm() {
+    if (this.data.saving) return;
+    const form = this.data.form;
+    if (!form.name.trim()) {
+      wx.showToast({ title: '先填一个作品名称', icon: 'none' });
+      return;
+    }
+    const auth = await api.requireAuth(this, '/pages/my-works/my-works', '登录后才能添加作品。');
+    if (!auth) return;
+
+    this.setData({ saving: true });
+    const res = await api.saveWork({
+      name: form.name,
+      summary: form.summary,
+      awards: form.awards,
+      repo: form.repo,
+      demo: form.demo,
+      techStack: form.techText.split(/[，、,\s]+/).map((s) => s.trim()).filter(Boolean),
+    }, this.data.editingId);
+    this.setData({ saving: false });
+
+    if (res && res.ok) {
+      wx.showToast({ title: this.data.editingId ? '已保存' : '已添加，点「发布」后对外可见', icon: 'none' });
+      this.setData({ formOpen: false, editingId: '' });
+      await this.loadWorks();
+      return;
+    }
+    const map = {
+      INVALID_WORK: '作品名称必填',
+      INVALID_LINK: '链接需以 http:// 或 https:// 开头',
+      RISKY_CONTENT: '内容含违规信息，请修改后再提交',
+    };
+    const message = map[res && res.code] || (res && res.message) || '保存失败，请重试';
+    wx.showToast({ title: message, icon: 'none' });
   },
 });

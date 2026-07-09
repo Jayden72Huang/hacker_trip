@@ -37,9 +37,9 @@
     "description": "管理个人参赛日程，查看已加入赛事的时间线"
   },
   {
-    "path": "pages/portfolio/portfolio",
-    "name": "作品集",
-    "description": "展示参赛项目和作品，沉淀黑客松参赛履历"
+    "path": "pages/my-works/my-works",
+    "name": "我的作品",
+    "description": "添加和管理参赛项目作品，发布后展示到公开主页"
   },
   {
     "path": "pages/settings/settings",

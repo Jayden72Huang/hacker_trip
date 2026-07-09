@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "作品集",
-  "usingComponents": {
-    "navbar": "/components/navbar/index",
-    "t-icon": "tdesign-miniprogram/icon/icon"
-  }
-}

@@ -744,6 +744,11 @@ async function updateReviewWork(action, workId) {
   return reviewWork({ action, workId });
 }
 
+/** 手动新建/编辑作品（workId 有值时为编辑），与 CLI publish-work 写同一 works 集合 */
+async function saveWork(work, workId) {
+  return reviewWork({ action: 'save', work: work || {}, workId: workId || '' });
+}
+
 /** 由真实收藏/报名/卡片数量派生用户资产统计，供个人中心/公开主页/分享复用 */
 function getUserStats() {
   const profile = getProfile();
@@ -1887,6 +1892,7 @@ module.exports = {
   generateRegistrationDraft,
   listReviewWorks,
   updateReviewWork,
+  saveWork,
   getUserStats,
   getProfileMode,
   setProfileMode,
