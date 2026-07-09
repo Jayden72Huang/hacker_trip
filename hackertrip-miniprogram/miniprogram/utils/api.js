@@ -652,15 +652,28 @@ async function saveProfileWithSync(patch, alreadyMerged) {
       const profile = Object.assign({}, prev, next, {
         avatarUrl: next.avatarUrl || '',
         publicId: res.publicId || next.publicId || '',
+        profileSyncPending: false,
       });
       setStorage(STORAGE.PROFILE, profile);
       return { ok: true, profile, result: res };
     }
-    setStorage(STORAGE.PROFILE, prev);
-    return res || { ok: false, message: '身份资料保存失败' };
+    // 云端失败：本地仍保存用户输入（仅本机展示，公开主页以云端为准），下次同步重试
+    const fallback = Object.assign({}, prev, next, { profileSyncPending: true });
+    setStorage(STORAGE.PROFILE, fallback);
+    return Object.assign({ ok: false, message: '身份资料保存失败' }, res || {}, {
+      ok: false,
+      localSaved: true,
+      profile: fallback,
+    });
   } catch (e) {
-    setStorage(STORAGE.PROFILE, prev);
-    throw e;
+    const fallback = Object.assign({}, prev, next, { profileSyncPending: true });
+    setStorage(STORAGE.PROFILE, fallback);
+    return {
+      ok: false,
+      localSaved: true,
+      profile: fallback,
+      message: String((e && e.message) || e || '身份资料保存失败'),
+    };
   }
 }
 
@@ -1856,6 +1869,11 @@ async function doSyncFromCloud(gen) {
 
 async function syncUserDataIfLoggedIn(options) {
   if (!isLoggedIn()) return { ok: false, skipped: true };
+  // 上次档案云端同步失败的，后台自动重试一次（成功会清掉 pending 标记）
+  const profile = getProfile();
+  if (profile.profileSyncPending && cloudReady()) {
+    saveProfileWithSync(profile, true).catch(() => {});
+  }
   return syncFromCloud(options);
 }
 

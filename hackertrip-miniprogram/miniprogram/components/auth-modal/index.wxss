@@ -147,3 +147,11 @@
 .auth-secondary::after {
   border: none;
 }
+
+.auth-form-hint {
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #7A7A75;
+  line-height: 1.5;
+  text-align: left;
+}

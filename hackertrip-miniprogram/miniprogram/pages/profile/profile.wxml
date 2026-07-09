@@ -9,7 +9,7 @@
 
     <view class="page-title">我的</view>
 
-    <view class="login-card {{isLoggedIn ? 'login-card--done' : ''}}">
+    <view class="login-card {{isLoggedIn ? 'login-card--done' : ''}}" bindtap="onAccountCardTap">
       <view class="login-avatar">
         <image wx:if="{{authAccount.avatarUrl}}" class="login-avatar-image" src="{{authAccount.avatarUrl}}" mode="aspectFill" />
         <text wx:else>H</text>

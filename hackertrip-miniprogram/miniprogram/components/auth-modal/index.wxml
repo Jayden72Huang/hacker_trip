@@ -11,17 +11,18 @@
     <view class="auth-profile-form">
       <button class="auth-avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
         <image wx:if="{{avatarUrl}}" class="auth-avatar-img" src="{{avatarUrl}}" mode="aspectFill" />
-        <text wx:else>头像</text>
+        <text wx:else>选头像</text>
       </button>
       <input
         class="auth-nickname-input"
         type="nickname"
         value="{{nickName}}"
-        placeholder="填写昵称（可选）"
+        placeholder="点这里一键填入微信昵称"
         placeholder-class="auth-placeholder"
         bindinput="onNicknameInput"
       />
     </view>
+    <view class="auth-form-hint">点头像可直接选「用微信头像」，昵称框弹出键盘后可一键填入微信昵称</view>
     <button class="auth-primary" loading="{{logging}}" disabled="{{logging}}" bindtap="onLoginTap">
       {{logging ? '登录中...' : '微信登录'}}
     </button>

@@ -79,14 +79,22 @@ Page({
     // 编辑过资料 或 已登录 → storage 有 ht_profile，视为"已填写"，高亮展示；否则引导完善
     const hasProfile = !!(auth && wx.getStorageSync(api.STORAGE.PROFILE));
 
+    const accountName = profile.nickname || (auth && auth.userInfo.nickName) || '';
+    const accountAvatar = profile.avatarUrl || (auth && auth.userInfo.avatarUrl) || '';
+    // 微信平台已不提供静默获取昵称头像，登录后没设置的引导用户点卡片补全
+    const needsProfile = !!auth && (!accountName || !accountAvatar);
+
     this.setData({
       loading: false,
       isLoggedIn: !!auth,
+      needsProfile,
       authAccount: auth
         ? {
-          name: profile.nickname || auth.userInfo.nickName || '微信用户',
-          avatarUrl: profile.avatarUrl || auth.userInfo.avatarUrl || '',
-          copy: '微信已登录，身份卡和赛程会同步到当前账号',
+          name: accountName || '还没设置昵称',
+          avatarUrl: accountAvatar,
+          copy: needsProfile
+            ? '点这里设置微信头像和昵称 →'
+            : '微信已登录，身份卡和赛程会同步到当前账号',
         }
         : { name: '未登录', avatarUrl: '', copy: '登录后同步身份卡、赛程、收藏和 Skills 结果' },
       avatarChar,
@@ -162,6 +170,12 @@ Page({
   onAuthLogin() {
     this.renderLocal();
     this.revalidate();
+  },
+
+  // 已登录但没设置头像昵称：点账号卡去补全
+  onAccountCardTap() {
+    if (!this.data.isLoggedIn || !this.data.needsProfile) return;
+    wx.navigateTo({ url: '/pages/identity-edit/identity-edit' });
   },
 
   getOrganizerStatusText(status) {

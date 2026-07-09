@@ -150,6 +150,12 @@ Page({
       const res = await api.saveProfileWithSync(payload);
       this.setData({ saving: false });
       if (!res || !res.ok) {
+        // 云端同步失败但本地已保存：不打断用户，后台会自动重试
+        if (res && res.localSaved) {
+          wx.showToast({ title: '已保存，云端同步稍后自动重试', icon: 'none' });
+          setTimeout(() => wx.navigateBack(), 900);
+          return;
+        }
         wx.showModal({
           title: '保存失败',
           content: (res && res.message) || '身份资料暂时无法保存，请稍后重试',
