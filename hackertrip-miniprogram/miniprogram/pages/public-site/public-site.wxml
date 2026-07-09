@@ -39,6 +39,22 @@
       </view>
     </view>
 
+    <!-- GitHub 主页绑定：点击复制链接到浏览器打开 -->
+    <view
+      wx:if="{{profile.githubUrl}}"
+      class="list-card github-card"
+      data-url="{{profile.githubUrl}}"
+      bindtap="copyWorkLink"
+      hover-class="list-card--active"
+    >
+      <view class="github-icon">GH</view>
+      <view class="github-body">
+        <view class="list-title">GitHub · {{profile.githubName}}</view>
+        <view class="list-subtitle">{{profile.githubUrl}}</view>
+      </view>
+      <view class="github-copy">复制链接</view>
+    </view>
+
     <view class="stat-grid public-stats">
       <view class="stat-item"><text class="stat-num">{{profile.stats.hackathons}}</text><text class="stat-label">参赛</text></view>
       <view class="stat-item"><text class="stat-num">{{profile.stats.projects}}</text><text class="stat-label">作品</text></view>

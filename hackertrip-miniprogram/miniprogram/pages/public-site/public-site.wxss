@@ -124,3 +124,25 @@
   transform: translate(2rpx, 2rpx);
   box-shadow: 2rpx 2rpx 0 0 #000000;
 }
+
+/* GitHub 主页卡 */
+.github-card {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+.github-icon {
+  flex: none;
+  width: 72rpx; height: 72rpx;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26rpx; font-weight: 900; color: #FFFFFF;
+  background: #000000; border: 2rpx solid #000000; border-radius: 50%;
+}
+.github-body { flex: 1; min-width: 0; overflow: hidden; }
+.github-body .list-subtitle { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.github-copy {
+  flex: none;
+  padding: 10rpx 18rpx;
+  font-size: 22rpx; font-weight: 900; color: #000000;
+  background: #FBD902; border: 2rpx solid #000000; border-radius: 10rpx;
+}

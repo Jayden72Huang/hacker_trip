@@ -1,6 +1,15 @@
 const { parseAIEntry } = require('../../utils/ai.js');
 const api = require('../../utils/api.js');
 
+/** github 字段兼容用户名和完整链接两种填法，派生出展示名和可复制链接 */
+function githubMeta(raw) {
+  const value = String(raw || '').trim().replace(/^@/, '');
+  if (!value) return { githubUrl: '', githubName: '' };
+  const githubUrl = /^https?:\/\//i.test(value) ? value : `https://github.com/${value}`;
+  const githubName = githubUrl.replace(/^https?:\/\/(www\.)?github\.com\//i, '').replace(/\/+$/, '') || value;
+  return { githubUrl, githubName };
+}
+
 Page({
   data: {
     title: '公开主页',
@@ -49,7 +58,7 @@ Page({
           aiBanner: ai.fromAI,
           aiIntentText: ai.intent || 'public.site',
           loading: false,
-          profile: Object.assign({}, remote.profile, { avatarChar }),
+          profile: Object.assign({}, remote.profile, { avatarChar }, githubMeta(remote.profile.github)),
           projects: remote.projects || [],
           works: (remote.works || []).map((work) => Object.assign({}, work, {
             tags: Array.isArray(work.tags) ? work.tags : [],
@@ -108,6 +117,8 @@ Page({
         avatarUrl: p.avatarUrl,
         avatarChar,
         github: p.github,
+        githubUrl: githubMeta(p.github).githubUrl,
+        githubName: githubMeta(p.github).githubName,
         stats: { hackathons: stats.hackathons, projects: stats.projects, skills: stats.skills },
         skills: p.skills || [],
       },
