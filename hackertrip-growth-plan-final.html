@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    color: #1a1a1a; line-height: 1.7; font-size: 13px; margin: 0;
+  }
+  h1 { font-size: 24px; border-bottom: 3px solid #7c5dff; padding-bottom: 10px; margin-top: 8px; }
+  h2 { font-size: 19px; color: #5a3fd6; border-bottom: 1px solid #ddd; padding-bottom: 6px; margin-top: 28px; }
+  h3 { font-size: 15px; color: #333; margin-top: 20px; }
+  h4 { font-size: 13.5px; color: #555; margin-top: 16px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 12px; }
+  th, td { border: 1px solid #ccc; padding: 7px 9px; text-align: left; vertical-align: top; }
+  th { background: #f0ecff; font-weight: 600; }
+  code { background: #f3f3f3; padding: 1px 5px; border-radius: 3px; font-size: 12px; color: #c0392b; }
+  pre { background: #f6f6f8; border: 1px solid #e2e2e8; border-radius: 6px; padding: 12px; font-size: 11.5px; line-height: 1.5; overflow-x: auto; white-space: pre; }
+  blockquote { border-left: 4px solid #7c5dff; background: #faf9ff; margin: 12px 0; padding: 8px 14px; color: #444; }
+  .hl { background: #fff36b; padding: 1px 3px; border-radius: 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+  .legend { background: #fffbe0; border: 1px solid #f0d000; border-radius: 8px; padding: 12px 16px; margin: 16px 0; font-size: 12.5px; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 24px 0; }
+  .meta { color: #666; font-size: 12px; }
+  td.hl, th.hl { background: #fff36b; }
+</style>
+</head>
+<body>
+
+<h1>HackerTrip 增长方案 · 融合最终版</h1>
+<p class="meta">版本：Final（融合版）｜ 日期：2026-06-01</p>
+
+<div class="legend">
+<b>🟡 黄色高亮说明</b>：本文档以「朋友版增长方案」为主干，<b>所有黄色高亮处 = 相对朋友版新增/修改的内容</b>（来自 PRD v2 的逻辑补丁，或删除的有漏洞设计）。未高亮 = 直接沿用朋友版。
+</div>
+
+<blockquote>
+<b>本版来源</b>：以「朋友版增长方案」的执行框架为主干（认领机制 / 赛后窗口 / 资源到人 / 里程碑验收），嵌入「PRD v2」的四个逻辑补丁（验证标识 / 回流率降级 / 隐私 opt-in / 同赛事榜单）。<br>
+<b>标注约定</b>：<code>【沿用】</code> = 直接采纳朋友版；<span class="hl"><code>【补丁】</code> = 来自 v2 的修正</span>；<span class="hl"><code>【删除】</code> = 移除有漏洞的设计</span>。
+</blockquote>
+
+<p><b>团队约束</b>：2 人。不做线下铺量、不做社区重运营、不做大规模 BD。一切依赖产品自身的传播力和赛事节奏的自然触发。</p>
+
+<hr>
+
+<h2>一、当前产品全貌</h2>
+
+<h3>1.1 已有功能 【沿用】</h3>
+<table>
+<tr><th>功能</th><th>状态</th><th>一句话</th></tr>
+<tr><td>内容聚合（Explore）</td><td>🟢 已上线</td><td>AI 爬取全球黑客松，搜索+筛选+详情，数据量充足</td></tr>
+<tr><td>AI Skill 命令行</td><td>🟢 已上线</td><td>curl 一行安装，终端内扫描项目匹配赛事，核心差异化</td></tr>
+<tr><td>Haki AI 对话</td><td>🟡 待收窄</td><td>悬浮入口，定位从「发现+报名+推广」收窄为「赛事向导」</td></tr>
+<tr><td>组织者入驻</td><td>🔴 空白</td><td>仅入口链接，无实际功能——等用户基数够了再启动</td></tr>
+</table>
+
+<h3>1.2 当前核心矛盾 【沿用】</h3>
+<blockquote>功能都有了，但<b>用户不进来</b>。进来了也<b>没有留下的理由</b>。离开了也<b>没有回来的理由</b>。</blockquote>
+<table>
+<tr><th>问题</th><th>根因</th></tr>
+<tr><td>为什么不进来</td><td>没有传播内容——命令行很好但没法分享，Explore 很好但没人知道</td></tr>
+<tr><td>为什么不留下</td><td>没有「我的东西」——浏览完就走，平台上没有用户自己的数据资产</td></tr>
+<tr><td>为什么不回来</td><td>没有回访钩子——没有关注、收藏、提醒，也没有赛后记录的需求承接</td></tr>
+</table>
+
+<h3>1.3 破局点 【沿用】</h3>
+<p>需要一个同时解决「进来、留下、回来」三个问题的功能 → <b>项目名片</b>。</p>
+
+<hr>
+
+<h2>二、裂变核心功能：项目名片</h2>
+
+<h3>2.1 产品定位 <span class="hl">【补丁｜定位校准】</span></h3>
+<blockquote>项目名片是 HackerTrip 的<b>内容引擎</b>。让参赛者用 2 分钟录入项目信息，自动生成一张可传播的项目展示卡片。</blockquote>
+<blockquote><span class="hl"><b>【补丁】</b> 它带来的是<b>内容填充 + 品牌曝光 + 展示满足</b>（类比 LinkedIn 证书、Strava 成绩单），<b>不是病毒裂变引擎</b>。增长的真正动力来自「运营赛后代建 + 认领」（第三节），不是用户自发的好友裂变。原因见附录 A。</span></blockquote>
+
+<h3>2.2 核心设计原则 【沿用 + 补丁】</h3>
+<table>
+<tr><th>原则</th><th>说明</th></tr>
+<tr><td>赛后时刻触发</td><td>不要求用户「主动来」，而是在比赛刚结束、他本来就要晒项目的时刻，让 HackerTrip 成为最省力的选择</td></tr>
+<tr><td>极低摩擦</td><td>必填字段 4 个，2 分钟内完成，手机端优先</td></tr>
+<tr><td>一键分享</td><td>生成「图片 + 文案 + 链接」内容包，用户只需点击发送</td></tr>
+<tr><td>先内容后注册</td><td>落地页永远是内容，不是注册墙——用户先看到价值，再决定行动</td></tr>
+<tr><td>认领优于创建</td><td>冷启动阶段，主动帮获奖者建好名片，通知他们「认领」，比让他们「创建」门槛更低</td></tr>
+<tr class="hl"><td class="hl"><b>可验证优先</b></td><td class="hl"><b>【补丁】</b> 凡涉及「成绩 / 获奖 / 所属赛事」的字段，优先支持来源核验或标注验证状态，守住名片作为「背书」的价值</td></tr>
+<tr class="hl"><td class="hl"><b>代建先授权</b></td><td class="hl"><b>【补丁】</b> 运营代建的名片<b>默认草稿态、不公开索引</b>，本人认领后才正式公开（opt-in 软启动，避免隐私/姓名权风险）</td></tr>
+</table>
+
+<h3>2.3 功能规格</h3>
+
+<h4>2.3.1 项目录入 【沿用】</h4>
+<table>
+<tr><th>字段</th><th>类型</th><th>必填</th><th>说明</th></tr>
+<tr><td>项目名称</td><td>文本 ≤50 字</td><td>✅</td><td></td></tr>
+<tr><td>所属赛事</td><td>搜索联想 + 手动</td><td>选填</td><td>搜中即强关联；手填标记「未关联赛事」</td></tr>
+<tr><td>参赛时间</td><td>月份选择器</td><td>✅</td><td>精确到月</td></tr>
+<tr><td>技术栈标签</td><td>多选 + 自定义</td><td>✅</td><td>AI/LLM、Web3、前端、后端、移动端、设计、硬件、数据、DevOps、其他</td></tr>
+<tr><td>一句话介绍</td><td>文本域 ≤140 字</td><td>✅</td><td>「这个项目做了什么 + 最大亮点」</td></tr>
+<tr><td>获奖情况</td><td>下拉</td><td>选填</td><td>冠军/亚军/季军/入围奖/参与</td></tr>
+<tr><td>项目链接</td><td>URL</td><td>选填</td><td>GitHub/Demo/官网</td></tr>
+</table>
+<p>交互：单页表单 + 右侧实时预览，填写即看到卡片效果。</p>
+
+<h4>2.3.2 名片图片（自动生成）【沿用 + 补丁】</h4>
+<p>规格：1200×630px PNG，适配 Twitter/即刻/朋友圈分享尺寸。</p>
+<pre>┌──────────────────────────────────────┐
+│ 🏆 [获奖标识]        ✓ [验证标识]       │  ← 验证标识为补丁新增
+│ [项目名称]  大号加粗 1-2 行            │
+│ [一句话介绍] 常规字号最多 2 行          │
+│ │ Python │ │ React │ │ AI │           │
+│ 📍 [赛事名称] · [参赛时间]             │
+│ ──────────────────────────────        │
+│ HackerTrip │ hackertrip.space/@user    │
+└──────────────────────────────────────┘</pre>
+<blockquote><span class="hl"><b>【补丁｜验证标识】</b> 卡片右上角显示验证状态，把「可信名片」和「自夸名片」在视觉上区分：
+<ul>
+<li><code>✓ 已核实获奖</code>：运营代建 + 本人认领，或主办方确认 —— 绿色高信任</li>
+<li><code>✓ 链接可达</code>：项目链接经系统抓取确认存在 —— 中性</li>
+<li>无标识：纯自填未核验 —— 不显示徽章</li>
+</ul>
+这与「认领」机制天然契合：认领过的名片自动获得「✓ 已核实获奖」，是自发自填名片得不到的信任溢价，反过来激励用户走认领流程。</span></blockquote>
+<p>变体：单项目卡片 / 个人战报（≥3 个项目聚合）/ 年度总结（年末自动生成）。</p>
+
+<h4>2.3.3 一键分享内容包 【沿用】</h4>
+<pre>🖼️ 名片图片（1200×630 PNG）
+📝 预写文案（可编辑）：
+   「[项目名]」在 [赛事名] 拿了 [获奖] 🏆
+   [一句话介绍]
+   🔧 [标签1] · [标签2] · [标签3]
+   👉 hackertrip.space/project/:id
+🔗 分享渠道：[复制图片] [复制链接] [发 Twitter] [发即刻] [下载图片]</pre>
+<p>设计要点：用户只需点一个按钮，文案和图片都准备好了。分享行为是「发送」而非「创作」。</p>
+
+<h4>2.3.4 项目详情页 【沿用 + 补丁】</h4>
+<table>
+<tr><th>区块</th><th>内容</th></tr>
+<tr><td>头部</td><td>项目名称、一句话介绍、获奖标识、<span class="hl"><b>验证标识【补丁】</b></span></td></tr>
+<tr><td>信息条</td><td>赛事名（可点击跳转赛事详情）、参赛时间、项目链接</td></tr>
+<tr><td>技术标签</td><td>可点击搜索同技术栈项目</td></tr>
+<tr><td>操作区</td><td>分享按钮、点赞</td></tr>
+<tr><td>底部引导</td><td>「查看这场比赛的其他项目」→ Explore 赛事聚合页 + <span class="hl"><b>同赛事项目榜单【补丁】</b></span></td></tr>
+</table>
+
+<h4>2.3.5 个人项目集 【沿用】</h4>
+<p>URL：<code>hackertrip.space/@username</code>。头部（头像/昵称/简介/标签）+ 统计条（N 项目 · M 比赛 · X 获奖）+ 项目网格 + 空状态引导。</p>
+
+<h4 class="hl">2.3.6 同赛事横向榜单 <span class="hl">【补丁｜补自发增长钩子】</span></h4>
+<div class="legend"><span class="hl">在项目详情页底部和赛事聚合页提供「同赛事项目榜单」（按点赞/浏览排序）。<br><br>
+<b>为什么加这个</b>：朋友版的自发增长靠「产品力会让用户自己来」，但没给机制。横向榜单给了<b>同届选手一个精准的来建名片的理由</b>——「我的项目也在这场比赛，凭什么不上榜」。受众精准（同赛事 = 确定参赛者），是少数真正成立的自发增长钩子，用来支撑第 12 周「自发创建超过主动创建」的里程碑。</span></div>
+
+<h3>2.4 与现有功能的衔接 【沿用】</h3>
+<table>
+<tr><th>现有功能</th><th>项目名片如何衔接</th></tr>
+<tr><td>Explore 活动详情页</td><td>底部展示「这场比赛诞生的项目」——赛事详情变成内容聚合页</td></tr>
+<tr><td>AI Skill 命令行</td><td>匹配结果底部引导「赛后为你的项目创建名片」</td></tr>
+<tr><td>Haki AI 助手</td><td>对话中主动询问「你参加过哪些比赛？要不要记录下来？」</td></tr>
+</table>
+
+<h3>2.5 目标 <span class="hl">【补丁｜指标重排】</span></h3>
+<table>
+<tr><th>指标</th><th>类别</th><th>首月目标</th></tr>
+<tr class="hl"><td class="hl"><b>真实名片总量</b>（认领 + 链接可达）</td><td class="hl"><b>北极星【补丁】</b></td><td class="hl">≥ 50</td></tr>
+<tr><td>名片分享率</td><td>核心</td><td>≥ 40%</td></tr>
+<tr class="hl"><td class="hl">名片人均被访</td><td class="hl">展示价值【补丁】</td><td class="hl">≥ 20</td></tr>
+<tr><td>新用户深度功能触达率</td><td>留存</td><td>≥ 25%</td></tr>
+<tr class="hl"><td class="hl"><s>分享回流率</s></td><td class="hl">观测项（非 KPI）【补丁】</td><td class="hl">个位数，不设硬目标</td></tr>
+</table>
+<blockquote><span class="hl"><b>【补丁｜为什么把回流率从 KPI 降为观测】</b> 回流依赖「好友→新参赛者」转化，而该人群结构性错配（附录 A），强设 KPI 会误导团队把精力投到失效路径。北极星换成「真实名片总量」，直接对应平台最缺的内容，且「真实/已验证」前缀杜绝刷量自夸。</span></blockquote>
+
+<hr>
+
+<h2>三、裂变运营模式</h2>
+
+<h3>3.1 核心逻辑 【沿用 + 补丁】</h3>
+<blockquote>不是「拉人解锁功能」的工具型裂变，而是「展示我的作品」的身份型展示。用户分享是因为他<b>本来就想晒项目</b>——HackerTrip 只是让晒得更省力、更好看。</blockquote>
+<blockquote><span class="hl"><b>【删除】</b> 移除朋友版飞轮里「好友看到 → 我也想要一张 → 注册」当作<b>增长主路径</b>的画法。保留「分享 = 品牌曝光」的定性，但不把好友裂变当作可指数放大的引擎。真正的增长引擎是下面的「赛后代建 + 认领」。</span></blockquote>
+
+<h3>3.2 增长主引擎：赛后代建 + 认领 【沿用 — 朋友版的金点子】</h3>
+<pre>比赛结束（天然触发点）
+  ▼
+运营用公开信息为 Top 5 获奖项目预建名片<span class="hl">（草稿态）【补丁】</span>
+  ▼
+私信获奖者「恭喜！帮你做了张展示页，认领并编辑 →」
+  ▼
+认领 → 名片公开 + <span class="hl">获得「✓ 已核实获奖」徽章【补丁】</span>
+  ▼
+获奖者大概率分享（卡片好看、文案现成、本来就想晒）
+  ▼
+品牌曝光 + <span class="hl">同赛事选手看到榜单 → 自发来建【补丁】</span></pre>
+<p><b>为什么有效</b>：① 获奖者看到项目被漂亮展示，大概率分享；② 「认领」比「创建」门槛低，只需点开链接确认；③ 每条分享来自真实获奖者，可信度极高。</p>
+
+<h3>3.3 冷启动：3 步破冰（1-2 周）【沿用 + 补丁】</h3>
+<table>
+<tr><th>步骤</th><th>动作</th><th>说明</th><th>人力</th></tr>
+<tr><td>Step 1</td><td>盯一场近期结束的黑客松</td><td>选有影响力的比赛（AdventureX、腾讯云黑客松），关注结果公布时间</td><td>0.5 天</td></tr>
+<tr><td>Step 2</td><td>结果公布 24h 内，为 Top 5 项目建名片<span class="hl"><b>（草稿态）</b></span></td><td>从赛事官网/Twitter 获取项目名、介绍、技术栈、获奖、GitHub。底部标注「由 HackerTrip 整理」</td><td>1 天</td></tr>
+<tr><td>Step 3</td><td>私信获奖者认领</td><td>「恭喜获奖！我们为你的项目建了展示页，可认领并编辑 →」。<span class="hl"><b>认领后才公开【补丁】</b></span></td><td>0.5 天</td></tr>
+</table>
+<div class="legend"><span class="hl"><b>【补丁｜合规软启动】</b> 代建名片默认<b>草稿态、noindex、不进 Explore</b>，仅生成私享认领链接发给本人。本人认领后才正式公开。既保留「帮你整理好了」的惊喜，又规避未授权公开真人信息的姓名权/GDPR 风险。底线仍保留「一键删除」。</span></div>
+<p><b>预期效果</b>：一场比赛 5 个获奖项目，假设 3 人认领并分享，每人带来 50-100 次曝光 → 150-300 次品牌曝光 + 30-60 次点击进入。</p>
+
+<h3>3.4 持续增长：借赛事节奏（第 3 周起）【沿用】</h3>
+<table>
+<tr><th>阶段</th><th>动作</th><th>频率</th></tr>
+<tr><td>赛前</td><td>在 Explore 提前上架即将举办的活动</td><td>每周</td></tr>
+<tr><td>赛中</td><td>不打扰</td><td>—</td></tr>
+<tr><td>赛后（关键窗口）</td><td>赛后 24-72h，主动帮获奖项目建名片 + 通知认领</td><td>每场 1 次</td></tr>
+<tr><td>日常</td><td>官方账号转发用户的名片分享</td><td>持续</td></tr>
+</table>
+<p>节奏估算：每月盯 2-3 场重点黑客松，每场投入 1 天。其余时间做产品迭代。</p>
+
+<h3>3.5 传播内容矩阵 【沿用】</h3>
+<table>
+<tr><th>内容类型</th><th>触发时机</th><th>谁生产</th><th>渠道</th></tr>
+<tr><td>单项目名片</td><td>每次用户录入</td><td>用户 + 系统</td><td>Twitter/即刻/朋友圈</td></tr>
+<tr><td>个人战报</td><td>≥3 个项目自动生成</td><td>系统</td><td>社交媒体</td></tr>
+<tr><td>赛事项目聚合页</td><td>赛后积累</td><td>系统（自动聚合）</td><td>搜索引擎/赛事社区</td></tr>
+<tr><td>年度总结</td><td>年末</td><td>系统</td><td>全社交平台</td></tr>
+<tr><td>「帮你整理好了」</td><td>赛后主动创建</td><td>运营</td><td>私信 + 社交媒体</td></tr>
+</table>
+
+<h3>3.6 运营度量 <span class="hl">【补丁｜回流降级】</span></h3>
+<table>
+<tr><th>指标</th><th>定义</th><th>第 1 月</th><th>第 3 月</th></tr>
+<tr><td>主动创建名片数</td><td>赛后运营帮用户建的数量</td><td>≥ 15</td><td>≥ 30</td></tr>
+<tr><td>认领率</td><td>通知认领后实际认领比例</td><td>≥ 50%</td><td>≥ 50%</td></tr>
+<tr><td>用户自发创建名片数</td><td>用户自己注册并录入</td><td>≥ 20</td><td>≥ 50</td></tr>
+<tr><td>分享率</td><td>创建/认领后分享的比例</td><td>≥ 40%</td><td>≥ 40%</td></tr>
+<tr><td>周活跃用户</td><td>—</td><td>≥ 100</td><td>≥ 300</td></tr>
+<tr class="hl"><td class="hl"><s>分享回流注册数</s></td><td class="hl">观测项，不设硬目标【补丁】</td><td class="hl">观测</td><td class="hl">观测</td></tr>
+</table>
+
+<hr>
+
+<h2>四、两人团队的资源分配 【沿用 + 补丁】</h2>
+<h3>4.1 第 1-2 周：开发 + 首场冷启动</h3>
+<table>
+<tr><th>人</th><th>任务</th></tr>
+<tr><td>人 A（开发主力）</td><td>项目名片 v1.0：录入表单、名片图片生成、详情页、个人项目集、分享内容包、<span class="hl"><b>草稿态/认领流程 + 验证徽章【补丁】</b></span></td></tr>
+<tr><td>人 B（产品+运营）</td><td>选定首场目标黑客松，准备赛后代建流程；Haki 文案收窄；同步产品决策</td></tr>
+</table>
+<h3>4.2 第 3-4 周：首场运营 + 迭代</h3>
+<table>
+<tr><th>人</th><th>任务</th></tr>
+<tr><td>人 A</td><td>基于首场反馈迭代名片；开发 Explore 详情页嵌入「相关项目」+ <span class="hl"><b>同赛事榜单【补丁】</b></span></td></tr>
+<tr><td>人 B</td><td>执行首场赛后代建 + 通知认领；社交媒体传播；收集反馈</td></tr>
+</table>
+<h3>4.3 第 5 周起：节奏化运营</h3>
+<table>
+<tr><th>人</th><th>任务</th></tr>
+<tr><td>人 A</td><td>产品迭代：名片模板、Haki 多轮对话、AI Skill 分享机制、移动端体验</td></tr>
+<tr><td>人 B</td><td>每月盯 2-3 场比赛赛后运营；社交媒体内容；种子用户关系维护</td></tr>
+</table>
+
+<hr>
+
+<h2>五、关键里程碑 【沿用 + 补丁】</h2>
+<table>
+<tr><th>时间</th><th>里程碑</th><th>验收标准</th></tr>
+<tr><td>第 1 周</td><td>项目名片 v1.0 上线</td><td>录入→生成→详情页→个人集→分享 全链路跑通；<span class="hl"><b>含草稿态/认领 + 验证徽章【补丁】</b></span></td></tr>
+<tr><td>第 2 周</td><td>首场赛后运营执行</td><td>为 ≥5 个项目建名片，≥3 人认领，≥2 人分享</td></tr>
+<tr><td>第 4 周</td><td>首个增长数据验证</td><td>名片总量 ≥30，<span class="hl"><b>人均被访 ≥20【补丁，替代「回流注册≥10」】</b></span></td></tr>
+<tr><td>第 8 周</td><td>模式验证</td><td>名片总量 ≥100，周活 ≥100，证明「赛后代建→认领→分享」可复制</td></tr>
+<tr><td>第 12 周</td><td>规模化运营</td><td>每月覆盖 ≥3 场；<span class="hl"><b>自发创建占比超过主动创建（靠同赛事榜单驱动）【补丁：给出机制】</b></span></td></tr>
+</table>
+
+<hr>
+
+<h2>六、风险与底线 【沿用 + 补丁】</h2>
+<table>
+<tr><th>风险</th><th>应对</th></tr>
+<tr class="hl"><td class="hl">代建名片被获奖者反感</td><td class="hl"><b>【补丁】草稿态 + 私享认领链接（opt-in），认领后才公开</b>；标注「由 HackerTrip 整理」；私信语气是「恭喜+已整理」而非「要求使用」；提供一键删除</td></tr>
+<tr class="hl"><td class="hl">隐私/姓名权/GDPR</td><td class="hl"><b>【补丁】</b> 仅用公开信息；不公开索引直到认领；海外赛事尤其走 opt-in</td></tr>
+<tr><td>赛后窗口错过</td><td>提前关注赛事日程，设日历提醒；错过一场立刻切下一场</td></tr>
+<tr class="hl"><td class="hl">自填数据注水</td><td class="hl"><b>【补丁】</b> 验证徽章体系（已核实获奖/链接可达）+ 链接可达性抓取</td></tr>
+<tr><td>分享率低于预期</td><td>迭代名片模板，做 A/B 测试；检查分享内容包文案</td></tr>
+<tr class="hl"><td class="hl">线性天花板（人力封顶）</td><td class="hl"><b>【补丁】</b> 同赛事榜单 + 个人战报/年度卡自动化内容，把增长从「纯人工代建」过渡到「自发 + 系统生成」</td></tr>
+<tr><td>两人忙不过来</td><td>赛后运营每月只盯 2-3 场；日常靠自动化（系统生成内容、官方号转发）</td></tr>
+</table>
+
+<hr>
+
+<h2 class="hl">附录 A：为什么不把「好友裂变」当增长主路径 <span class="hl">【补丁新增】</span></h2>
+<div class="legend"><span class="hl">病毒系数 K = 人均分享触达 × 受众注册转化率，自循环增长要求 K &gt; 1。
+<ol>
+<li><b>人群错配</b>：获奖者社交圈是同事/朋友/同行，「自己也打黑客松」的比例极低 → 转化率结构性偏低。</li>
+<li><b>无双边激励</b>：分享者得展示满足，被分享者「什么都没得到」→ 炫耀式传播，非 referral 裂变。</li>
+<li><b>低频事件</b>：开发者一年参赛 1-4 次，名片是一次性录入，无持续回访理由。</li>
+</ol>
+<b>结论</b>：好友裂变贡献品牌曝光 + 少量精准回流，但 K &lt; 1，不能当主引擎。增长主引擎是「赛后代建 + 认领」+「同赛事榜单」，二者都精准命中「确定是参赛者」的人群。</span></div>
+
+<hr>
+
+<h2>七、一句话总结</h2>
+<blockquote>两人团队不做铺量，只做一件事：<b>在每场黑客松结束后 24-72 小时内，用公开信息帮获奖者把项目名片做好（<span class="hl">草稿态</span>），私信通知认领。</b> 认领后名片公开、<span class="hl">带「已核实」徽章</span>、获奖者大概率分享。每一次分享是品牌曝光；<span class="hl">同赛事选手看到榜单后自发来建，构成精准的自发增长</span>。一个月盯 2-3 场，三个月验证模式，然后靠产品力让用户自发创建超过人工代建。</blockquote>
+
+</body>
+</html>
