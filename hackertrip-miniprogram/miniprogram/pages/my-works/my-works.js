@@ -31,7 +31,7 @@ function normalizeWork(work) {
   });
 }
 
-const EMPTY_FORM = { name: '', summary: '', awards: '', repo: '', demo: '', techText: '' };
+const EMPTY_FORM = { name: '', summary: '', awards: '', repo: '', demo: '', techText: '', cover: '' };
 
 Page({
   data: {
@@ -137,6 +137,7 @@ Page({
         repo: work.repo || '',
         demo: work.demo || '',
         techText: (work.techStack || []).join('、'),
+        cover: work.cover || '',
       },
     });
   },
@@ -149,6 +150,31 @@ Page({
     const field = e.currentTarget.dataset.field;
     if (!field) return;
     this.setData({ [`form.${field}`]: e.detail.value });
+  },
+
+  // 选产品 logo/封面：选图即上传云存储，表单里预览 fileID
+  chooseCover() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sizeType: ['compressed'],
+      success: async (res) => {
+        const filePath = res.tempFiles && res.tempFiles[0] && res.tempFiles[0].tempFilePath;
+        if (!filePath) return;
+        wx.showLoading({ title: '上传中…', mask: true });
+        const fileID = await api.uploadWorkCover(filePath);
+        wx.hideLoading();
+        if (!fileID) {
+          wx.showToast({ title: '上传失败，请连接云环境后重试', icon: 'none' });
+          return;
+        }
+        this.setData({ 'form.cover': fileID });
+      },
+    });
+  },
+
+  removeCover() {
+    this.setData({ 'form.cover': '' });
   },
 
   async submitForm() {
@@ -168,6 +194,7 @@ Page({
       awards: form.awards,
       repo: form.repo,
       demo: form.demo,
+      cover: form.cover,
       techStack: form.techText.split(/[，、,\s]+/).map((s) => s.trim()).filter(Boolean),
     }, this.data.editingId);
     this.setData({ saving: false });
@@ -182,6 +209,7 @@ Page({
       INVALID_WORK: '作品名称必填',
       INVALID_LINK: '链接需以 http:// 或 https:// 开头',
       RISKY_CONTENT: '内容含违规信息，请修改后再提交',
+      RISKY_IMAGE: '图片含违规内容，请更换后再提交',
     };
     const message = map[res && res.code] || (res && res.message) || '保存失败，请重试';
     wx.showToast({ title: message, icon: 'none' });

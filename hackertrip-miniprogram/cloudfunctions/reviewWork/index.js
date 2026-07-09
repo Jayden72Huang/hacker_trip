@@ -28,6 +28,29 @@ function cleanList(v, maxItems, maxLen) {
   return v.map((x) => cleanText(x, maxLen || 30)).filter(Boolean).slice(0, maxItems || 12);
 }
 
+// 封面/logo：接受云存储 fileID（小程序上传）或 https 链接（CLI --cover）
+function cleanCover(v) {
+  const s = cleanText(v, 400);
+  if (!s) return '';
+  return /^(cloud:\/\/|https?:\/\/)/i.test(s) ? s : '';
+}
+
+// 用户上传的封面图走图片内容安全校验；87014 拦截，其他错误（未配权限/超1M）不阻断
+async function passesImgSecCheck(fileID) {
+  if (!fileID || !/^cloud:\/\//i.test(fileID)) return true;
+  try {
+    const res = await cloud.downloadFile({ fileID });
+    const buf = res && res.fileContent;
+    if (!buf || buf.length > 1024 * 1024) return true;
+    await cloud.openapi.security.imgSecCheck({ media: { contentType: 'image/png', value: buf } });
+    return true;
+  } catch (e) {
+    if (e && (e.errCode === 87014 || e.errcode === 87014)) return false;
+    console.warn('[reviewWork] imgSecCheck skipped', e && (e.errMsg || e.message));
+    return true;
+  }
+}
+
 // 用户手填文本走内容安全校验；87014=含风险内容需拦截，其他错误(如未配权限)不阻断
 async function passesSecCheck(text) {
   const content = cleanText(text, 4900);
@@ -82,11 +105,14 @@ exports.main = async (event) => {
       awards: cleanText(input.awards, 80),
       repo,
       demo,
+      cover: cleanCover(input.cover),
       techStack: cleanList(input.techStack, 12, 30),
       updatedAt: now,
     };
     const safe = await passesSecCheck([patch.name, patch.summary, patch.awards].filter(Boolean).join('\n'));
     if (!safe) return { ok: false, code: 'RISKY_CONTENT', message: '内容含违规信息，请修改后再提交' };
+    const coverSafe = await passesImgSecCheck(patch.cover);
+    if (!coverSafe) return { ok: false, code: 'RISKY_IMAGE', message: '图片含违规内容，请更换后再提交' };
 
     const editId = cleanId(event && event.workId);
     try {

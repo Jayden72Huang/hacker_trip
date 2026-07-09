@@ -117,3 +117,19 @@
 }
 .work-form-textarea { height: auto; min-height: 140rpx; line-height: 1.5; }
 .work-form-actions { display: flex; gap: 16rpx; margin-top: 28rpx; }
+
+/* 封面/Logo 选择 */
+.work-form-cover-row { display: flex; gap: 20rpx; align-items: flex-start; }
+.work-form-cover {
+  width: 160rpx; height: 160rpx; flex-shrink: 0;
+  border: 2rpx solid #000000; border-radius: 12rpx;
+  background: #FFFFFF;
+}
+.work-form-cover--empty {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26rpx; font-weight: 700; color: #7A7A75;
+  background: #ECE8DB;
+}
+.work-form-cover-actions { flex: 1; padding-top: 8rpx; }
+.work-form-cover-hint { font-size: 22rpx; color: #7A7A75; line-height: 1.5; }
+.work-form-cover-remove { margin-top: 12rpx; font-size: 24rpx; font-weight: 700; color: #FF4D2E; }

@@ -10,6 +10,17 @@
     <view wx:if="{{formOpen}}" class="brutal-box work-form">
       <view class="box-title">{{editingId ? '编辑作品' : '添加作品'}}</view>
       <view class="work-form-field">
+        <view class="work-form-label">产品 Logo / 封面图</view>
+        <view class="work-form-cover-row">
+          <image wx:if="{{form.cover}}" class="work-form-cover" src="{{form.cover}}" mode="aspectFill" bindtap="chooseCover" />
+          <view wx:else class="work-form-cover work-form-cover--empty" bindtap="chooseCover">＋ 选图</view>
+          <view class="work-form-cover-actions">
+            <view class="work-form-cover-hint">建议方形 Logo 或产品截图，会展示在作品卡和公开主页</view>
+            <view wx:if="{{form.cover}}" class="work-form-cover-remove" bindtap="removeCover">移除图片</view>
+          </view>
+        </view>
+      </view>
+      <view class="work-form-field">
         <view class="work-form-label">作品名称 *</view>
         <input class="work-form-input" value="{{form.name}}" data-field="name" bindinput="onFormInput" maxlength="60" placeholder="例如：HackerTrip 小程序" />
       </view>

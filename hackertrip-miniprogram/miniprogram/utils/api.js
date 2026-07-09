@@ -749,6 +749,20 @@ async function saveWork(work, workId) {
   return reviewWork({ action: 'save', work: work || {}, workId: workId || '' });
 }
 
+/** 上传作品封面/产品 logo 到云存储，返回 fileID；未连云或失败返回 '' */
+async function uploadWorkCover(filePath) {
+  if (!cloudReady() || !wx.cloud || !wx.cloud.uploadFile || !filePath) return '';
+  try {
+    const ext = avatarExt(filePath);
+    const rand = Math.random().toString(36).slice(2, 8);
+    const uploaded = await uploadFile(filePath, `works/covers/${Date.now()}-${rand}.${ext}`);
+    return uploaded && uploaded.fileID ? uploaded.fileID : '';
+  } catch (e) {
+    console.warn('[api] uploadWorkCover 失败', e);
+    return '';
+  }
+}
+
 /** 由真实收藏/报名/卡片数量派生用户资产统计，供个人中心/公开主页/分享复用 */
 function getUserStats() {
   const profile = getProfile();
@@ -1893,6 +1907,7 @@ module.exports = {
   listReviewWorks,
   updateReviewWork,
   saveWork,
+  uploadWorkCover,
   getUserStats,
   getProfileMode,
   setProfileMode,
