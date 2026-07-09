@@ -28,7 +28,7 @@ Page({
     organizerTools: [],
     tools: [
       { title: '我的身份卡', sub: '生成参赛身份卡，分享找队友', url: '/pages/identity/identity' },
-      { title: '可信履历', sub: '主办方验证的参赛与获奖记录', url: '/pages/achievements/achievements' },
+      { title: '黑客松旅行', sub: '走过的比赛和获奖记录，可获主办方官方认证', url: '/pages/achievements/achievements' },
       { title: '我的项目 / 作品', sub: '同步项目画像，管理提交作品', url: '/pages/my-works/my-works' },
       { title: '报名资料模板', sub: '用资料库一键拼出报名草稿和缺失项', url: '/pages/form-assistant/form-assistant' },
     ],

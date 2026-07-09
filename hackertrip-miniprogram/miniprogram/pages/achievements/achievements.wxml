@@ -2,22 +2,78 @@
   <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
   <view class="focus-content">
     <view class="brutal-box blue-box">
-      <view class="focus-title achievements-title">主办方验证的黑客松履历</view>
-      <view class="achievements-sub">参赛、入围、获奖、嘉宾和导师身份都应该由主办方确认后展示。</view>
-    </view>
-
-    <view wx:if="{{!achievements.length && !loading}}" class="brutal-box">
-      <view class="box-title">暂无已验证记录</view>
-      <view class="box-copy">参加支持 HackerTrip 的黑客松后，主办方可以把参赛和获奖结果同步到这里。</view>
-    </view>
-
-    <view wx:for="{{achievements}}" wx:key="id" class="achievement-card brutal-box">
-      <view class="achievement-head">
-        <view class="achievement-title">{{item.title}}</view>
-        <view class="verified-badge">已验证</view>
+      <view class="focus-title achievements-title">我的黑客松旅行</view>
+      <view class="achievements-sub">走过的每一场黑客松和获奖记录都在这里，获奖结果可由主办方官方认证。</view>
+      <view class="trip-stats">
+        <view class="trip-stat">
+          <view class="trip-stat-num">{{stats.total}}</view>
+          <view class="trip-stat-label">走过的比赛</view>
+        </view>
+        <view class="trip-stat">
+          <view class="trip-stat-num">{{stats.awards}}</view>
+          <view class="trip-stat-label">获奖记录</view>
+        </view>
+        <view class="trip-stat">
+          <view class="trip-stat-num">{{stats.verified}}</view>
+          <view class="trip-stat-label">官方认证</view>
+        </view>
       </view>
-      <view class="achievement-event">{{item.eventName || item.eventId}}</view>
-      <view class="achievement-meta">{{item.level || 'achievement'}} · {{item.verifiedByName || 'HackerTrip 主办方'}}</view>
+    </view>
+
+    <view wx:if="{{!isLoggedIn && !loading}}" class="brutal-box">
+      <view class="box-title">登录开始你的旅行</view>
+      <view class="box-copy">登录后同步你报名过的黑客松和主办方认证的获奖记录。</view>
+      <button class="native-btn" bindtap="openLogin">微信登录</button>
+    </view>
+
+    <view wx:elif="{{!stops.length && !extras.length && !loading}}" class="brutal-box">
+      <view class="box-title">旅行还没开始</view>
+      <view class="box-copy">去发现页报名第一场黑客松，它会成为你旅行的第一站；获奖后主办方可以把结果认证到这里。</view>
+      <button class="native-btn" bindtap="goDiscover">去发现黑客松</button>
+    </view>
+
+    <!-- 旅行时间线：参加过的每一场比赛 -->
+    <block wx:if="{{stops.length}}">
+      <view class="trip-section-title">旅程</view>
+      <view
+        wx:for="{{stops}}"
+        wx:key="id"
+        class="trip-stop brutal-box"
+        data-id="{{item.id}}"
+        bindtap="goDetail"
+      >
+        <view class="trip-stop-head">
+          <view class="trip-stop-date">{{item.dateText}}</view>
+          <view class="trip-stop-status trip-stop-status--{{item.status}}">{{item.statusText}}</view>
+        </view>
+        <view class="trip-stop-name">{{item.name}}</view>
+        <view class="trip-stop-place">{{item.place}}{{item.modeText ? ' · ' + item.modeText : ''}}</view>
+        <view wx:if="{{item.badges.length}}" class="trip-badges">
+          <view wx:for="{{item.badges}}" wx:for-item="badge" wx:key="title" class="trip-badge {{badge.isAward ? 'trip-badge--award' : ''}}">
+            <text>{{badge.isAward ? '🏆 ' : ''}}{{badge.levelText}}</text>
+            <text class="trip-badge-verified">✓ 官方认证 · {{badge.byText}}</text>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 主办方直接录入、未关联报名记录的认证 -->
+    <block wx:if="{{extras.length}}">
+      <view class="trip-section-title">更多认证记录</view>
+      <view wx:for="{{extras}}" wx:key="title" class="trip-stop brutal-box">
+        <view class="trip-stop-name">{{item.isAward ? '🏆 ' : ''}}{{item.levelText}}</view>
+        <view class="trip-stop-place">{{item.eventText}}</view>
+        <view class="trip-badges">
+          <view class="trip-badge {{item.isAward ? 'trip-badge--award' : ''}}">
+            <text class="trip-badge-verified">✓ 官方认证 · {{item.byText}}</text>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <view wx:if="{{stops.length || extras.length}}" class="trip-footnote">
+      获奖认证由已认证主办方在「验证选手履历」中完成，带 ✓ 的记录不可伪造。
     </view>
   </view>
+  <auth-modal id="authModal" bind:login="onAuthLogin" />
 </view>

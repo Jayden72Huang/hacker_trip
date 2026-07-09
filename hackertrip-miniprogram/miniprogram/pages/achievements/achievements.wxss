@@ -12,40 +12,88 @@
   line-height: 1.5;
 }
 
-.achievement-head {
+/* 旅行统计 */
+.trip-stats {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+.trip-stat {
+  flex: 1;
+  padding: 16rpx 0;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.14);
+  border: 2rpx solid #000000;
+  border-radius: 12rpx;
+}
+.trip-stat-num { color: #FBD902; font-size: 44rpx; font-weight: 900; line-height: 1.1; }
+.trip-stat-label { margin-top: 6rpx; color: #FFFFFF; font-size: 22rpx; font-weight: 700; }
+
+/* 旅程时间线 */
+.trip-section-title {
+  margin: 28rpx 4rpx 4rpx;
+  font-size: 30rpx;
+  font-weight: 900;
+  color: #000000;
+}
+.trip-stop { position: relative; }
+.trip-stop:active { transform: translate(2rpx, 2rpx); }
+.trip-stop-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18rpx;
+  gap: 16rpx;
 }
-
-.achievement-title {
-  color: #000000;
-  font-size: 32rpx;
-  font-weight: 900;
-}
-
-.verified-badge {
+.trip-stop-date { font-size: 24rpx; font-weight: 800; color: #7A7A75; }
+.trip-stop-status {
   flex: none;
-  padding: 8rpx 14rpx;
-  color: #FFFFFF;
-  background: #0C51ED;
-  border: 3rpx solid #000000;
-  border-radius: 999rpx;
+  padding: 6rpx 14rpx;
   font-size: 22rpx;
   font-weight: 900;
-}
-
-.achievement-event {
-  margin-top: 18rpx;
   color: #000000;
-  font-size: 27rpx;
-  font-weight: 800;
+  background: #ECE8DB;
+  border: 2rpx solid #000000;
+  border-radius: 999rpx;
 }
+.trip-stop-status--ongoing { background: #FBD902; }
+.trip-stop-status--upcoming { background: #FFFFFF; }
+.trip-stop-status--ended { background: #ECE8DB; }
+.trip-stop-name {
+  margin-top: 14rpx;
+  font-size: 32rpx;
+  font-weight: 900;
+  color: #000000;
+}
+.trip-stop-place { margin-top: 8rpx; font-size: 24rpx; color: #3D3D3D; }
 
-.achievement-meta {
-  margin-top: 8rpx;
-  color: #6F6A5F;
+/* 认证徽章 */
+.trip-badges { margin-top: 18rpx; display: flex; flex-direction: column; gap: 12rpx; }
+.trip-badge {
+  padding: 12rpx 16rpx;
+  background: #ECF2FF;
+  border: 2rpx solid #0C51ED;
+  border-radius: 10rpx;
   font-size: 24rpx;
   font-weight: 800;
+  color: #000000;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+.trip-badge--award {
+  background: #FFF7D6;
+  border-color: #B8860B;
+}
+.trip-badge-verified {
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #0C51ED;
+}
+.trip-badge--award .trip-badge-verified { color: #8A6D00; }
+
+.trip-footnote {
+  margin: 24rpx 4rpx 40rpx;
+  font-size: 22rpx;
+  color: #7A7A75;
+  line-height: 1.5;
 }

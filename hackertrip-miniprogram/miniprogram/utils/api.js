@@ -1874,6 +1874,7 @@ module.exports = {
   getHackathons,
   getHackathonsWithMeta,
   getCachedHackathons,
+  getLocalAchievements,
   getHackathonDetail,
   getHackathonHeat,
   getHackathonHeatMap,
