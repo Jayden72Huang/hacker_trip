@@ -645,3 +645,96 @@
   color: #FFFFFF;
   background: #0C51ED;
 }
+
+/* 合作伙伴墙：无边框 logo 随意堆叠 */
+.partners-head {
+  margin-top: 48rpx;
+}
+
+.partners-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx 8rpx 8rpx;
+  column-gap: 8rpx;
+}
+
+.partner-logo {
+  display: block;
+}
+
+.partner-logo--miaoda {
+  width: 236rpx;
+  height: 104rpx;
+  transform: rotate(-5deg) translateY(6rpx);
+}
+
+.partner-logo--hackquest {
+  width: 264rpx;
+  height: 84rpx;
+  margin-left: -10rpx;
+  transform: rotate(3deg) translateY(-8rpx);
+}
+
+.partner-logo--shenkesong {
+  width: 250rpx;
+  height: 96rpx;
+  margin-left: -14rpx;
+  transform: rotate(-2deg) translateY(10rpx);
+}
+
+.partner-logo--voxhacker {
+  width: 232rpx;
+  height: 108rpx;
+  margin-top: -6rpx;
+  transform: rotate(4deg);
+}
+
+.partner-logo--oraclevibesolver {
+  width: 190rpx;
+  height: 130rpx;
+  margin: -18rpx -6rpx 0;
+  transform: rotate(-4deg) translateY(8rpx);
+}
+
+.partner-logo--shenicest {
+  width: 286rpx;
+  height: 76rpx;
+  margin-top: -10rpx;
+  transform: rotate(2deg);
+}
+
+.partners-divider {
+  height: 5rpx;
+  margin: 28rpx 8rpx 0;
+  background: #000000;
+  box-shadow: 0 8rpx 0 0 #FBD902;
+}
+
+.partners-slogan {
+  margin: 30rpx 8rpx 8rpx;
+  color: #000000;
+  font-size: 24rpx;
+  font-weight: 900;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* CSS 放大镜（替代 tdesign icon） */
+.icon-search {
+  position: relative;
+  width: 22rpx; height: 22rpx;
+  border: 4rpx solid #000000;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.icon-search::after {
+  content: '';
+  position: absolute;
+  width: 12rpx; height: 4rpx;
+  background: #000000;
+  border-radius: 2rpx;
+  transform: rotate(45deg);
+  right: -10rpx; bottom: -4rpx;
+}

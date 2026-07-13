@@ -112,7 +112,7 @@
         <text class="city-caret">▾</text>
       </view>
       <view class="search-box">
-        <t-icon name="search" size="34rpx" color="#000000" />
+        <view class="icon-search" />
         <input
           class="search-input"
           value="{{query}}"
@@ -153,6 +153,22 @@
       <view class="empty-state-title">没找到匹配的黑客松</view>
       <view class="empty-state-text">换个关键词或筛选条件再试试。</view>
     </view>
+
+    <view class="list-head partners-head">
+      <view class="section-title list-head-title">合作伙伴</view>
+      <view class="list-head-line"></view>
+    </view>
+    <view class="partners-cloud">
+      <image
+        wx:for="{{partners}}"
+        wx:key="id"
+        class="partner-logo partner-logo--{{item.id}}"
+        src="{{item.logo}}"
+        mode="aspectFit"
+      />
+    </view>
+    <view class="partners-divider"></view>
+    <view class="partners-slogan">HackerTrip 携手主办方，把黑客松做成开发者的游乐场 🎡</view>
     </block>
   </view>
 

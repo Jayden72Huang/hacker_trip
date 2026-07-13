@@ -4,7 +4,6 @@
   "navigationBarBackgroundColor": "#000000",
   "usingComponents": {
     "navbar": "/components/navbar/index",
-    "hackathon-card": "/components/hackathon-card/index",
-    "t-icon": "tdesign-miniprogram/icon/icon"
+    "hackathon-card": "/components/hackathon-card/index"
   }
 }

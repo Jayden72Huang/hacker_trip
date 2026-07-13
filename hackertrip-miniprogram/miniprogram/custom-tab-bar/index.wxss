@@ -39,3 +39,5 @@
   line-height: 1;
   font-weight: 900;
 }
+
+.tabbar__glyph { font-size: 34rpx; line-height: 1; }

@@ -4,14 +4,10 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "patch:tdesign-font": "node scripts/patch-tdesign-font.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "tdesign-miniprogram": "^1.15.1"
-  }
+  "type": "commonjs"
 }

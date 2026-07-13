@@ -1,7 +1,6 @@
 {
   "navigationBarTitleText": "消息提醒",
   "usingComponents": {
-    "navbar": "/components/navbar/index",
-    "t-icon": "tdesign-miniprogram/icon/icon"
+    "navbar": "/components/navbar/index"
   }
 }

@@ -564,7 +564,7 @@ module.exports = [
     "summary": "主题「WE ARE FRONTIER」。探月具身智能社区承办、中关村科学城出品推广。面向 Physical AI/具身/机器人/硬件开发者。",
     "location": "北京·海淀中关村",
     "registrationDeadline": "2026-07-09",
-    "isPast": false,
+    "isPast": true,
     "isPublished": true,
     "organizerName": "",
     "id": "ht-2026-探月计划-physical-ai-黑客松-5c8fb69d"

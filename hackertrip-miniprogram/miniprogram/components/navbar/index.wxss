@@ -56,3 +56,24 @@
   flex: 0 0 auto;
   height: 44px;
 }
+
+/* CSS 图标（替代 tdesign，省 5.4M 包体） */
+.icon-chevron-left {
+  width: 18rpx; height: 18rpx;
+  border-left: 5rpx solid #000000;
+  border-bottom: 5rpx solid #000000;
+  transform: rotate(45deg);
+  margin-left: 8rpx;
+}
+.icon-home { display: flex; flex-direction: column; align-items: center; }
+.icon-home__roof {
+  width: 0; height: 0;
+  border-left: 15rpx solid transparent;
+  border-right: 15rpx solid transparent;
+  border-bottom: 14rpx solid #000000;
+}
+.icon-home__body {
+  width: 18rpx; height: 13rpx;
+  border: 4rpx solid #000000;
+  border-top: none;
+}

@@ -1,7 +1,6 @@
 {
   "navigationBarTitleText": "匹配结果",
   "usingComponents": {
-    "navbar": "/components/navbar/index",
-    "t-icon": "tdesign-miniprogram/icon/icon"
+    "navbar": "/components/navbar/index"
   }
 }

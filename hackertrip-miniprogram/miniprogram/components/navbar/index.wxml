@@ -2,10 +2,10 @@
   <view class="navbar__row">
     <view class="navbar__left">
       <view wx:if="{{showBack}}" class="navbar__button" bindtap="goBack" aria-label="返回">
-        <t-icon name="chevron-left" size="42rpx" color="#000000" />
+        <view class="icon-chevron-left" />
       </view>
       <view wx:if="{{showHome}}" class="navbar__button" bindtap="goHome" aria-label="首页">
-        <t-icon name="home" size="36rpx" color="#000000" />
+        <view class="icon-home"><view class="icon-home__roof" /><view class="icon-home__body" /></view>
       </view>
     </view>
 

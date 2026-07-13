@@ -1,7 +1,6 @@
 {
   "navigationBarTitleText": "赛程状态",
   "usingComponents": {
-    "navbar": "/components/navbar/index",
-    "t-icon": "tdesign-miniprogram/icon/icon"
+    "navbar": "/components/navbar/index"
   }
 }

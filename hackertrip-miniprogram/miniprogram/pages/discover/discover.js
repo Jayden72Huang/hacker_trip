@@ -4,6 +4,7 @@ const { buildCityOptions, matchHackathonCity, matchHackathonQuery } = require('.
 const { SORT_OPTIONS, decorateCardItem, sortCardItems, getSortLabel } = require('../../utils/hackathon-card-data.js');
 const share = require('../../utils/share.js');
 const registration = require('../../utils/registration-link.js');
+const { PARTNERS } = require('../../data/partners.js');
 
 function compactDateRange(startDate, endDate) {
   if (!startDate) return '待确认';
@@ -50,6 +51,7 @@ Page({
     filteredCount: 0,
     totalCount: 0,
     loading: true,
+    partners: PARTNERS,
   },
 
   // 云端拉取的全量赛事，applyFilters 基于此做内存过滤
