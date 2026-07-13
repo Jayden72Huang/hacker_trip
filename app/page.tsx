@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { preload } from 'react-dom';
 import { and, asc, eq, gte, isNotNull, lte, notInArray } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { hackathons } from '@/lib/db/schema';
@@ -13,7 +12,7 @@ import { OrganizerCTA } from '@/components/OrganizerCTA';
 import { HeroRotatingText } from '@/components/HeroRotatingText';
 import { SkillPromo } from '@/components/SkillPromo';
 import { HomeLogoLoop } from '@/components/HomeLogoLoop';
-import { HeroVideo } from '@/components/HeroVideo';
+import PlasmaWave from '@/components/PlasmaWave';
 
 // Event Radar 每小时重新生成，自动同步报名截止倒计时
 export const revalidate = 3600;
@@ -86,14 +85,6 @@ async function getRadarEvents() {
 }
 
 export default async function Home() {
-  // Hero 首屏背景是 LCP 元素，提前以最高优先级加载，避免等 CSS/JS 解析后才发现
-  preload('/images/walk-loop-poster.webp', {
-    as: 'image',
-    fetchPriority: 'high',
-    imageSrcSet:
-      '/images/walk-loop-poster-640.webp 640w, /images/walk-loop-poster-960.webp 960w, /images/walk-loop-poster-1080.webp 1080w, /images/walk-loop-poster.webp 1280w',
-    imageSizes: '100vw',
-  });
   const radarEvents = await getRadarEvents();
   return (
     <div className="relative min-h-screen pb-12 overflow-hidden">
@@ -105,20 +96,24 @@ export default async function Home() {
       <main className="pt-10">
         {/* Hero */}
         <section className="relative overflow-hidden pt-32 pb-20 md:pt-40 md:pb-24 lg:pt-44">
-          {/* 背景视频：主角穿行赛博朋克 AI 街道 · 无缝循环 */}
+          {/* 背景：PlasmaWave 光波 · 主题色取自 HyperGO logo（橙→粉→紫） */}
           <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden>
-            <HeroVideo
-              className="absolute inset-0 h-full w-full object-cover opacity-95 brightness-110 contrast-110 saturate-125"
-              src="/videos/walk-loop.mp4"
-              poster="/images/walk-loop-poster.webp"
-              posterSrcSet="/images/walk-loop-poster-640.webp 640w, /images/walk-loop-poster-960.webp 960w, /images/walk-loop-poster-1080.webp 1080w, /images/walk-loop-poster.webp 1280w"
+            <PlasmaWave
+              colors={['#FF8A3D', '#8A3DF0']}
+              speed1={0.05}
+              speed2={0.05}
+              focalLength={0.8}
+              bend1={1}
+              bend2={0.5}
+              dir2={1}
+              rotationDeg={0}
             />
-            {/* 压暗 + 底部融入页面背景，保证文字可读 */}
+            {/* 底部融入页面背景，保证文字可读 */}
             <div
               className="absolute inset-0"
               style={{
                 background:
-                  'linear-gradient(90deg, rgba(4,7,12,0.88) 0%, rgba(4,7,12,0.68) 38%, rgba(4,7,12,0.28) 70%, rgba(4,7,12,0.46) 100%), linear-gradient(to bottom, rgba(4,7,12,0.42) 0%, rgba(4,7,12,0.18) 42%, rgba(4,7,12,0.94) 100%)',
+                  'linear-gradient(to bottom, rgba(4,7,12,0.35) 0%, rgba(4,7,12,0.1) 40%, rgba(4,7,12,0.92) 100%)',
               }}
             />
           </div>

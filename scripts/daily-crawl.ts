@@ -17,17 +17,23 @@ import dotenv from 'dotenv';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
-import { execSync } from 'child_process';
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
-import { eq, and, or, ilike } from 'drizzle-orm';
+import { eq, and, ilike } from 'drizzle-orm';
 import FirecrawlApp from '@mendable/firecrawl-js';
 import * as schema from '../lib/db/schema';
 import { sanitizeOrganizers, sanitizeSponsors, parseDateRange } from '../lib/normalize-hackathon';
-import { isEndedHackathon, qualifiesForAutoPublish } from '../lib/hackathon-gate';
-import { publishDraftRow } from '../lib/publish-draft';
+import { isEndedHackathon } from '../lib/hackathon-gate';
+import { batchCreateRecords, sendReviewMessage } from './lib/feishu-cli';
+import { hackathonOpsConfig } from './lib/hackathon-ops-config';
+import {
+  buildReviewMessage,
+  createReviewCandidate,
+  ReviewCandidate,
+  writeRuntimeArtifact,
+} from './lib/hackathon-ops-core';
 
 const { scrapeTargets, scrapeLogs, draftHackathons, hackathons } = schema;
 
@@ -69,6 +75,7 @@ interface ExtractedHackathon {
   theme?: string;
   summary?: string;
   detailUrl?: string;
+  registrationDeadline?: string;
   tracks?: { title: string; description?: string }[];
   organizers?: { name: string; url?: string; logo?: string }[];
   sponsors?: { name: string; url?: string; logo?: string; tier?: string }[];
@@ -141,6 +148,7 @@ async function extractHackathons(markdown: string): Promise<ExtractedHackathon[]
     "theme": "主题标签，如 AI、Web3",
     "summary": "一句话简介（50字内）",
     "detailUrl": "该赛事详情页链接（如页面中有）",
+    "registrationDeadline": "报名截止日期，YYYY-MM-DD（如页面中有）",
     "tracks": [{"title":"赛道名","description":"描述"}],
     "organizers": [{"name":"主办方","url":"主办方官网链接（如有）"}],
     "sponsors": [{"name":"赞助商名称","url":"赞助商官网链接（如有）","logo":"logo图片完整URL（如页面中有）","tier":"赞助级别 platinum/gold/silver/bronze（页面明确标注时才填）"}]
@@ -205,159 +213,84 @@ function parseHackathonArray(text: string): ExtractedHackathon[] {
   return [];
 }
 
-/** 数据完整度评分 0-100 */
-function confidenceOf(h: ExtractedHackathon): number {
-  const req = ['name', 'dateRange', 'city'];
-  const opt = ['prizePool', 'teams', 'venue', 'theme', 'summary'];
-  let score = 0;
-  let total = 0;
-  for (const f of req) {
-    total += 3;
-    if ((h as unknown as Record<string, unknown>)[f]) score += 3;
-  }
-  for (const f of opt) {
-    total += 1;
-    if ((h as unknown as Record<string, unknown>)[f]) score += 1;
-  }
-  if ((h.tracks?.length ?? 0) > 0) score += 1;
-  total += 1;
-  if ((h.sponsors?.length ?? 0) > 0) score += 1;
-  total += 1;
-  return Math.round((score / total) * 100);
-}
-
 // ───────────────────────── 飞书爬虫采集表 ─────────────────
 
-const FEISHU_BASE_TOKEN = 'WeUkbz9xRax4iKs8x1Lcjr6Sn4e';
-const CRAWLER_TABLE_NAME = '爬虫采集';
-
-const CRAWLER_TABLE_FIELDS = JSON.stringify([
-  { field_name: '赛事名称', type: 1 },
-  { field_name: '简称', type: 1 },
-  { field_name: '主题', type: 1 },
-  { field_name: '简介', type: 1 },
-  { field_name: '城市', type: 1 },
-  { field_name: '国家', type: 1 },
-  { field_name: '场地', type: 1 },
-  { field_name: '形式', type: 3, property: { options: [{ name: '线下' }, { name: '线上' }, { name: '混合' }] } },
-  { field_name: '开始日期', type: 5 },
-  { field_name: '结束日期', type: 5 },
-  { field_name: '奖金池', type: 1 },
-  { field_name: '参赛规模', type: 1 },
-  { field_name: '赛道', type: 1 },
-  { field_name: '标签', type: 1 },
-  { field_name: '主办方', type: 1 },
-  { field_name: '官网', type: 15 },
-  { field_name: '来源链接', type: 15 },
-  { field_name: '来源平台', type: 1 },
-  { field_name: '置信度', type: 2 },
-  { field_name: '采集时间', type: 5 },
-]);
-
-let crawlerTableId: string | null = null;
-
-function ensureFeishuCrawlerTable(): string | null {
-  try {
-    const listRaw = execSync(
-      `lark-cli base +table-list --base-token ${FEISHU_BASE_TOKEN} --as user --format json`,
-      { encoding: 'utf-8', timeout: 15000 },
-    );
-    const listResult = JSON.parse(listRaw);
-    const tables: { id: string; name: string }[] = listResult.data?.tables || [];
-    const existing = tables.find(t => t.name === CRAWLER_TABLE_NAME);
-    if (existing) return existing.id;
-
-    const createRaw = execSync(
-      `lark-cli base +table-create --base-token ${FEISHU_BASE_TOKEN} --name ${CRAWLER_TABLE_NAME} --fields '${CRAWLER_TABLE_FIELDS}' --as user --format json`,
-      { encoding: 'utf-8', timeout: 15000 },
-    );
-    const createResult = JSON.parse(createRaw);
-    const tableId = createResult.data?.table_id;
-    if (tableId) {
-      console.log(`  📋 飞书「${CRAWLER_TABLE_NAME}」子表已创建: ${tableId}`);
-      return tableId;
-    }
+function writeToFeishuCrawlerTable(items: ReviewCandidate[]) {
+  if (items.length === 0) return;
+  const normalizeMode = (value?: string): string | null => {
+    const mode = (value || '').trim().toLowerCase();
+    if (!mode) return null;
+    if (mode.includes('hybrid') || mode.includes('混合') || (mode.includes('online') && mode.includes('offline'))) return '混合';
+    if (mode.includes('online') || mode.includes('线上') || mode.includes('virtual')) return '线上';
+    if (mode.includes('offline') || mode.includes('线下') || mode.includes('in-person') || mode.includes('in person')) return '线下';
     return null;
-  } catch (e) {
-    console.warn(`  ⚠️  飞书子表操作失败: ${(e as Error).message}`);
-    return null;
-  }
-}
-
-interface CrawledForFeishu {
-  name: string;
-  city?: string;
-  country?: string;
-  venue?: string;
-  startDate?: string;
-  endDate?: string;
-  format?: string;
-  theme?: string;
-  summary?: string;
-  prizePool?: string;
-  teams?: string;
-  tracks?: { title: string }[];
-  organizers?: { name: string }[];
-  detailUrl?: string;
-  platform: string;
-  confidence: number;
-  batchDate: string;
-}
-
-function writeToFeishuCrawlerTable(items: CrawledForFeishu[]) {
-  if (!crawlerTableId || items.length === 0) return;
-
-  const modeMap: Record<string, string> = { offline: '线下', online: '线上', hybrid: '混合' };
-
+  };
   const fields = [
-    '赛事名称', '城市', '国家', '场地', '形式', '主题', '简介',
-    '开始日期', '结束日期', '奖金池', '参赛规模', '赛道', '主办方',
-    '官网', '来源链接', '来源平台', '置信度', '采集时间',
+    '候选ID', '赛事名称', '简称', '城市', '国家', '场地', '形式', '主题', '简介',
+    '开始日期', '结束日期', '报名截止', '奖金池', '参赛规模', '赛道', '主办方',
+    '官网', '来源链接', '来源平台', '置信度', '置信等级', '置信依据',
+    '缺失字段', '去重键', '运行批次', '审核状态', '上线平台', '采集时间',
   ];
-
   const rows = items.map(h => {
-    const startTs = h.startDate ? new Date(h.startDate).getTime() : null;
-    const endTs = h.endDate ? new Date(h.endDate).getTime() : null;
-    const nowTs = Date.now();
     const trackStr = (h.tracks || []).map(t => t.title).join(' / ');
     const orgStr = (h.organizers || []).map(o => o.name).join(' / ');
-    const mode = h.format ? (modeMap[h.format] || h.format) : null;
-
+    const mode = normalizeMode(h.format);
     return [
+      h.candidateId,
       h.name,
+      h.shortName || null,
       h.city || null,
       h.country || '中国',
       h.venue || null,
-      mode ? [mode] : null,
+      mode || null,
       h.theme || null,
       h.summary || null,
-      startTs,
-      endTs,
+      h.startDate ? `${h.startDate} 00:00:00` : null,
+      h.endDate ? `${h.endDate} 00:00:00` : null,
+      h.registrationDeadline ? `${h.registrationDeadline} 00:00:00` : null,
       h.prizePool || null,
       h.teams || null,
       trackStr || null,
       orgStr || null,
-      h.detailUrl || null,
-      h.detailUrl || null,
+      h.website || h.sourceUrl,
+      h.sourceUrl,
       h.platform || null,
       h.confidence,
-      nowTs,
+      h.confidenceLevel,
+      h.confidenceReasons.join('；'),
+      h.missingFields.join('、') || null,
+      h.dedupeKey,
+      h.batchDate,
+      h.reviewStatus,
+      ['网站', '小程序'],
+      `${new Date().toISOString().slice(0, 19).replace('T', ' ')}`,
     ];
   });
+  batchCreateRecords(hackathonOpsConfig.eventBaseToken, hackathonOpsConfig.crawlerTableId, fields, rows);
+  console.log(`  📋 写入飞书「爬虫采集」${items.length} 条`);
+}
 
-  try {
-    const payload = JSON.stringify({ fields, rows });
-    const tmpFile = path.join(os.tmpdir(), `feishu-crawl-${Date.now()}.json`);
-    fs.writeFileSync(tmpFile, payload);
-
-    execSync(
-      `lark-cli base +record-batch-create --base-token ${FEISHU_BASE_TOKEN} --table-id ${crawlerTableId} --json "$(cat ${tmpFile})" --as user --format json`,
-      { encoding: 'utf-8', timeout: 30000 },
-    );
-    fs.unlinkSync(tmpFile);
-    console.log(`  📋 写入飞书「${CRAWLER_TABLE_NAME}」${items.length} 条`);
-  } catch (e) {
-    console.warn(`  ⚠️  飞书写入失败: ${(e as Error).message}`);
+function flushPendingOutbox() {
+  if (!fs.existsSync(hackathonOpsConfig.runtimeDir)) return;
+  for (const batchDate of fs.readdirSync(hackathonOpsConfig.runtimeDir).sort()) {
+    const dir = path.join(hackathonOpsConfig.runtimeDir, batchDate);
+    const candidatesFile = path.join(dir, 'candidates.json');
+    const queuedMarker = path.join(dir, 'feishu-queued.ok');
+    const notifiedMarker = path.join(dir, 'feishu-notified.ok');
+    if (!fs.existsSync(candidatesFile)) continue;
+    const candidates = JSON.parse(fs.readFileSync(candidatesFile, 'utf8')) as ReviewCandidate[];
+    if (candidates.length > 0 && !fs.existsSync(queuedMarker)) {
+      writeToFeishuCrawlerTable(candidates);
+      fs.writeFileSync(queuedMarker, new Date().toISOString(), 'utf8');
+    }
+    if (candidates.length > 0 && hackathonOpsConfig.reviewChatId && !fs.existsSync(notifiedMarker)) {
+      sendReviewMessage(buildReviewMessage(candidates, batchDate, {
+        openId: hackathonOpsConfig.reviewLeadOpenId,
+        name: hackathonOpsConfig.reviewLeadName,
+        role: hackathonOpsConfig.reviewLeadRole,
+      }), `hackertrip-crawl-${batchDate}`);
+      fs.writeFileSync(notifiedMarker, new Date().toISOString(), 'utf8');
+    }
   }
 }
 
@@ -371,10 +304,15 @@ async function main() {
   const batchDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
   console.log(`\n🕷️  每日黑客松爬取 — 批次 ${batchDate}\n${'─'.repeat(48)}`);
 
-  // 0. 确保飞书爬虫采集子表存在
-  crawlerTableId = ensureFeishuCrawlerTable();
-  if (crawlerTableId) {
-    console.log(`  📋 飞书「${CRAWLER_TABLE_NAME}」表已就绪: ${crawlerTableId}`);
+  if (process.argv.includes('--flush-outbox')) {
+    flushPendingOutbox();
+    console.log('飞书待发送批次处理完成');
+    return;
+  }
+  try {
+    flushPendingOutbox();
+  } catch (error) {
+    console.warn(`  ⚠️ 历史飞书待发送批次重试失败: ${(error as Error).message}`);
   }
 
   // 1. 幂等确保数据源存在
@@ -401,7 +339,7 @@ async function main() {
   let totalSaved = 0;
   let totalDup = 0;
   let totalEnded = 0;
-  let totalAutoPub = 0;
+  const reviewCandidates: ReviewCandidate[] = [];
 
   for (const target of targets) {
     const startedAt = Date.now();
@@ -419,8 +357,6 @@ async function main() {
       let saved = 0;
       let dup = 0;
       let skippedEnded = 0;
-      let autoPublished = 0;
-      const feishuBatch: CrawledForFeishu[] = [];
       for (const h of list) {
         const name = h.name.trim();
 
@@ -449,8 +385,31 @@ async function main() {
 
         // 解析日期，入库即带 start/end（供详情页与已结束判断用）
         const { start, end } = parseDateRange(h.dateRange || '');
-        const [draft] = await db.insert(draftHackathons).values({
-          sourceUrl: h.detailUrl || target.url,
+        const sourceUrl = h.detailUrl || target.url;
+        const candidate = createReviewCandidate({
+          name,
+          city: h.city,
+          country: h.country || '中国',
+          venue: h.venue,
+          startDate: start ? start.toISOString().split('T')[0] : undefined,
+          endDate: end ? end.toISOString().split('T')[0] : undefined,
+          registrationDeadline: h.registrationDeadline,
+          format: h.format,
+          theme: h.theme,
+          summary: h.summary,
+          prizePool: h.prizePool,
+          teams: h.teams,
+          tracks: h.tracks,
+          organizers: h.organizers,
+          sponsors: h.sponsors?.map(item => ({ name: item.name })),
+          website: h.detailUrl,
+          sourceUrl,
+          platform: target.platform,
+          batchDate,
+        });
+
+        await db.insert(draftHackathons).values({
+          sourceUrl,
           platform: target.platform,
           scrapeLogId: log.id,
           name,
@@ -468,56 +427,20 @@ async function main() {
           tracks: h.tracks || [],
           organizers: sanitizeOrganizers(h.organizers),
           sponsors: sanitizeSponsors(h.sponsors),
-          confidence: confidenceOf(h),
-          rawData: { ...h, batchDate, sourceTarget: target.name },
+          confidence: candidate.confidence,
+          rawData: { ...h, candidateId: candidate.candidateId, batchDate, sourceTarget: target.name },
           status: 'pending',
-        }).returning();
-        saved++;
-
-        feishuBatch.push({
-          name,
-          city: h.city,
-          country: h.country,
-          venue: h.venue,
-          startDate: start ? start.toISOString().split('T')[0] : undefined,
-          endDate: end ? end.toISOString().split('T')[0] : undefined,
-          format: h.format,
-          theme: h.theme,
-          summary: h.summary,
-          prizePool: h.prizePool,
-          teams: h.teams,
-          tracks: h.tracks,
-          organizers: h.organizers?.map(o => ({ name: o.name })),
-          detailUrl: h.detailUrl || target.url,
-          platform: target.platform || '',
-          confidence: confidenceOf(h),
-          batchDate,
         });
-
-        // 高置信度 + 报名链接验证通过 → 直接发布上架（需有起止日期）
-        if (draft.startDate && draft.endDate && qualifiesForAutoPublish(draft)) {
-          try {
-            const pub = await publishDraftRow(db, draft);
-            autoPublished++;
-            console.log(`  🚀 自动发布: ${pub.name} (conf=${draft.confidence}) → /hackathon/${pub.slug}`);
-          } catch (e) {
-            console.warn(`  ⚠️ 自动发布失败，留草稿箱: ${name} — ${(e as Error).message}`);
-          }
-        }
+        saved++;
+        reviewCandidates.push(candidate);
       }
 
       totalFound += list.length;
       totalSaved += saved;
       totalDup += dup;
       totalEnded += skippedEnded;
-      totalAutoPub += autoPublished;
-      const extras = [
-        skippedEnded ? `跳过已结束 ${skippedEnded} 条` : '',
-        autoPublished ? `自动发布 ${autoPublished} 条` : '',
-      ].filter(Boolean).join('，');
+      const extras = skippedEnded ? `跳过已结束 ${skippedEnded} 条` : '';
       console.log(`  ✅ 新增 ${saved} 条入草稿箱，去重跳过 ${dup} 条${extras ? '，' + extras : ''}\n`);
-
-      writeToFeishuCrawlerTable(feishuBatch);
 
       await db
         .update(scrapeLogs)
@@ -557,9 +480,41 @@ async function main() {
     }
   }
 
+  const candidatesPath = writeRuntimeArtifact(batchDate, 'candidates.json', JSON.stringify(reviewCandidates, null, 2));
+  const reviewMessage = buildReviewMessage(reviewCandidates, batchDate, {
+    openId: hackathonOpsConfig.reviewLeadOpenId,
+    name: hackathonOpsConfig.reviewLeadName,
+    role: hackathonOpsConfig.reviewLeadRole,
+  });
+  const messagePath = writeRuntimeArtifact(batchDate, 'feishu-review.md', reviewMessage);
+  const batchDir = path.dirname(candidatesPath);
+
+  if (reviewCandidates.length > 0) {
+    try {
+      writeToFeishuCrawlerTable(reviewCandidates);
+      fs.writeFileSync(path.join(batchDir, 'feishu-queued.ok'), new Date().toISOString(), 'utf8');
+    } catch (error) {
+      console.warn(`  ⚠️ 飞书审核队列写入失败，明日会自动重试: ${(error as Error).message}`);
+    }
+  }
+
+  if (reviewCandidates.length > 0 && hackathonOpsConfig.reviewChatId) {
+    try {
+      sendReviewMessage(reviewMessage, `hackertrip-crawl-${batchDate}`);
+      fs.writeFileSync(path.join(batchDir, 'feishu-notified.ok'), new Date().toISOString(), 'utf8');
+      console.log('  💬 已推送飞书审核群');
+    } catch (error) {
+      console.warn(`  ⚠️ 飞书群推送失败: ${(error as Error).message}`);
+    }
+  } else if (!hackathonOpsConfig.reviewChatId) {
+    console.warn('  ⚠️ 未配置 FEISHU_REVIEW_CHAT_ID，已生成群消息草稿但未发送');
+  }
+
   console.log(`${'─'.repeat(48)}`);
-  console.log(`🏁 批次 ${batchDate} 完成：发现 ${totalFound}，新增 ${totalSaved}，去重 ${totalDup}，跳过已结束 ${totalEnded}，自动发布 ${totalAutoPub}`);
-  console.log(`   去飞书「爬虫采集」表审核 → 移入「赛事总表」→ 跑 npm run sync:feishu 上线\n`);
+  console.log(`🏁 批次 ${batchDate} 完成：发现 ${totalFound}，新增 ${totalSaved}，去重 ${totalDup}，跳过已结束 ${totalEnded}`);
+  console.log(`   本地产物: ${candidatesPath}`);
+  console.log(`   群消息草稿: ${messagePath}`);
+  console.log('   去飞书「爬虫采集」审核；通过后由 npm run sync:approved 自动上架\n');
 }
 
 main()

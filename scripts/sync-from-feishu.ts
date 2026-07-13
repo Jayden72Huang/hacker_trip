@@ -13,12 +13,14 @@
 import { config } from 'dotenv';
 config({ path: '.env.local' });
 
-import { execSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import { writeFileSync } from 'fs';
 import { neon } from '@neondatabase/serverless';
 import * as crypto from 'crypto';
 import * as path from 'path';
 import * as http from 'http';
+import { listAllRecords } from './lib/feishu-cli';
+import { hackathonOpsConfig } from './lib/hackathon-ops-config';
 
 const FEISHU_BASE_TOKEN = 'WeUkbz9xRax4iKs8x1Lcjr6Sn4e';
 const FEISHU_TABLE_ID = 'tblHGtaEqzNtYJja';
@@ -34,7 +36,7 @@ const SINGLE_ID = args.find((a, i) => args[i - 1] === '--id') || '';
 
 interface FeishuRecord {
   record_id: string;
-  fields: Record<string, any>;
+  fields: Record<string, unknown>;
 }
 
 interface HackathonRow {
@@ -67,31 +69,8 @@ interface HackathonRow {
 
 function readFeishuTable(): FeishuRecord[] {
   console.log('📖 读取飞书赛事总表...');
-  const allRecords: FeishuRecord[] = [];
-  let pageToken = '';
-  let hasMore = true;
-
-  while (hasMore) {
-    const cmd = `lark-cli base +record-list --base-token ${FEISHU_BASE_TOKEN} --table-id ${FEISHU_TABLE_ID} --limit 200 --as user --format json${pageToken ? ` --page-token ${pageToken}` : ''}`;
-    const raw = execSync(cmd, { encoding: 'utf-8', timeout: 30000 });
-    const result = JSON.parse(raw);
-    if (!result.ok) throw new Error(`Feishu API error: ${JSON.stringify(result.error)}`);
-
-    const fieldNames: string[] = result.data?.fields || [];
-    const rows: any[][] = result.data?.data || [];
-    const recordIds: string[] = result.data?.record_id_list || [];
-
-    for (let i = 0; i < rows.length; i++) {
-      const fields: Record<string, any> = {};
-      for (let j = 0; j < fieldNames.length; j++) {
-        fields[fieldNames[j]] = rows[i]?.[j] ?? null;
-      }
-      allRecords.push({ record_id: recordIds[i] || '', fields });
-    }
-
-    hasMore = result.data?.has_more === true;
-    pageToken = result.data?.page_token || '';
-  }
+  const allRecords = listAllRecords(FEISHU_BASE_TOKEN, FEISHU_TABLE_ID)
+    .map(record => ({ record_id: record.recordId, fields: record.fields }));
 
   console.log(`   ✅ 读取到 ${allRecords.length} 条记录`);
   return allRecords;
@@ -99,22 +78,28 @@ function readFeishuTable(): FeishuRecord[] {
 
 // ── 解析工具 ────────────────────────────────────────────
 
-function parseSelectValue(val: any): string {
+function objectLabel(val: unknown): string {
+  if (!val || typeof val !== 'object' || Array.isArray(val)) return '';
+  const object = val as Record<string, unknown>;
+  return String(object.text || object.name || object.value || '');
+}
+
+function parseSelectValue(val: unknown): string {
   if (!val) return '';
   if (typeof val === 'string') return val;
-  if (Array.isArray(val)) return val.map(v => typeof v === 'object' ? v.text || v.name || '' : String(v)).filter(Boolean).join(', ');
-  if (typeof val === 'object') return val.text || val.name || '';
+  if (Array.isArray(val)) return val.map(v => objectLabel(v) || String(v)).filter(Boolean).join(', ');
+  if (typeof val === 'object') return objectLabel(val);
   return String(val);
 }
 
-function parseMultiSelect(val: any): string[] {
+function parseMultiSelect(val: unknown): string[] {
   if (!val) return [];
-  if (Array.isArray(val)) return val.map(v => typeof v === 'object' ? v.text || v.name || '' : String(v)).filter(Boolean);
+  if (Array.isArray(val)) return val.map(v => objectLabel(v) || String(v)).filter(Boolean);
   if (typeof val === 'string') return [val];
   return [];
 }
 
-function parseDateValue(val: any): string {
+function parseDateValue(val: unknown): string {
   if (!val) return '';
   if (typeof val === 'number') {
     const d = new Date(val);
@@ -129,15 +114,15 @@ function stripMarkdownLink(text: string): string {
   return match ? match[2] : text;
 }
 
-function parseTextValue(val: any): string {
+function parseTextValue(val: unknown): string {
   if (!val) return '';
   if (typeof val === 'string') return stripMarkdownLink(val);
-  if (Array.isArray(val)) return val.map(v => typeof v === 'object' ? v.text || '' : String(v)).join('');
-  if (typeof val === 'object') return val.text || val.value || '';
+  if (Array.isArray(val)) return val.map(v => objectLabel(v) || String(v)).join('');
+  if (typeof val === 'object') return objectLabel(val);
   return String(val);
 }
 
-function parseSlashSeparated(val: any): string[] {
+function parseSlashSeparated(val: unknown): string[] {
   const text = parseTextValue(val);
   if (!text) return [];
   return text.split(/\s*[\/,]\s*/).filter(Boolean);
@@ -187,7 +172,7 @@ function generateSlug(name: string): string {
 
 // ── Neon 正式表 upsert ──────────────────────────────────
 
-async function syncToNeon(rows: HackathonRow[], allFeishuIds: string[]) {
+async function syncToNeon(rows: HackathonRow[], allFeishuIds: string[], allowDownlist: boolean) {
   const dbUrl = process.env.DATABASE_URL;
   if (!dbUrl) {
     console.log('⚠️  DATABASE_URL 未配置，跳过 Neon 同步');
@@ -280,7 +265,7 @@ async function syncToNeon(rows: HackathonRow[], allFeishuIds: string[]) {
 
   // 下架：Neon 里有 feishu_id 但不在本次网站上线集合中的 → isPublished=false
   const publishedIds = websiteRows.map(h => h.id).filter(Boolean);
-  if (allFeishuIds.length > 0) {
+  if (allowDownlist && allFeishuIds.length > 0) {
     const result = await sql`
       UPDATE hackathon SET is_published = false, updated_at = NOW()
       WHERE feishu_id IS NOT NULL
@@ -345,7 +330,7 @@ function generateLocalFiles(rows: HackathonRow[]) {
 
 // ── Cloud DB 写入 ───────────────────────────────────────
 
-function postAutomator(body: object): Promise<any> {
+function postAutomator(body: object): Promise<{ result?: unknown } | null> {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify(body);
     const req = http.request({
@@ -367,6 +352,48 @@ function postAutomator(body: object): Promise<any> {
   });
 }
 
+function toCloudRecord(h: HackathonRow) {
+  const today = new Date().toISOString().split('T')[0];
+  return {
+    id: h.id, name: h.name, shortName: h.shortName,
+    startDate: h.startDate, endDate: h.endDate,
+    city: h.city, country: h.country, location: h.location,
+    mode: h.mode,
+    modeText: ({ offline: '线下', online: '线上', hybrid: '混合' } as Record<string, string>)[h.mode] || h.mode,
+    theme: h.theme, summary: h.summary, prizePool: h.prizePool,
+    tracks: h.tracks, techStack: h.techStack, tags: h.tags,
+    website: h.website,
+    registrationDeadline: h.registrationDeadline || '',
+    organizerName: h.organizerName,
+    isPast: h.endDate < today, isPublished: true, updatedAt: Date.now(),
+  };
+}
+
+function syncViaCloudBaseCli(rows: HackathonRow[]): number {
+  let successCount = 0;
+  for (const h of rows) {
+    const record = toCloudRecord(h);
+    const command = JSON.stringify([{
+      TableName: 'hackathons',
+      CommandType: 'UPDATE',
+      Command: JSON.stringify({
+        update: 'hackathons',
+        updates: [{ q: { id: h.id }, u: { $set: record }, upsert: true }],
+      }),
+    }]);
+    const result = spawnSync('cloudbase', [
+      '-e', hackathonOpsConfig.miniprogramEnvId,
+      'db', 'nosql', 'execute', '--command', command, '--json',
+    ], { cwd: MINIPROGRAM_DIR, encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
+    if (result.status !== 0) {
+      if (successCount === 0) return 0;
+      throw new Error(result.stderr || result.stdout || `CloudBase CLI exit ${result.status}`);
+    }
+    successCount++;
+  }
+  return successCount;
+}
+
 async function syncToCloudDB(rows: HackathonRow[]) {
   console.log('\n☁️  同步到微信云 DB...');
 
@@ -375,23 +402,16 @@ async function syncToCloudDB(rows: HackathonRow[]) {
     return;
   }
 
-  const today = new Date().toISOString().split('T')[0];
-  let successCount = 0;
+  let successCount = syncViaCloudBaseCli(rows);
+  if (successCount === rows.length) {
+    console.log(`   ✅ CloudBase CLI: ${successCount}/${rows.length} 条已同步`);
+    return;
+  }
+  console.log('   ℹ️  CloudBase CLI 未登录，降级使用微信开发者工具连接');
+  successCount = 0;
 
   for (const h of rows) {
-    const record = {
-      id: h.id, name: h.name, shortName: h.shortName,
-      startDate: h.startDate, endDate: h.endDate,
-      city: h.city, country: h.country, location: h.location,
-      mode: h.mode,
-      modeText: ({ offline: '线下', online: '线上', hybrid: '混合' } as Record<string, string>)[h.mode] || h.mode,
-      theme: h.theme, summary: h.summary, prizePool: h.prizePool,
-      tracks: h.tracks, techStack: h.techStack, tags: h.tags,
-      website: h.website,
-      registrationDeadline: h.registrationDeadline || '',
-      organizerName: h.organizerName,
-      isPast: h.endDate < today, isPublished: true, updatedAt: Date.now(),
-    };
+    const record = toCloudRecord(h);
 
     const recordJson = JSON.stringify(record);
     const expr = `(async function() {
@@ -418,8 +438,7 @@ async function syncToCloudDB(rows: HackathonRow[]) {
   if (successCount > 0) {
     console.log(`   ✅ 云 DB: ${successCount}/${rows.length} 条已同步`);
   } else {
-    console.log('   ⚠️  微信开发者工具未连接，跳过云 DB 直接写入');
-    console.log('   💡 请在微信开发者工具中部署 seedHackathons 云函数以同步小程序数据');
+    throw new Error('小程序云 DB 同步失败：CloudBase CLI 未登录，微信开发者工具也未连接');
   }
 }
 
@@ -430,6 +449,7 @@ async function main() {
 
   const records = readFeishuTable();
   let rows = records.map(recordToHackathon).filter(h => h.name);
+  const allFeishuIds = rows.map(h => h.id).filter(Boolean);
 
   if (SINGLE_ID) {
     rows = rows.filter(h => h.id === SINGLE_ID);
@@ -440,7 +460,6 @@ async function main() {
     console.log(`\n🎯 单条同步: ${rows[0].name}`);
   }
 
-  const allFeishuIds = rows.map(h => h.id).filter(Boolean);
   const websiteRows = rows.filter(h => h.isPublished && h.targetPlatforms.includes('网站'));
   const miniprogramRows = rows.filter(h => h.isPublished && h.targetPlatforms.includes('小程序'));
 
@@ -451,7 +470,7 @@ async function main() {
   console.log(`   未上线: ${rows.filter(h => !h.isPublished).length} 条`);
 
   // 1. 同步网站（Neon hackathon 表）
-  await syncToNeon(rows, allFeishuIds);
+  await syncToNeon(rows, allFeishuIds, !SINGLE_ID);
 
   // 2. 生成本地文件 + 同步云 DB（小程序）
   if (miniprogramRows.length > 0) {

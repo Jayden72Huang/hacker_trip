@@ -90,6 +90,8 @@ generated-walkers/
 gemini-frame*.png
 walk-frame*.png
 lib/OPC_MKT_Agent_OS_backup/
+/runtime/hackathon-ops/
+/config/hackathon-ops.local.json
 
 # heavy design renders (specs .md/.html stay tracked)
 hackertrip-miniprogram/screenshots/
