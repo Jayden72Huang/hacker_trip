@@ -14,6 +14,7 @@ const communityLogos: LogoItem[] = [
   { src: '/logos/medo.png', alt: '秒哒', title: '秒哒', width: 220, height: 64 },
   { src: '/logos/miaoda-hackathon.png', alt: '秒哒应用美学黑客松', title: '秒哒应用美学黑客松', width: 384, height: 120 },
   { src: '/logos/shenkesong.png', alt: '深客松', title: '深客松', width: 335, height: 120 },
+  { src: '/logos/shenicest.png', alt: 'SHE NICEST', title: 'SHE NICEST', width: 637, height: 120 },
 ];
 
 /** 首页「AI 匹配项目」模块下方的合作社区 Logo 无限滚动带 */
