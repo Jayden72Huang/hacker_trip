@@ -7,7 +7,9 @@
     open-type="switchTab"
     hover-class="none"
   >
-    <text class="tabbar__glyph" style="color: {{selected === index ? '#FFFFFF' : color}};">{{item.glyph}}</text>
-    <text class="tabbar__text">{{item.text}}</text>
+    <view class="tabbar__chip {{selected === index ? 'tabbar__chip--active' : ''}}">
+      <text class="tabbar__glyph" style="color: {{selected === index ? '#FFFFFF' : color}}; font-size: {{item.glyphSize}}rpx;">{{item.glyph}}</text>
+      <text class="tabbar__text">{{item.text}}</text>
+    </view>
   </navigator>
 </view>

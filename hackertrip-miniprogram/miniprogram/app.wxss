@@ -63,7 +63,7 @@ button::after {
 
 .page--tab {
   /* 底部贴边 tab 条占位（含安全区） */
-  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(112rpx + env(safe-area-inset-bottom));
 }
 
 .content {

@@ -390,6 +390,21 @@ async function getHackathonHeatMap(ids) {
       setStorage(STORAGE.HEAT_MAP, { heats: merged, updatedAt: Date.now() });
       return merged;
     }
+    // 线上还是旧版云函数（只支持单个 id）：降级为逐个查询，最多 20 个
+    if (res && !res.ok) {
+      const singles = await Promise.all(keys.slice(0, 20).map((key) => callFn('getHackathonHeat', { id: key }).catch(() => null)));
+      const heats = {};
+      singles.forEach((item) => {
+        if (item && item.ok && item.id) {
+          heats[item.id] = { registrations: item.registrations, bookmarks: item.bookmarks, fans: item.fans, heat: item.heat };
+        }
+      });
+      if (Object.keys(heats).length) {
+        const merged = Object.assign({}, cached && cached.heats, heats);
+        setStorage(STORAGE.HEAT_MAP, { heats: merged, updatedAt: Date.now() });
+        return merged;
+      }
+    }
   } catch (e) {
     console.warn('[api] getHackathonHeatMap 云端失败', e);
   }
