@@ -62,7 +62,8 @@ button::after {
 }
 
 .page--tab {
-  padding-bottom: 190rpx;
+  /* 顶部 tab 条占位：状态栏和标题栏由 sticky navbar 撑开，这里只补 tab 条高度 */
+  padding-top: 150rpx;
 }
 
 .content {
