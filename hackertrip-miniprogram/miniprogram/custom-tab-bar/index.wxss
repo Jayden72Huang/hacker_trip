@@ -1,17 +1,17 @@
 .tabbar {
-  /* 顶部导航条：贴在 navbar 标题栏下方（top 由 wxml 内联样式按状态栏高度计算） */
+  /* 底部贴边全宽：符合微信 tab 习惯，不悬浮 */
   position: fixed;
-  left: 24rpx;
-  right: 24rpx;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 490;
   display: flex;
   align-items: center;
   height: 104rpx;
-  padding: 10rpx;
+  padding: 10rpx 16rpx calc(10rpx + env(safe-area-inset-bottom));
+  box-sizing: content-box;
   background: #FFFFFF;
-  border: 4rpx solid #000000;
-  border-radius: 18rpx;
-  box-shadow: 6rpx 6rpx 0 0 #000000;
+  border-top: 4rpx solid #000000;
 }
 
 .tabbar__item {

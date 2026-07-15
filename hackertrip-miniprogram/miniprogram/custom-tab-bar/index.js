@@ -3,7 +3,6 @@ Component({
     selected: 0,
     color: '#7A7A75',
     selectedColor: '#0C51ED',
-    statusBarHeight: 20,
     // glyph 用可着色文本字形，替代 tdesign 图标（省 5.4M 包体）
     list: [
       { pagePath: '/pages/discover/discover', text: '发现', glyph: '★' },
@@ -15,10 +14,6 @@ Component({
 
   lifetimes: {
     attached() {
-      try {
-        const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
-        this.setData({ statusBarHeight: info.statusBarHeight || 20 });
-      } catch (e) { /* 用默认值 */ }
       this.syncSelected();
     },
   },
