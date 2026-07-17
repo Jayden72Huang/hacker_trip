@@ -11,11 +11,11 @@ Page({
     avatarChar: 'H',
     activeCount: 0,
     savedCount: 0,
-    // 卡内数据指标：真实履历数据（进行中赛事 / Skills 数 / 验证履历数，load 后填真实值）
+    // 卡内数据指标：真实履历数据（参赛场次 / 获奖 / 作品，load 后填真实值），点击可跳转补数据
     assetStats: [
-      { label: '进行中', value: '—' },
-      { label: 'Skills', value: '—' },
-      { label: '验证履历', value: '—' },
+      { label: '参赛场次', value: '—', url: '/pages/achievements/achievements' },
+      { label: '获奖', value: '—', url: '/pages/achievements/achievements' },
+      { label: '作品', value: '—', url: '/pages/my-works/my-works' },
     ],
     loading: true,
     isLoggedIn: false,
@@ -28,7 +28,7 @@ Page({
     organizerTools: [],
     tools: [
       { title: '我的身份卡', sub: '生成参赛身份卡，分享找队友', url: '/pages/identity/identity' },
-      { title: '黑客松旅行', sub: '走过的比赛和获奖记录，可获主办方官方认证', url: '/pages/achievements/achievements' },
+      { title: '黑客松旅行', sub: '参赛足迹和获奖记录，凭验证码领取主办方奖杯', url: '/pages/achievements/achievements' },
       { title: '我的项目 / 作品', sub: '同步项目画像，管理提交作品', url: '/pages/my-works/my-works' },
       { title: '报名资料模板', sub: '用资料库一键拼出报名草稿和缺失项', url: '/pages/form-assistant/form-assistant' },
     ],
@@ -75,36 +75,27 @@ Page({
       const latest = cachedEvents.find((h) => h.id === reg.id) || catalog.decorate(reg, today);
       return latest && latest.status === 'ongoing';
     }).length;
-    const avatarChar = (profile.nickname || 'H').trim().charAt(0).toUpperCase() || 'H';
+    // 获奖数：从履历缓存里按奖项关键词统计（含主办方奖杯和自述记录）
+    const awardCount = api.getLocalAchievements().filter((item) => item
+      && /award|win|champion|first|gold|silver|bronze|奖|冠军|亚军|季军|入围|finalist/i.test(`${item.level || ''} ${item.title || ''}`)).length;
+    // 昵称/头像：本地档案优先，其次登录时带回的微信资料
+    const accountName = profile.nickname || (auth && auth.userInfo && auth.userInfo.nickName) || '';
+    const accountAvatar = profile.avatarUrl || (auth && auth.userInfo && auth.userInfo.avatarUrl) || '';
+    const avatarChar = (accountName || 'H').trim().charAt(0).toUpperCase() || 'H';
     // 编辑过资料 或 已登录 → storage 有 ht_profile，视为"已填写"，高亮展示；否则引导完善
     const hasProfile = !!(auth && wx.getStorageSync(api.STORAGE.PROFILE));
-
-    const accountName = profile.nickname || (auth && auth.userInfo.nickName) || '';
-    const accountAvatar = profile.avatarUrl || (auth && auth.userInfo.avatarUrl) || '';
-    // 微信平台已不提供静默获取昵称头像，登录后没设置的引导用户点卡片补全
-    const needsProfile = !!auth && (!accountName || !accountAvatar);
 
     this.setData({
       loading: false,
       isLoggedIn: !!auth,
-      needsProfile,
-      authAccount: auth
-        ? {
-          name: accountName || '还没设置昵称',
-          avatarUrl: accountAvatar,
-          copy: needsProfile
-            ? '点这里设置微信头像和昵称 →'
-            : '微信已登录，身份卡和赛程会同步到当前账号',
-        }
-        : { name: '未登录', avatarUrl: '', copy: '登录后同步身份卡、赛程、收藏和 Skills 结果' },
       avatarChar,
       activeCount: ongoing,
       savedCount: stats.bookmarks,
       profileCard: {
         filled: hasProfile,
-        avatarUrl: profile.avatarUrl || '',
+        avatarUrl: accountAvatar,
         avatarChar,
-        nickname: profile.nickname,
+        nickname: accountName,
         role: profile.role,
         city: profile.city,
         skills: profile.skills || [],
@@ -112,9 +103,9 @@ Page({
       },
       profileMode,
       assetStats: [
-        { label: '进行中', value: `${ongoing}` },
-        { label: 'Skills', value: `${(profile.skills || []).length}` },
-        { label: '验证履历', value: this._achievementCount != null ? `${this._achievementCount}` : '—' },
+        { label: '参赛场次', value: `${regs.length}`, url: '/pages/achievements/achievements' },
+        { label: '获奖', value: `${awardCount}`, url: '/pages/achievements/achievements' },
+        { label: '作品', value: `${stats.projects}`, url: '/pages/my-works/my-works' },
       ],
       organizerStatus: organizer.status,
       organizerStatusText: this.getOrganizerStatusText(organizer.status),
@@ -129,13 +120,16 @@ Page({
     await api.syncUserDataIfLoggedIn().catch(() => {});
     if (api.cloudReady()) {
       await api.checkHackathonAdmin().catch(() => ({ isAdmin: false }));
-      // 主办方验证的履历数（可信履历指标）
-      try {
-        const res = await api.listAchievements();
-        if (res && Array.isArray(res.achievements)) this._achievementCount = res.achievements.length;
-      } catch (e) { /* 拉不到保持 — */ }
+      // 刷新履历缓存，供「获奖」指标统计
+      await api.listAchievements().catch(() => {});
     }
     this.renderLocal();
+  },
+
+  /** 指标点击：跳到对应页面查看/补数据 */
+  onStatTap(e) {
+    const url = e.currentTarget.dataset.url;
+    if (url) wx.navigateTo({ url });
   },
 
   buildSettings(isAdmin) {
@@ -172,10 +166,36 @@ Page({
     this.revalidate();
   },
 
-  // 已登录但没设置头像昵称：点账号卡去补全
-  onAccountCardTap() {
-    if (!this.data.isLoggedIn || !this.data.needsProfile) return;
-    wx.navigateTo({ url: '/pages/identity-edit/identity-edit' });
+  /** 拦截资料卡内头像/昵称的点击冒泡，避免误触进入编辑页 */
+  noop() {},
+
+  /** 未登录先弹登录框，登录成功才继续保存头像/昵称 */
+  async ensureLogin() {
+    if (api.isLoggedIn()) return true;
+    const modal = this.selectComponent('#authModal');
+    if (!modal || !modal.open) return false;
+    const auth = await modal.open({ reason: '登录后头像和昵称会同步到当前微信账号。' });
+    return !!auth;
+  },
+
+  // 微信头像选择回调：返回临时路径，本地即存即显，后台自动上传云存储换 fileID
+  async onChooseAvatar(e) {
+    const avatarUrl = (e.detail && e.detail.avatarUrl) || '';
+    if (!avatarUrl) return;
+    if (!(await this.ensureLogin())) return;
+    api.saveProfile({ avatarUrl });
+    this.renderLocal();
+    wx.showToast({ title: '头像已更新', icon: 'none' });
+  },
+
+  // 昵称输入完成（失焦/确认）：支持键盘上方"使用微信昵称"快捷填入
+  async onNicknameChange(e) {
+    const nickname = String((e.detail && e.detail.value) || '').trim();
+    if (!nickname || nickname === this.data.profileCard.nickname) return;
+    if (!(await this.ensureLogin())) return;
+    api.saveProfile({ nickname });
+    this.renderLocal();
+    wx.showToast({ title: '昵称已更新', icon: 'none' });
   },
 
   getOrganizerStatusText(status) {
@@ -193,7 +213,7 @@ Page({
       return [
         { title: '发布黑客松', sub: '创建赛事信息，提交后进入审核', url: '/pages/hackathon-create/hackathon-create', action: 'open' },
         { title: '赛事管理', sub: '查看已提交赛事和审核状态', url: '/pages/organizer/organizer', action: 'open' },
-        { title: '验证选手履历', sub: '给参赛、入围和获奖结果加主办方验证', url: '/pages/organizer-verify/organizer-verify', action: 'open' },
+        { title: '发布奖杯', sub: '按名单批量发电子奖状，选手领取即官方认证', url: '/pages/organizer-verify/organizer-verify', action: 'open' },
       ];
     }
     if (status === 'pending') {

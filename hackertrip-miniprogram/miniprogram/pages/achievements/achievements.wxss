@@ -97,3 +97,95 @@
   color: #7A7A75;
   line-height: 1.5;
 }
+
+/* 表单字段（与验证页保持一致的样式） */
+.form-field {
+  margin-top: 24rpx;
+}
+.field-label {
+  margin-bottom: 10rpx;
+  color: #000000;
+  font-size: 24rpx;
+  font-weight: 900;
+}
+.picker-box {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 86rpx;
+  padding: 22rpx;
+  color: #000000;
+  background: #FFFFFF;
+  border: 4rpx solid #000000;
+  border-radius: 14rpx;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+/* 待验证徽章（本人添加、还没被主办方盖章） */
+.trip-badge-pending {
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #B8860B;
+}
+
+/* 领取奖杯 / 添加履历 入口 */
+.trip-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+.trip-action-btn {
+  flex: 1;
+}
+.trip-action-btn--on {
+  transform: translate(2rpx, 2rpx);
+}
+
+/* 折叠表单面板 */
+.trip-panel {
+  margin-top: 20rpx;
+}
+.trip-panel-submit {
+  margin-top: 20rpx;
+  width: 100%;
+}
+.trip-code-input {
+  text-transform: uppercase;
+  letter-spacing: 4rpx;
+  font-weight: 900;
+}
+.trip-upload-btn {
+  width: 100%;
+}
+
+/* 获奖截图缩略图 */
+.trip-proof-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 12rpx;
+}
+.trip-proof-thumb {
+  width: 160rpx;
+  height: 160rpx;
+  border: 3rpx solid #000000;
+  border-radius: 12rpx;
+  background: #FFFFFF;
+}
+.trip-proof-remove {
+  font-size: 24rpx;
+  font-weight: 800;
+  color: #C0392B;
+  text-decoration: underline;
+}
+
+/* 产品/作品链接（点按复制） */
+.trip-product-link {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #0C51ED;
+}

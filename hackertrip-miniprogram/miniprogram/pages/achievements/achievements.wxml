@@ -20,6 +20,64 @@
       </view>
     </view>
 
+    <!-- 领取奖杯 / 添加履历 入口 -->
+    <view class="trip-actions">
+      <button class="native-btn trip-action-btn {{activePanel === 'claim' ? 'trip-action-btn--on' : ''}}" bindtap="togglePanel" data-panel="claim">🏆 领取奖杯</button>
+      <button class="native-btn native-btn--yellow trip-action-btn {{activePanel === 'add' ? 'trip-action-btn--on' : ''}}" bindtap="togglePanel" data-panel="add">添加履历</button>
+    </view>
+
+    <!-- 领取主办方奖杯：姓名 + 比赛（可选） + 验证码 -->
+    <view wx:if="{{activePanel === 'claim'}}" class="brutal-box trip-panel">
+      <view class="box-title">领取主办方奖杯</view>
+      <view class="box-copy">输入主办方登记的姓名和领奖验证码，核验通过即绑定为官方认证 ✓。</view>
+      <view class="form-field">
+        <view class="field-label">姓名</view>
+        <input class="input-box" value="{{claimForm.name}}" data-field="name" placeholder="主办方登记的名字" bindinput="onClaimInput" />
+      </view>
+      <view class="form-field">
+        <view class="field-label">参赛的比赛（可选，加一道核验）</view>
+        <input class="input-box" value="{{claimForm.eventName}}" data-field="eventName" placeholder="例如 2026 HyperGO" bindinput="onClaimInput" />
+      </view>
+      <view class="form-field">
+        <view class="field-label">验证码</view>
+        <input class="input-box trip-code-input" value="{{claimForm.code}}" data-field="code" placeholder="例如 7XK2MQ" bindinput="onClaimInput" />
+      </view>
+      <button class="native-btn trip-panel-submit" bindtap="submitClaim" loading="{{claiming}}" disabled="{{claiming}}">核验并领取</button>
+    </view>
+
+    <!-- 自录过往履历：可带截图和产品链接 -->
+    <view wx:if="{{activePanel === 'add'}}" class="brutal-box trip-panel">
+      <view class="box-title">添加过往履历</view>
+      <view class="box-copy">自己添加的记录会标记「自述」，拿到主办方发的奖杯验证码后可领取升级为官方认证 ✓。</view>
+      <view class="form-field">
+        <view class="field-label">赛事名称</view>
+        <input class="input-box" value="{{addForm.eventName}}" data-field="eventName" placeholder="例如 2025 AdventureX" bindinput="onAddInput" />
+      </view>
+      <view class="form-field">
+        <view class="field-label">奖项 / 结果</view>
+        <input class="input-box" value="{{addForm.title}}" data-field="title" placeholder="冠军 / 最佳 AI 应用奖 / 已参赛" bindinput="onAddInput" />
+      </view>
+      <view class="form-field">
+        <view class="field-label">记录类型</view>
+        <picker mode="selector" range="{{levelLabels}}" value="{{addForm.levelIndex}}" bindchange="onAddLevelChange">
+          <view class="picker-box">{{levelLabels[addForm.levelIndex]}}</view>
+        </picker>
+      </view>
+      <view class="form-field">
+        <view class="field-label">产品 / 作品链接（可选）</view>
+        <input class="input-box" value="{{addForm.productUrl}}" data-field="productUrl" placeholder="https://..." bindinput="onAddInput" />
+      </view>
+      <view class="form-field">
+        <view class="field-label">获奖截图 / 照片（可选）</view>
+        <view wx:if="{{addImage}}" class="trip-proof-wrap">
+          <image class="trip-proof-thumb" src="{{addImage}}" mode="aspectFill" data-src="{{addImage}}" bindtap="previewProof" />
+          <view class="trip-proof-remove" bindtap="removeAddImage">移除</view>
+        </view>
+        <button wx:else class="native-btn trip-upload-btn" bindtap="chooseAddImage">上传截图</button>
+      </view>
+      <button class="native-btn native-btn--yellow trip-panel-submit" bindtap="submitAdd" loading="{{adding}}" disabled="{{adding}}">保存履历</button>
+    </view>
+
     <view wx:if="{{!isLoggedIn && !loading}}" class="brutal-box">
       <view class="box-title">登录开始你的旅行</view>
       <view class="box-copy">登录后同步你报名过的黑客松和主办方认证的获奖记录。</view>
@@ -49,30 +107,38 @@
         <view class="trip-stop-name">{{item.name}}</view>
         <view class="trip-stop-place">{{item.place}}{{item.modeText ? ' · ' + item.modeText : ''}}</view>
         <view wx:if="{{item.badges.length}}" class="trip-badges">
-          <view wx:for="{{item.badges}}" wx:for-item="badge" wx:key="title" class="trip-badge {{badge.isAward ? 'trip-badge--award' : ''}}">
+          <view wx:for="{{item.badges}}" wx:for-item="badge" wx:key="id" class="trip-badge {{badge.isAward ? 'trip-badge--award' : ''}}">
             <text>{{badge.isAward ? '🏆 ' : ''}}{{badge.levelText}}</text>
-            <text class="trip-badge-verified">✓ 官方认证 · {{badge.byText}}</text>
+            <text wx:if="{{badge.verified}}" class="trip-badge-verified">✓ 官方认证 · {{badge.byText}}</text>
+            <text wx:else class="trip-badge-pending">自述 · {{badge.byText}}</text>
           </view>
         </view>
       </view>
     </block>
 
-    <!-- 主办方直接录入、未关联报名记录的认证 -->
+    <!-- 主办方发证 / 自录的记录（未关联报名） -->
     <block wx:if="{{extras.length}}">
-      <view class="trip-section-title">更多认证记录</view>
-      <view wx:for="{{extras}}" wx:key="title" class="trip-stop brutal-box">
+      <view class="trip-section-title">更多履历记录</view>
+      <view wx:for="{{extras}}" wx:key="id" class="trip-stop brutal-box">
         <view class="trip-stop-name">{{item.isAward ? '🏆 ' : ''}}{{item.levelText}}</view>
         <view class="trip-stop-place">{{item.eventText}}</view>
         <view class="trip-badges">
           <view class="trip-badge {{item.isAward ? 'trip-badge--award' : ''}}">
-            <text class="trip-badge-verified">✓ 官方认证 · {{item.byText}}</text>
+            <text wx:if="{{item.verified}}" class="trip-badge-verified">✓ 官方认证 · {{item.byText}}</text>
+            <text wx:else class="trip-badge-pending">自述 · {{item.byText}}</text>
           </view>
+        </view>
+        <view wx:if="{{item.imageFileId}}" class="trip-proof-wrap">
+          <image class="trip-proof-thumb" src="{{item.imageFileId}}" mode="aspectFill" data-src="{{item.imageFileId}}" catchtap="previewProof" />
+        </view>
+        <view wx:if="{{item.productUrl}}" class="trip-product-link" data-url="{{item.productUrl}}" catchtap="copyProductUrl">
+          🔗 {{item.productUrl}}
         </view>
       </view>
     </block>
 
     <view wx:if="{{stops.length || extras.length}}" class="trip-footnote">
-      获奖认证由已认证主办方在「验证选手履历」中完成，带 ✓ 的记录不可伪造。
+      带 ✓ 的记录由已认证主办方发奖杯或验证，不可伪造；「自述」为本人添加，拿到主办方验证码后可领取升级。
     </view>
   </view>
   <auth-modal id="authModal" bind:login="onAuthLogin" />

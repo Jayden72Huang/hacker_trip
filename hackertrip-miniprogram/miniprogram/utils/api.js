@@ -1102,6 +1102,44 @@ async function verifyAchievement(payload) {
   return res || { ok: false, code: 'EMPTY_RESPONSE', message: '验证失败' };
 }
 
+/** 主办方批量发证：names 支持数组或多行文本（一行一个名字） */
+async function issueCertificates(payload) {
+  return eventHub('issueCertificates', payload || {});
+}
+
+/** 主办方查看自己发出的证书和领取状态 */
+async function listIssuedCertificates() {
+  return eventHub('listCertificates', {});
+}
+
+/** 选手凭姓名+验证码（比赛名可选核验）领取奖状，成功后刷新本地履历缓存 */
+async function claimCertificate(name, code, eventName) {
+  const res = await eventHub('claimCertificate', { name, code, eventName: eventName || '' });
+  if (res && res.ok) await listAchievements().catch(() => {});
+  return res;
+}
+
+/** 选手自录过往履历（未验证），可带产品链接和获奖截图 fileID */
+async function addSelfAchievement(payload) {
+  const res = await eventHub('addSelfAchievement', payload || {});
+  if (res && res.ok) await listAchievements().catch(() => {});
+  return res;
+}
+
+/** 上传获奖截图/照片到云存储，返回 fileID；未连云或失败返回 '' */
+async function uploadAchievementImage(filePath) {
+  if (!cloudReady() || !wx.cloud || !wx.cloud.uploadFile || !filePath) return '';
+  try {
+    const ext = avatarExt(filePath);
+    const rand = Math.random().toString(36).slice(2, 8);
+    const uploaded = await uploadFile(filePath, `achievements/${Date.now()}-${rand}.${ext}`);
+    return uploaded && uploaded.fileID ? uploaded.fileID : '';
+  } catch (e) {
+    console.warn('[api] uploadAchievementImage 失败', e);
+    return '';
+  }
+}
+
 function textFromNamedList(list, key) {
   if (!Array.isArray(list)) return [];
   return list
@@ -1937,6 +1975,11 @@ module.exports = {
   recommendTeamMembers,
   listAchievements,
   verifyAchievement,
+  issueCertificates,
+  listIssuedCertificates,
+  claimCertificate,
+  addSelfAchievement,
+  uploadAchievementImage,
   generateRegistrationDraft,
   listReviewWorks,
   updateReviewWork,

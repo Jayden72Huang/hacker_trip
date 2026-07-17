@@ -31,7 +31,7 @@
     <view class="form-list">
       <view class="form-field">
         <text class="form-label">昵称</text>
-        <input class="input-box" value="{{form.nickname}}" data-field="nickname" bindinput="onFieldInput" />
+        <input class="input-box" type="nickname" value="{{form.nickname}}" data-field="nickname" bindinput="onFieldInput" />
       </view>
       <view class="form-field">
         <text class="form-label">角色</text>

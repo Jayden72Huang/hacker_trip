@@ -49,14 +49,24 @@ function buildStops(registrations, achievements, cachedEvents, today) {
 
 function decorateAchievement(item) {
   const level = String(item.level || '').toLowerCase();
-  const isAward = /win|champion|first|gold|silver|bronze|奖|冠军|亚军|季军|入围|finalist/i.test(`${level} ${item.title || ''}`);
+  const isAward = /award|win|champion|first|gold|silver|bronze|奖|冠军|亚军|季军|入围|finalist/i.test(`${level} ${item.title || ''}`);
+  const verified = item.verified === true;
   return Object.assign({}, item, {
     isAward,
+    verified,
     levelText: item.title || '参赛记录',
-    byText: item.verifiedByName || 'HackerTrip 主办方',
+    byText: verified ? (item.verifiedByName || 'HackerTrip 主办方') : '本人添加',
     eventText: item.eventName || item.eventId || '',
+    productUrl: item.productUrl || '',
+    imageFileId: item.imageFileId || '',
   });
 }
+
+const LEVEL_OPTIONS = [
+  { label: '已参赛', value: 'participant' },
+  { label: '入围', value: 'finalist' },
+  { label: '获奖', value: 'award' },
+];
 
 Page({
   data: {
@@ -66,6 +76,14 @@ Page({
     stops: [],
     extras: [],
     stats: { total: 0, awards: 0, verified: 0 },
+    // 领取奖杯 / 添加履历 折叠面板
+    activePanel: '',
+    claimForm: { name: '', eventName: '', code: '' },
+    claiming: false,
+    levelLabels: LEVEL_OPTIONS.map((item) => item.label),
+    addForm: { eventName: '', title: '', levelIndex: 2, productUrl: '' },
+    addImage: '',
+    adding: false,
   },
 
   onShow() {
@@ -101,6 +119,130 @@ Page({
 
   goDiscover() {
     wx.switchTab({ url: '/pages/discover/discover' });
+  },
+
+  /* ---------------- 领取奖杯 / 添加履历 ---------------- */
+
+  async togglePanel(e) {
+    const panel = e.currentTarget.dataset.panel || '';
+    if (!api.isLoggedIn()) {
+      await this.openLogin();
+      if (!api.isLoggedIn()) return;
+    }
+    if (this.data.activePanel === panel) {
+      this.setData({ activePanel: '' });
+      return;
+    }
+    const patch = { activePanel: panel };
+    // 领奖姓名预填档案昵称（兜底登录微信昵称），主办方多按真名登记，用户可改
+    if (panel === 'claim' && !this.data.claimForm.name) {
+      const auth = api.getAuth();
+      patch['claimForm.name'] = api.getProfile().nickname
+        || (auth && auth.userInfo && auth.userInfo.nickName) || '';
+    }
+    this.setData(patch);
+  },
+
+  onClaimInput(e) {
+    const field = e.currentTarget.dataset.field;
+    this.setData({ [`claimForm.${field}`]: e.detail.value });
+  },
+
+  async submitClaim() {
+    if (this.data.claiming) return;
+    const { name, eventName, code } = this.data.claimForm;
+    if (!name.trim() || !code.trim()) {
+      wx.showToast({ title: '请填写姓名和验证码', icon: 'none' });
+      return;
+    }
+    this.setData({ claiming: true });
+    const res = await api.claimCertificate(name.trim(), code.trim(), eventName.trim());
+    this.setData({ claiming: false });
+    if (!res || !res.ok) {
+      wx.showModal({ title: '领取失败', content: (res && res.message) || '请稍后重试', showCancel: false });
+      return;
+    }
+    this.setData({ activePanel: '', 'claimForm.code': '' });
+    const ach = res.achievement || {};
+    wx.showModal({
+      title: '奖杯已入册 🏆',
+      content: `「${ach.eventName || '赛事'} · ${ach.title || '获奖记录'}」已绑定到你的账号，标记为官方认证 ✓。`,
+      showCancel: false,
+    });
+    this.renderLocal();
+    this.revalidate();
+  },
+
+  onAddInput(e) {
+    const field = e.currentTarget.dataset.field;
+    this.setData({ [`addForm.${field}`]: e.detail.value });
+  },
+
+  onAddLevelChange(e) {
+    this.setData({ 'addForm.levelIndex': Number(e.detail.value) || 0 });
+  },
+
+  async chooseAddImage() {
+    try {
+      const res = await wx.chooseMedia({ count: 1, mediaType: ['image'], sizeType: ['compressed'] });
+      const file = res && res.tempFiles && res.tempFiles[0];
+      if (file && file.tempFilePath) this.setData({ addImage: file.tempFilePath });
+    } catch (e) { /* 用户取消 */ }
+  },
+
+  removeAddImage() {
+    this.setData({ addImage: '' });
+  },
+
+  async submitAdd() {
+    if (this.data.adding) return;
+    const form = this.data.addForm;
+    if (!form.eventName.trim() || !form.title.trim()) {
+      wx.showToast({ title: '请填写赛事名称和奖项/结果', icon: 'none' });
+      return;
+    }
+    this.setData({ adding: true });
+    let imageFileId = '';
+    if (this.data.addImage) {
+      imageFileId = await api.uploadAchievementImage(this.data.addImage);
+      if (!imageFileId) {
+        this.setData({ adding: false });
+        wx.showToast({ title: '截图上传失败，请重试', icon: 'none' });
+        return;
+      }
+    }
+    const level = (LEVEL_OPTIONS[form.levelIndex] || LEVEL_OPTIONS[0]).value;
+    const res = await api.addSelfAchievement({
+      eventName: form.eventName.trim(),
+      title: form.title.trim(),
+      level,
+      productUrl: form.productUrl.trim(),
+      imageFileId,
+    });
+    this.setData({ adding: false });
+    if (!res || !res.ok) {
+      wx.showModal({ title: '添加失败', content: (res && res.message) || '请稍后重试', showCancel: false });
+      return;
+    }
+    this.setData({
+      activePanel: '',
+      addForm: { eventName: '', title: '', levelIndex: 2, productUrl: '' },
+      addImage: '',
+    });
+    wx.showToast({ title: '履历已添加', icon: 'success' });
+    this.renderLocal();
+    this.revalidate();
+  },
+
+  previewProof(e) {
+    const src = e.currentTarget.dataset.src;
+    if (src) wx.previewImage({ urls: [src] });
+  },
+
+  copyProductUrl(e) {
+    const url = e.currentTarget.dataset.url;
+    if (!url) return;
+    wx.setClipboardData({ data: url, success: () => wx.showToast({ title: '链接已复制', icon: 'none' }) });
   },
 
   goDetail(e) {

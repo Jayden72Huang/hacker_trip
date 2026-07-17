@@ -2,41 +2,113 @@
   <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
   <view class="focus-content">
     <view class="brutal-box blue-box">
-      <view class="focus-title verify-title">主办方验证履历</view>
-      <view class="verify-sub">把参赛、入围、获奖、导师、嘉宾等结果写入用户 Profile，并标记为主办方已验证。</view>
+      <view class="focus-title verify-title">发布奖杯 🏆</view>
+      <view class="verify-sub">按获奖名单批量发布电子奖杯，选手凭姓名和验证码在「黑客松旅行」核验领取，自动标记官方认证 ✓。</view>
     </view>
 
     <view wx:if="{{!isApproved}}" class="brutal-box yellow-box">
       <view class="box-title">需要组织者认证</view>
-      <view class="box-copy">当前账号还不是已认证组织者，无法写入可信履历。</view>
+      <view class="box-copy">当前账号还不是已认证组织者，无法发布奖杯和验证履历。</view>
       <button class="native-btn verify-action" bindtap="goOrganizer">去认证</button>
     </view>
 
+    <!-- 批量发布奖杯 -->
     <view class="brutal-box">
-      <view class="box-title">验证信息</view>
-      <view class="form-field">
-        <view class="field-label">赛事 ID</view>
-        <input class="input-box" value="{{form.eventId}}" data-field="eventId" placeholder="例如 hackathon-id" bindinput="onInput" />
-      </view>
+      <view class="box-title">批量发布电子奖杯</view>
       <view class="form-field">
         <view class="field-label">赛事名称</view>
-        <input class="input-box" value="{{form.eventName}}" data-field="eventName" placeholder="可选，用于展示" bindinput="onInput" />
+        <input class="input-box" value="{{batchForm.eventName}}" data-field="eventName" placeholder="例如 2026 HackerTrip 夏季黑客松" bindinput="onBatchInput" />
       </view>
       <view class="form-field">
-        <view class="field-label">用户公开 ID</view>
-        <input class="input-box" value="{{form.targetUid}}" data-field="targetUid" placeholder="用户 publicId / NFC 分享页 uid" bindinput="onInput" />
+        <view class="field-label">赛事 ID（可选）</view>
+        <input class="input-box" value="{{batchForm.eventId}}" data-field="eventId" placeholder="平台内赛事可填，用于关联" bindinput="onBatchInput" />
       </view>
       <view class="form-field">
-        <view class="field-label">记录标题</view>
-        <input class="input-box" value="{{form.title}}" data-field="title" placeholder="冠军 / 最佳 AI 应用奖 / 已参赛" bindinput="onInput" />
+        <view class="field-label">默认奖项标题</view>
+        <input class="input-box" value="{{batchForm.title}}" data-field="title" placeholder="冠军 / 最佳 AI 应用奖 / 优秀参赛" bindinput="onBatchInput" />
       </view>
       <view class="form-field">
         <view class="field-label">记录类型</view>
-        <picker mode="selector" range="{{['已参赛','入围','获奖','导师','评委','嘉宾']}}" bindchange="onLevelChange">
-          <view class="picker-box">{{levelLabel}}</view>
+        <picker mode="selector" range="{{levelOptions}}" bindchange="onBatchLevelChange">
+          <view class="picker-box">{{batchLevelLabel}}</view>
         </picker>
       </view>
-      <button class="native-btn native-btn--yellow verify-action" bindtap="submit" loading="{{submitting}}" disabled="{{submitting}}">写入验证记录</button>
+      <view class="form-field">
+        <view class="field-label">获奖名单（一行一个，可用「名字,奖项」单独指定）</view>
+        <textarea class="textarea-box verify-names" value="{{namesText}}" placeholder="{{namesPlaceholder}}" placeholder-class="placeholder-text" show-confirm-bar="{{false}}" bindinput="onNamesInput" />
+      </view>
+      <view class="form-field">
+        <view class="field-label">奖状图片（可选，随奖杯发给选手）</view>
+        <view wx:if="{{certImage}}" class="cert-image-wrap">
+          <image class="cert-image-thumb" src="{{certImage}}" mode="aspectFill" data-src="{{certImage}}" bindtap="previewCertImage" />
+          <view class="cert-image-remove" bindtap="removeCertImage">移除</view>
+        </view>
+        <button wx:else class="native-btn cert-upload-btn" bindtap="chooseCertImage">上传奖状图片</button>
+      </view>
+      <button class="native-btn native-btn--yellow verify-action" bindtap="submitBatch" loading="{{issuing}}" disabled="{{issuing}}">一键发布奖杯</button>
+    </view>
+
+    <!-- 本次发布结果 -->
+    <view wx:if="{{issued.length}}" class="brutal-box verify-issued">
+      <view class="box-title">本次发布 {{issued.length}} 座奖杯 🎉</view>
+      <view class="box-copy">把名字和验证码发给选手，他们在「我的 → 黑客松旅行 → 领取奖杯」输入即可核验绑定。</view>
+      <view wx:for="{{issued}}" wx:key="code" class="cert-row">
+        <view class="cert-main">
+          <view class="cert-name">{{item.recipientName}}</view>
+          <view class="cert-meta">{{item.title}}</view>
+        </view>
+        <text class="cert-code" data-code="{{item.code}}" bindtap="copyOneCode">{{item.code}}</text>
+      </view>
+      <button class="native-btn verify-action" bindtap="copyIssued">复制全部发给选手</button>
+    </view>
+
+    <!-- 历史奖杯与领取状态 -->
+    <view wx:if="{{certs.length}}" class="brutal-box">
+      <view class="box-title">已发出的奖杯</view>
+      <view wx:for="{{certs}}" wx:key="id" class="cert-row">
+        <view class="cert-main">
+          <view class="cert-name">{{item.recipientName}} · {{item.title}}</view>
+          <view class="cert-meta">{{item.eventName}}</view>
+        </view>
+        <view class="cert-side">
+          <text class="cert-code cert-code--small" data-code="{{item.code}}" bindtap="copyOneCode">{{item.code}}</text>
+          <text class="cert-status {{item.claimed ? 'cert-status--claimed' : ''}}">{{item.claimed ? '已领取 ✓' : '待领取'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 手动验证兜底 -->
+    <view class="brutal-box">
+      <view class="verify-manual-head" bindtap="toggleManual">
+        <view class="box-title">按用户 ID 手动验证</view>
+        <text class="verify-manual-toggle">{{showManual ? '收起' : '展开'}}</text>
+      </view>
+      <block wx:if="{{showManual}}">
+        <view class="box-copy">选手已在平台注册时，可直接用他的公开 ID 写入验证记录。</view>
+        <view class="form-field">
+          <view class="field-label">赛事 ID</view>
+          <input class="input-box" value="{{form.eventId}}" data-field="eventId" placeholder="例如 hackathon-id" bindinput="onInput" />
+        </view>
+        <view class="form-field">
+          <view class="field-label">赛事名称</view>
+          <input class="input-box" value="{{form.eventName}}" data-field="eventName" placeholder="可选，用于展示" bindinput="onInput" />
+        </view>
+        <view class="form-field">
+          <view class="field-label">用户公开 ID</view>
+          <input class="input-box" value="{{form.targetUid}}" data-field="targetUid" placeholder="用户 publicId / NFC 分享页 uid" bindinput="onInput" />
+        </view>
+        <view class="form-field">
+          <view class="field-label">记录标题</view>
+          <input class="input-box" value="{{form.title}}" data-field="title" placeholder="冠军 / 最佳 AI 应用奖 / 已参赛" bindinput="onInput" />
+        </view>
+        <view class="form-field">
+          <view class="field-label">记录类型</view>
+          <picker mode="selector" range="{{levelOptions}}" bindchange="onLevelChange">
+            <view class="picker-box">{{levelLabel}}</view>
+          </picker>
+        </view>
+        <button class="native-btn native-btn--yellow verify-action" bindtap="submit" loading="{{submitting}}" disabled="{{submitting}}">写入验证记录</button>
+      </block>
     </view>
   </view>
   <auth-modal id="authModal" />

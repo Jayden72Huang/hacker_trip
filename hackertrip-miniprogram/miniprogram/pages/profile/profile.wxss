@@ -153,10 +153,6 @@
   box-shadow: 8rpx 8rpx 0 0 #000000;
 }
 
-.login-card--done {
-  background: #FFFFFF;
-}
-
 .login-avatar {
   display: flex;
   align-items: center;
@@ -477,6 +473,36 @@
   font-size: 32rpx;
   font-weight: 900;
   line-height: 1.25;
+}
+
+/* 头像按钮（open-type=chooseAvatar）：清掉 button 默认样式，沿用 .avatar 外观 */
+.avatar-btn {
+  /* 微信 button 默认 width:184px 优先级高，必须 !important 压制 */
+  width: 108rpx !important;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.avatar-btn::after {
+  border: none;
+}
+
+/* 昵称输入框（type=nickname）：外观与 profile-name 一致，可直接编辑 */
+.profile-name-input {
+  width: 100%;
+  height: 48rpx;
+  min-height: 48rpx;
+  line-height: 48rpx;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.profile-name-placeholder {
+  color: rgba(0, 0, 0, 0.35);
+  font-weight: 900;
 }
 
 .profile-meta {

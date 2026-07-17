@@ -9,16 +9,15 @@
 
     <view class="page-title">我的</view>
 
-    <view class="login-card {{isLoggedIn ? 'login-card--done' : ''}}" bindtap="onAccountCardTap">
+    <view wx:if="{{!isLoggedIn}}" class="login-card">
       <view class="login-avatar">
-        <image wx:if="{{authAccount.avatarUrl}}" class="login-avatar-image" src="{{authAccount.avatarUrl}}" mode="aspectFill" />
-        <text wx:else>H</text>
+        <text>H</text>
       </view>
       <view class="login-copy">
         <view class="login-title">{{authAccount.name}}</view>
         <view class="login-sub">{{authAccount.copy}}</view>
       </view>
-      <button wx:if="{{!isLoggedIn}}" class="login-btn" bindtap="openLogin">微信登录</button>
+      <button class="login-btn" bindtap="openLogin">微信登录</button>
     </view>
 
     <view class="role-tabs" aria-label="身份选择">
@@ -41,27 +40,34 @@
       hover-class="profile-card--active"
     >
       <view class="profile-head">
-        <view class="avatar">
+        <!-- 微信头像昵称填写能力：点头像唤起微信头像选择，点昵称可用微信昵称快捷填入 -->
+        <button class="avatar avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar" catchtap="noop">
           <image wx:if="{{profileCard.avatarUrl}}" class="avatar-image" src="{{profileCard.avatarUrl}}" mode="aspectFill" />
           <text wx:else>{{profileCard.avatarChar}}</text>
-        </view>
+        </button>
         <view class="profile-copy">
+          <input
+            class="profile-name profile-name-input"
+            type="nickname"
+            value="{{profileCard.nickname}}"
+            placeholder="热爱黑客松的你"
+            placeholder-class="profile-name-placeholder"
+            catchtap="noop"
+            bindblur="onNicknameChange"
+            bindconfirm="onNicknameChange"
+          />
           <block wx:if="{{profileCard.filled}}">
-            <view class="profile-name">{{profileCard.nickname}}</view>
             <view class="profile-meta">{{profileCard.role}}{{profileCard.city ? ' · ' + profileCard.city : ''}}</view>
             <view wx:if="{{profileCard.skillsText}}" class="profile-skills">{{profileCard.skillsText}}</view>
           </block>
-          <block wx:else>
-            <view class="profile-name">完善个人资料</view>
-            <view class="profile-meta">填写昵称、角色、城市和技能，匹配更精准</view>
-          </block>
+          <view wx:else class="profile-meta">点头像和昵称直接用微信资料，角色和技能点右侧填写</view>
         </view>
         <view class="profile-edit-btn">{{profileCard.filled ? '编辑' : '去填写'}}</view>
       </view>
 
-      <!-- 卡内数据指标行 -->
+      <!-- 卡内数据指标行：点击跳转对应页面补数据 -->
       <view class="profile-stats">
-        <view wx:for="{{assetStats}}" wx:key="label" class="profile-stat">
+        <view wx:for="{{assetStats}}" wx:key="label" class="profile-stat" data-url="{{item.url}}" catchtap="onStatTap">
           <view class="profile-stat-value">{{item.value}}</view>
           <view class="profile-stat-label">{{item.label}}</view>
         </view>

@@ -40,3 +40,127 @@
 .verify-action {
   margin-top: 28rpx;
 }
+
+/* 选手名单多行输入 */
+.verify-names {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 200rpx;
+  color: #000000;
+  background: #FFFFFF;
+  border: 4rpx solid #000000;
+  border-radius: 14rpx;
+  padding: 22rpx;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+/* 发证结果 / 历史证书列表 */
+.verify-issued {
+  background: #ECF2FF;
+}
+
+.cert-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 18rpx 0;
+  border-bottom: 2rpx dashed rgba(0, 0, 0, 0.18);
+}
+.cert-row:last-of-type {
+  border-bottom: none;
+}
+
+.cert-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.cert-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #000000;
+  font-size: 26rpx;
+  font-weight: 900;
+}
+
+.cert-meta {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-top: 4rpx;
+  color: #7A7A75;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.cert-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8rpx;
+  flex-shrink: 0;
+}
+
+/* 验证码：等宽感 + 可点击复制 */
+.cert-code {
+  padding: 8rpx 16rpx;
+  color: #000000;
+  background: #FBD902;
+  border: 3rpx solid #000000;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  font-weight: 900;
+  letter-spacing: 4rpx;
+}
+.cert-code--small {
+  padding: 4rpx 12rpx;
+  font-size: 24rpx;
+}
+
+.cert-status {
+  color: #7A7A75;
+  font-size: 20rpx;
+  font-weight: 800;
+}
+.cert-status--claimed {
+  color: #0C51ED;
+}
+
+/* 奖状图片上传 */
+.cert-image-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+.cert-image-thumb {
+  width: 200rpx;
+  height: 140rpx;
+  border: 3rpx solid #000000;
+  border-radius: 12rpx;
+  background: #FFFFFF;
+}
+.cert-image-remove {
+  font-size: 24rpx;
+  font-weight: 800;
+  color: #C0392B;
+  text-decoration: underline;
+}
+.cert-upload-btn {
+  width: 100%;
+}
+
+/* 手动验证折叠头 */
+.verify-manual-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.verify-manual-toggle {
+  color: #0C51ED;
+  font-size: 24rpx;
+  font-weight: 900;
+  text-decoration: underline;
+}

@@ -7,6 +7,10 @@
 //   createHandshake     生成当前用户和目标用户的破冰/互补报告
 //   verifyAchievement   主办方给用户写入已验证赛事履历
 //   listAchievements    读取当前用户或公开用户的履历
+//   issueCertificates   主办方按名单批量发放电子证书（每人一个验证码）
+//   listCertificates    主办方查看自己发出的证书和领取状态
+//   claimCertificate    选手凭姓名+验证码领取证书，自动写入官方认证履历
+//   addSelfAchievement  选手自录过往履历（未验证，可带产品链接和截图）
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
@@ -207,6 +211,7 @@ async function loadAchievementsFor(openid, uid) {
   if (openid) query.openid = openid;
   else if (uid) query.publicId = uid;
   else return [];
+  await ensureCollection('achievements');
   const res = await db.collection('achievements')
     .where(query)
     .orderBy('createdAt', 'desc')
@@ -221,6 +226,8 @@ async function loadAchievementsFor(openid, uid) {
     status: item.status || 'verified',
     verified: item.verified === true,
     verifiedByName: item.verifiedByName || '',
+    productUrl: item.productUrl || '',
+    imageFileId: item.imageFileId || '',
     createdAt: item.createdAt || 0,
   }));
 }
@@ -361,6 +368,7 @@ async function handleVerifyAchievement(openid, event) {
     verifiedByName: organizer.orgName || organizer.role || 'HackerTrip 主办方',
     updatedAt: now,
   };
+  await ensureCollection('achievements');
   const saved = await upsert('achievements', { eventId, openid: target.openid, title: payload.title }, Object.assign({}, payload, {
     createdAt: now,
   }));
@@ -374,17 +382,247 @@ async function handleListAchievements(openid, event) {
   return { ok: true, achievements: list };
 }
 
+/* ----------------------------- 电子证书 ----------------------------- */
+
+// 验证码字母表：去掉 0/O/1/I/L 等易混字符
+const CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+
+function randomCode(len) {
+  let out = '';
+  for (let i = 0; i < (len || 6); i += 1) {
+    out += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+  }
+  return out;
+}
+
+async function generateUniqueCode() {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const code = randomCode(6);
+    const existed = await findOne('certificates', { code });
+    if (!existed) return code;
+  }
+  return randomCode(8);
+}
+
+function publicCertificate(doc) {
+  const item = doc || {};
+  return {
+    id: item._id || '',
+    eventId: item.eventId || '',
+    eventName: item.eventName || '',
+    title: item.title || '',
+    level: item.level || 'award',
+    recipientName: item.recipientName || '',
+    code: item.code || '',
+    issuerName: item.issuerName || '',
+    imageFileId: item.imageFileId || '',
+    status: item.status || 'unclaimed',
+    claimedAt: item.claimedAt || 0,
+    createdAt: item.createdAt || 0,
+  };
+}
+
+function isCollectionMissing(e) {
+  const msg = String((e && e.errMsg) || (e && e.message) || e || '');
+  return (e && e.errCode === -502005) || msg.indexOf('-502005') !== -1 || msg.indexOf('not exist') !== -1;
+}
+
+/** 集合不存在时自动创建（新环境首次发奖/领奖免手动建集合）；查询/写入前先过这里 */
+const readyCollections = {};
+async function ensureCollection(name) {
+  if (readyCollections[name]) return;
+  try {
+    await db.collection(name).where({ code: '__probe__' }).limit(1).get();
+  } catch (e) {
+    if (!isCollectionMissing(e)) throw e;
+    await db.createCollection(name).catch(() => {});
+  }
+  readyCollections[name] = true;
+}
+
+/** 名单解析：支持 [{name,title}] 数组，或每行「名字」/「名字,奖项」的多行文本 */
+function parseRecipients(event) {
+  const raw = event.recipients;
+  let items = [];
+  if (Array.isArray(raw)) {
+    items = raw.map((item) => {
+      if (typeof item === 'string') return { name: item, title: '' };
+      return { name: (item && item.name) || '', title: (item && item.title) || '' };
+    });
+  } else {
+    const text = typeof raw === 'string' ? raw : String(event.names || '');
+    items = text.split(/\n/).map((line) => {
+      const parts = line.split(/[,，|｜]/);
+      return { name: parts[0] || '', title: parts.slice(1).join(' ') || '' };
+    });
+  }
+  return items
+    .map((item) => ({ name: cleanText(item.name, 40), title: cleanText(item.title, 80) }))
+    .filter((item) => item.name)
+    .slice(0, 100);
+}
+
+// 名字比对：去空格 + 忽略大小写，容忍主办方和选手输入的细微差异
+function normalizeName(value) {
+  return cleanText(value, 40).replace(/\s+/g, '').toLowerCase();
+}
+
+async function handleIssueCertificates(openid, event) {
+  if (!openid) return { ok: false, code: 'NO_OPENID', message: '缺少用户身份' };
+  const organizer = await getApprovedOrganizer(openid);
+  if (!organizer) return { ok: false, code: 'NO_PERMISSION', message: '只有已认证主办方可以发放证书' };
+  await ensureCollection('certificates');
+  const eventId = cleanText(event.eventId, 120);
+  const eventDoc = eventId ? await getHackathon(eventId) : null;
+  if (eventId && !canVerifyForEvent(openid, organizer, eventDoc)) {
+    return { ok: false, code: 'NO_PERMISSION', message: '只能给自己主办的赛事发放证书' };
+  }
+  const eventName = cleanText(event.eventName || (eventDoc && eventDoc.name), 120);
+  const defaultTitle = cleanText(event.title, 80);
+  const level = cleanText(event.level || 'award', 40);
+  const imageFileId = cleanText(event.imageFileId, 300);
+  const recipients = parseRecipients(event);
+  if (!eventName) return { ok: false, code: 'BAD_REQUEST', message: '请填写赛事名称' };
+  if (!recipients.length) return { ok: false, code: 'BAD_REQUEST', message: '请填写选手名单（一行一个名字）' };
+  // 每行可用「名字,奖项」单独指定奖项；没写的用默认奖项标题
+  if (!defaultTitle && recipients.some((item) => !item.title)) {
+    return { ok: false, code: 'BAD_REQUEST', message: '请填写默认奖项标题，或在名单每行用「名字,奖项」指定' };
+  }
+  const issuerName = organizer.orgName || organizer.role || 'HackerTrip 主办方';
+  const now = Date.now();
+  const certificates = [];
+  for (const recipient of recipients) {
+    const code = await generateUniqueCode();
+    const data = {
+      eventId,
+      eventName,
+      title: recipient.title || defaultTitle,
+      level,
+      recipientName: recipient.name,
+      code,
+      issuerOpenid: openid,
+      issuerName,
+      imageFileId,
+      status: 'unclaimed',
+      claimedBy: '',
+      claimedAt: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+    const added = await db.collection('certificates').add({ data });
+    certificates.push(publicCertificate(Object.assign({ _id: added._id }, data)));
+  }
+  return { ok: true, certificates };
+}
+
+async function handleListCertificates(openid) {
+  if (!openid) return { ok: false, code: 'NO_OPENID', message: '缺少用户身份' };
+  await ensureCollection('certificates');
+  const res = await db.collection('certificates')
+    .where({ issuerOpenid: openid })
+    .orderBy('createdAt', 'desc')
+    .limit(100)
+    .get();
+  return { ok: true, certificates: (res.data || []).map(publicCertificate) };
+}
+
+async function handleClaimCertificate(openid, event) {
+  if (!openid) return { ok: false, code: 'NO_OPENID', message: '缺少用户身份' };
+  const name = cleanText(event.name, 40);
+  const code = cleanText(event.code, 20).replace(/\s+/g, '').toUpperCase();
+  if (!name || !code) return { ok: false, code: 'BAD_REQUEST', message: '请填写姓名和验证码' };
+  await ensureCollection('certificates');
+  const cert = await findOne('certificates', { code });
+  if (!cert) return { ok: false, code: 'NOT_FOUND', message: '验证码不存在，请核对后重试' };
+  if (normalizeName(cert.recipientName) !== normalizeName(name)) {
+    return { ok: false, code: 'NAME_MISMATCH', message: '姓名与奖状不匹配，请使用主办方登记的名字' };
+  }
+  // 比赛名称为可选核验项：填了就做宽松比对（去空格忽略大小写，允许包含关系）
+  const claimEvent = normalizeName(event.eventName);
+  if (claimEvent) {
+    const certEvent = normalizeName(cert.eventName);
+    if (certEvent && certEvent.indexOf(claimEvent) === -1 && claimEvent.indexOf(certEvent) === -1) {
+      return { ok: false, code: 'EVENT_MISMATCH', message: '比赛名称与奖状不匹配，请核对后重试' };
+    }
+  }
+  if (cert.status === 'claimed' && cert.claimedBy && cert.claimedBy !== openid) {
+    return { ok: false, code: 'ALREADY_CLAIMED', message: '这张奖状已被其他账号领取' };
+  }
+  const user = await getCurrentUser(openid);
+  const now = Date.now();
+  await db.collection('certificates').doc(cert._id).update({
+    data: { status: 'claimed', claimedBy: openid, claimedAt: cert.claimedAt || now, updatedAt: now },
+  });
+  const payload = {
+    eventId: cert.eventId || '',
+    eventName: cert.eventName || '',
+    publicId: (user && user.publicId) || '',
+    title: cert.title || '获奖记录',
+    level: cert.level || 'award',
+    status: 'verified',
+    verified: true,
+    verifiedBy: cert.issuerOpenid || '',
+    verifiedByName: cert.issuerName || 'HackerTrip 主办方',
+    certificateId: cert._id,
+    recipientName: cert.recipientName || name,
+    imageFileId: cert.imageFileId || '',
+    updatedAt: now,
+  };
+  // 幂等：同一张证书同一用户重复领取只保留一条履历
+  await ensureCollection('achievements');
+  const saved = await upsert('achievements', { certificateId: cert._id, openid }, Object.assign({}, payload, { createdAt: now }));
+  return {
+    ok: true,
+    achievement: saved,
+    certificate: publicCertificate(Object.assign({}, cert, { status: 'claimed', claimedAt: now })),
+  };
+}
+
+async function handleAddSelfAchievement(openid, event) {
+  if (!openid) return { ok: false, code: 'NO_OPENID', message: '缺少用户身份' };
+  const eventName = cleanText(event.eventName, 120);
+  const title = cleanText(event.title, 80);
+  if (!eventName) return { ok: false, code: 'BAD_REQUEST', message: '请填写赛事名称' };
+  if (!title) return { ok: false, code: 'BAD_REQUEST', message: '请填写记录标题' };
+  const user = await getCurrentUser(openid);
+  const now = Date.now();
+  const data = {
+    eventId: cleanText(event.eventId, 120),
+    eventName,
+    openid,
+    publicId: (user && user.publicId) || '',
+    title,
+    level: cleanText(event.level || 'participant', 40),
+    status: 'self',
+    verified: false,
+    verifiedBy: '',
+    verifiedByName: '',
+    productUrl: cleanText(event.productUrl, 300),
+    imageFileId: cleanText(event.imageFileId, 300),
+    createdAt: now,
+    updatedAt: now,
+  };
+  await ensureCollection('achievements');
+  const added = await db.collection('achievements').add({ data });
+  return { ok: true, achievement: Object.assign({ id: added._id }, data) };
+}
+
 exports.main = async (event) => {
   const openid = (cloud.getWXContext() || {}).OPENID;
   const action = cleanText((event && event.action) || '', 40);
+  // 注意：必须 await，否则 handler 内部的 rejection 会绕过 catch 变成云函数执行失败
   try {
-    if (action === 'checkin') return handleCheckin(openid, event || {});
-    if (action === 'saveEventProfile') return handleSaveEventProfile(openid, event || {});
-    if (action === 'getEventProfile') return handleGetEventProfile(openid, event || {});
-    if (action === 'listEventMembers') return handleListMembers(openid, event || {});
-    if (action === 'createHandshake') return handleCreateHandshake(openid, event || {});
-    if (action === 'verifyAchievement') return handleVerifyAchievement(openid, event || {});
-    if (action === 'listAchievements') return handleListAchievements(openid, event || {});
+    if (action === 'checkin') return await handleCheckin(openid, event || {});
+    if (action === 'saveEventProfile') return await handleSaveEventProfile(openid, event || {});
+    if (action === 'getEventProfile') return await handleGetEventProfile(openid, event || {});
+    if (action === 'listEventMembers') return await handleListMembers(openid, event || {});
+    if (action === 'createHandshake') return await handleCreateHandshake(openid, event || {});
+    if (action === 'verifyAchievement') return await handleVerifyAchievement(openid, event || {});
+    if (action === 'listAchievements') return await handleListAchievements(openid, event || {});
+    if (action === 'issueCertificates') return await handleIssueCertificates(openid, event || {});
+    if (action === 'listCertificates') return await handleListCertificates(openid);
+    if (action === 'claimCertificate') return await handleClaimCertificate(openid, event || {});
+    if (action === 'addSelfAchievement') return await handleAddSelfAchievement(openid, event || {});
     return { ok: false, code: 'UNKNOWN_ACTION', message: '未知 action' };
   } catch (e) {
     return { ok: false, code: 'EVENT_HUB_FAILED', message: String(e) };
