@@ -15,7 +15,7 @@ Page({
     aiBanner: false,
     aiIntentText: 'settings',
     loggedIn: false,
-    account: { name: '未登录', login: '请到「我的」页完成微信登录', sync: '' },
+    account: { name: '未登录', login: '到「我的」页点头像或昵称即可登录', sync: '' },
     rows: [
       { label: '隐私设置', value: '公开主页展示昵称、城市、技能和作品摘要' },
       { label: '缓存管理', value: '本地缓存赛事、收藏、身份卡和同步结果' },
@@ -50,7 +50,7 @@ Page({
     } else {
       this.setData({
         loggedIn: false,
-        account: { name: '未登录', login: '请到「我的」页完成微信登录', sync: '' },
+        account: { name: '未登录', login: '到「我的」页点头像或昵称即可登录', sync: '' },
       });
     }
   },
@@ -132,6 +132,8 @@ Page({
 
   logout() {
     api.clearUserSession();
+    // 标记主动退出：阻止「我的」页自动静默重登，用户改头像/昵称等主动操作时才解除
+    try { wx.setStorageSync('ht_logged_out', true); } catch (e) {}
     wx.showToast({ title: '已退出登录', icon: 'none' });
     this.refresh();
   },

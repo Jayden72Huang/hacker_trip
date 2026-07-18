@@ -9,17 +9,6 @@
 
     <view class="page-title">我的</view>
 
-    <view wx:if="{{!isLoggedIn}}" class="login-card">
-      <view class="login-avatar">
-        <text>H</text>
-      </view>
-      <view class="login-copy">
-        <view class="login-title">{{authAccount.name}}</view>
-        <view class="login-sub">{{authAccount.copy}}</view>
-      </view>
-      <button class="login-btn" bindtap="openLogin">微信登录</button>
-    </view>
-
     <view class="role-tabs" aria-label="身份选择">
       <button
         class="role-tab {{profileMode === 'participant' ? 'role-tab--participant' : ''}}"
@@ -148,5 +137,4 @@
       </navigator>
     </view>
   </view>
-  <auth-modal id="authModal" bind:login="onAuthLogin" />
 </view>

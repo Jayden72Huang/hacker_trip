@@ -643,9 +643,9 @@ function getCardById(id) {
 
 /* ----------------------------- 用户档案 ----------------------------- */
 
-/** 读取统一用户档案，缺字段用默认值补齐，永不返回 null */
+/** 读取统一用户档案，缺字段用默认值补齐，永不返回 null。
+ * 不做登录态守卫：未登录也允许本地先存先显（退出登录时 clearUserSession 会清掉 PROFILE） */
 function getProfile() {
-  if (!hasUserSession()) return Object.assign({}, DEFAULT_PROFILE);
   const v = getStorage(STORAGE.PROFILE, null);
   return Object.assign({}, DEFAULT_PROFILE, v && typeof v === 'object' ? v : {});
 }
