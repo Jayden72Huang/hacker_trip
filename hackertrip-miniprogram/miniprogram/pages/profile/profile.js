@@ -114,7 +114,7 @@ Page({
   /** 后台云端校验：档案/组织者状态同步 + admin 标记，数据有变化才引起重绘 */
   async revalidate() {
     // openid 登录无需用户授权：未登录时后台静默完成，登录成功即自动拉回云端数据
-    if (!api.getAuth() && !(await this.silentLogin())) return;
+    if (!api.getAuth() && !(await api.silentLogin())) return;
     await api.syncUserDataIfLoggedIn().catch(() => {});
     if (api.cloudReady()) {
       await api.checkHackathonAdmin().catch(() => ({ isAdmin: false }));
@@ -148,46 +148,27 @@ Page({
   /** 拦截资料卡内头像/昵称的点击冒泡，避免误触进入编辑页 */
   noop() {},
 
-  /** openid 静默登录：无弹窗无授权，带上本地已填的头像昵称一起同步上云。
-   * force=true 表示用户主动操作（改头像/昵称），可解除「已退出登录」标记 */
-  async silentLogin(force) {
-    if (api.isLoggedIn()) return false;
-    if (!api.cloudReady() || this._loggingIn) return false;
-    // 用户在设置里主动退出过：不自动重登，改资料等主动操作才重新登录
-    if (wx.getStorageSync('ht_logged_out') && !force) return false;
-    this._loggingIn = true;
-    try {
-      const profile = api.getProfile();
-      await api.loginWithUserInfo({ nickName: profile.nickname || '', avatarUrl: profile.avatarUrl || '' });
-      try { wx.removeStorageSync('ht_logged_out'); } catch (err) {}
-      return true;
-    } catch (e) {
-      // 云开发未就绪等场景静默降级，本地保存不受影响
-      return false;
-    } finally {
-      this._loggingIn = false;
-    }
-  },
-
   // 微信头像选择回调：返回临时路径，本地即存即显，后台静默登录 + 上传云存储换 fileID
   async onChooseAvatar(e) {
     const avatarUrl = (e.detail && e.detail.avatarUrl) || '';
     if (!avatarUrl) return;
+    const wasLoggedIn = api.isLoggedIn();
     api.saveProfile({ avatarUrl });
     this.renderLocal();
     wx.showToast({ title: '头像已更新', icon: 'none' });
     // 仅在"这次操作触发了首次登录"时刷新云端数据；已登录时 saveProfile 已后台上云，无需再拉取
-    if (await this.silentLogin(true)) this.revalidate();
+    if (!wasLoggedIn && (await api.silentLogin(true))) this.revalidate();
   },
 
   // 昵称输入完成（失焦/确认）：支持键盘上方"使用微信昵称"快捷填入
   async onNicknameChange(e) {
     const nickname = String((e.detail && e.detail.value) || '').trim();
     if (!nickname || nickname === this.data.profileCard.nickname) return;
+    const wasLoggedIn = api.isLoggedIn();
     api.saveProfile({ nickname });
     this.renderLocal();
     wx.showToast({ title: '昵称已更新', icon: 'none' });
-    if (await this.silentLogin(true)) this.revalidate();
+    if (!wasLoggedIn && (await api.silentLogin(true))) this.revalidate();
   },
 
   getOrganizerStatusText(status) {

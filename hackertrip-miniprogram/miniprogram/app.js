@@ -50,5 +50,13 @@ App({
       const auth = wx.getStorageSync('ht_auth');
       if (auth && auth.openid && auth.userInfo) this.globalData.auth = auth;
     } catch (e) {}
+
+    // 5. openid 静默登录（无授权弹窗），保证任何页面的写操作/订阅入口都有登录态。
+    //    延迟到 App 实例注册完成后执行（onLaunch 内 getApp() 尚不可用）
+    setTimeout(() => {
+      try {
+        require('./utils/api.js').silentLogin().catch(() => {});
+      } catch (e) {}
+    }, 0);
   },
 });

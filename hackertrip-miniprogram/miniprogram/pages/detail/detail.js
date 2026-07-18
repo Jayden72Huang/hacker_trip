@@ -128,25 +128,27 @@ Page({
   },
 
   async joinSchedule() {
+    const item = this.data.item;
+    if (!item) return;
+    // 报名/加入赛程是截止提醒最强的场景：在 tap 手势内先唤起订阅授权
+    const subscribePromise = api.subscribeBookmarkReminders(item.id, 'detail_schedule');
     const auth = await api.requireAuth(
       this,
-      '/pages/detail/detail?id=' + (this.data.item && this.data.item.id || ''),
+      '/pages/detail/detail?id=' + (item.id || ''),
       '登录后才能把比赛保存到你的赛程，并在「赛程」Tab 中同步查看。',
     );
     if (!auth) return;
-    const item = this.data.item;
-    if (!item) return;
     await api.syncUserDataIfLoggedIn().catch(() => {});
     const already = api.getRegistrations().some((r) => r.id === item.id);
-    if (already) {
-      this.showScheduleSuccess();
-      return;
+    if (!already) {
+      await api.addRegistration(item, {
+        registrationMode: 'schedule',
+        registrationSource: 'hackertrip',
+        registrationChannel: 'detail_schedule',
+      });
     }
-    await api.addRegistration(item, {
-      registrationMode: 'schedule',
-      registrationSource: 'hackertrip',
-      registrationChannel: 'detail_schedule',
-    });
+    // 订阅授权结果不阻塞成功提示（弹窗要等用户点击才 resolve）
+    subscribePromise.catch(() => {});
     this.showScheduleSuccess();
   },
 
@@ -164,8 +166,8 @@ Page({
   async toggleBookmark() {
     const item = this.data.item;
     if (!item || !item.id) return;
-    // 订阅动作：在 tap 手势内先唤起微信订阅消息授权，再走异步收藏
-    const subscribePromise = !api.isBookmarked(item.id) && api.isLoggedIn()
+    // 订阅动作：在 tap 手势内先唤起微信订阅消息授权，再走异步收藏（登录由 api 层静默补上）
+    const subscribePromise = !api.isBookmarked(item.id)
       ? api.subscribeBookmarkReminders(item.id, 'detail_bookmark')
       : null;
     const auth = await api.requireAuth(

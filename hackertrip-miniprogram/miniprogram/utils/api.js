@@ -1717,9 +1717,9 @@ function requestSubscribeMessage(tmplIds) {
 }
 
 async function requestMessageSubscriptions(types, source, preferences) {
-  if (!isLoggedIn()) {
-    return { ok: false, code: 'LOGIN_REQUIRED', message: '登录后才能订阅消息提醒' };
-  }
+  // 不因未登录阻断：授权弹窗必须留在 tap 手势链内，登录用 openid 静默补上即可
+  // （云函数 saveSubscription 从调用上下文取 openid，不依赖本地登录态）
+  if (!isLoggedIn()) silentLogin(true).catch(() => {});
 
   const uniqueTypes = Array.from(new Set((Array.isArray(types) ? types : [types]).filter(Boolean)));
   const templates = getSubscribeTemplates();
@@ -1803,6 +1803,38 @@ function isLoggedIn() {
   return !!(auth && auth.openid);
 }
 
+const LOGGED_OUT_FLAG = 'ht_logged_out';
+let silentLoginInFlight = null;
+
+/**
+ * openid 静默登录：无弹窗无授权，带上本地已填的头像昵称一起同步上云。
+ * force=true 表示用户主动操作（改资料/订阅等写操作），可解除「已退出登录」标记。
+ * 已登录直接返回 true；并发调用共享同一个在途请求。
+ */
+function silentLogin(force) {
+  if (isLoggedIn()) return Promise.resolve(true);
+  if (!cloudReady()) return Promise.resolve(false);
+  if (getStorage(LOGGED_OUT_FLAG, false) && !force) return Promise.resolve(false);
+  if (!silentLoginInFlight) {
+    const profile = getProfile();
+    silentLoginInFlight = loginWithUserInfo({
+      nickName: profile.nickname || '',
+      avatarUrl: profile.avatarUrl || '',
+    }).then(
+      () => {
+        silentLoginInFlight = null;
+        try { wx.removeStorageSync(LOGGED_OUT_FLAG); } catch (e) {}
+        return true;
+      },
+      () => {
+        silentLoginInFlight = null;
+        return false;
+      },
+    );
+  }
+  return silentLoginInFlight;
+}
+
 async function loginWithUserInfo(userInfo) {
   const app = getApp();
   const info = userInfo || {};
@@ -1831,6 +1863,8 @@ async function loginWithUserInfo(userInfo) {
  */
 async function requireAuth(pageOrRedirect, redirectPage, reason) {
   if (isLoggedIn()) return getAuth();
+  // 写操作是用户主动行为：先尝试静默登录，成功就不打断用户，弹窗只留给云不可用的兜底场景
+  if (await silentLogin(true)) return getAuth();
   const page = pageOrRedirect && typeof pageOrRedirect === 'object' ? pageOrRedirect : null;
   const redirect = page ? redirectPage : pageOrRedirect;
   if (page && page.selectComponent) {
@@ -1939,6 +1973,7 @@ module.exports = {
   clearUserSession,
   isLoggedIn,
   loginWithUserInfo,
+  silentLogin,
   requireAuth,
   syncFromCloud,
   syncUserDataIfLoggedIn,

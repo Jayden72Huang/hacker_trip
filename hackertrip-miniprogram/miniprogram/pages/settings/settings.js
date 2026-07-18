@@ -60,8 +60,10 @@ Page({
     wx.switchTab({ url: '/pages/profile/profile' });
   },
 
-  ensureLoggedInForSubscribe() {
-    if (api.isLoggedIn()) return Promise.resolve(true);
+  async ensureLoggedInForSubscribe() {
+    if (api.isLoggedIn()) return true;
+    // 先静默登录，弹窗只留给云不可用的兜底场景
+    if (await api.silentLogin(true)) return true;
     return new Promise((resolve) => {
       wx.showModal({
         title: '需要微信登录',
@@ -77,9 +79,11 @@ Page({
   },
 
   async subscribeByType(type, source) {
+    // 授权弹窗先行保住 tap 手势链，登录由 api 层静默补上
+    const subscribePromise = api.requestMessageSubscriptions([type], source || 'settings');
     const loggedIn = await this.ensureLoggedInForSubscribe();
     if (!loggedIn) return;
-    const res = await api.requestMessageSubscriptions([type], source || 'settings');
+    const res = await subscribePromise;
     if (!res.ok) {
       wx.showModal({
         title: '订阅暂不可用',

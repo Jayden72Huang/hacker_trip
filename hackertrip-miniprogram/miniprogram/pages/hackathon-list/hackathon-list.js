@@ -162,8 +162,8 @@ Page({
   async onBookmark(e) {
     const id = e.detail.id;
     if (!id) return;
-    // 订阅动作：在 tap 手势内先唤起微信订阅消息授权，再走异步收藏
-    const subscribePromise = !api.isBookmarked(id) && api.isLoggedIn()
+    // 订阅动作：在 tap 手势内先唤起微信订阅消息授权，再走异步收藏（登录由 api 层静默补上）
+    const subscribePromise = !api.isBookmarked(id)
       ? api.subscribeBookmarkReminders(id, 'list_bookmark')
       : null;
     const auth = await api.requireAuth(this, '/pages/hackathon-list/hackathon-list', '登录后才能订阅赛事，并在你的账号中同步查看。');

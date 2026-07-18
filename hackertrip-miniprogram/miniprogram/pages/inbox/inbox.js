@@ -138,9 +138,8 @@ Page({
   },
 
   async subscribeHackathonMessages() {
-    const auth = await api.requireAuth(this, '/pages/inbox/inbox', '登录后订阅黑客松上新、智能推荐和报名截止提醒。');
-    if (!auth) return;
-    const res = await api.requestMessageSubscriptions(
+    // 授权弹窗必须在 tap 手势链内先唤起（await 登录后再弹，iOS 真机会丢手势被拒）
+    const subscribePromise = api.requestMessageSubscriptions(
       [
         api.SUBSCRIBE_TYPES.NEW_HACKATHON,
         api.SUBSCRIBE_TYPES.SMART_RECOMMENDATION,
@@ -149,6 +148,9 @@ Page({
       'inbox_notifications',
       { page: 'inbox' },
     );
+    const auth = await api.requireAuth(this, '/pages/inbox/inbox', '登录后订阅黑客松上新、智能推荐和报名截止提醒。');
+    if (!auth) return;
+    const res = await subscribePromise;
     if (!res.ok) {
       wx.showModal({
         title: '订阅暂不可用',
