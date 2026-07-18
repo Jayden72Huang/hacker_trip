@@ -143,6 +143,14 @@ Page({
       wx.showToast({ title: '请填写获奖名单，一行一个', icon: 'none' });
       return;
     }
+    if (recipients.length > 100) {
+      wx.showModal({
+        title: '名单超出上限',
+        content: `一次最多发布 100 座奖杯，当前名单 ${recipients.length} 人，请分批发布。`,
+        showCancel: false,
+      });
+      return;
+    }
     if (!title.trim() && recipients.some((item) => !item.title)) {
       wx.showToast({ title: '请填默认奖项，或每行用「名字,奖项」', icon: 'none' });
       return;
@@ -171,7 +179,16 @@ Page({
       return;
     }
     this.setData({ issued: res.certificates || [], namesText: '', certImage: '' });
-    wx.showToast({ title: `已发布 ${res.certificates.length} 座奖杯`, icon: 'success' });
+    const skipped = res.skipped || [];
+    if (skipped.length) {
+      wx.showModal({
+        title: `已发布 ${res.certificates.length} 座奖杯`,
+        content: `跳过 ${skipped.length} 人（同赛事同奖项此前已发过）：${skipped.join('、')}`,
+        showCancel: false,
+      });
+    } else {
+      wx.showToast({ title: `已发布 ${res.certificates.length} 座奖杯`, icon: 'success' });
+    }
     this.loadCerts();
   },
 

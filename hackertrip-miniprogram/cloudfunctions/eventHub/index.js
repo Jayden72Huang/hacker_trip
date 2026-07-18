@@ -14,6 +14,7 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const _ = db.command;
 
 function cleanText(value, maxLength) {
   return String(value == null ? '' : value).trim().slice(0, maxLength || 500);
@@ -382,6 +383,68 @@ async function handleListAchievements(openid, event) {
   return { ok: true, achievements: list };
 }
 
+/* ----------------------------- 内容安全 ----------------------------- */
+
+// 发证名单/自述履历会通过分享页公开展示，入库前必须过检；risky 或检测服务异常都拒绝（与 submitOrganizerApplication 同策略）
+async function checkTextSecurity(openid, text, title) {
+  const content = cleanText(text, 10000);
+  if (!content) return null;
+  // msgSecCheck 单次上限 2500 字符，超长分段送检
+  for (let i = 0; i < content.length; i += 2500) {
+    let security = null;
+    try {
+      security = await cloud.openapi.security.msgSecCheck({
+        openid,
+        scene: 1,
+        version: 2,
+        content: content.slice(i, i + 2500),
+        title: cleanText(title, 60),
+      });
+    } catch (e) {
+      return { ok: false, code: 'SECURITY_CHECK_FAILED', message: '内容安全检测失败，请稍后重试' };
+    }
+    if (security.errcode && security.errcode !== 0) {
+      return { ok: false, code: 'SECURITY_CHECK_FAILED', message: security.errmsg || '内容安全检测失败，请稍后重试' };
+    }
+    if (security.result && security.result.suggest === 'risky') {
+      return { ok: false, code: 'CONTENT_RISKY', message: '内容未通过安全检测，请修改后重试' };
+    }
+  }
+  return null;
+}
+
+async function checkImageSecurity(fileId) {
+  if (!fileId) return null;
+  let buffer = null;
+  try {
+    const res = await cloud.downloadFile({ fileID: fileId });
+    buffer = res && res.fileContent;
+  } catch (e) {
+    return { ok: false, code: 'IMAGE_CHECK_FAILED', message: '图片读取失败，请重新上传' };
+  }
+  if (!buffer || !buffer.length) {
+    return { ok: false, code: 'IMAGE_CHECK_FAILED', message: '图片读取失败，请重新上传' };
+  }
+  // imgSecCheck 限制单图 <1M（前端已用 compressed，超限提示换图）
+  if (buffer.length > 1024 * 1024) {
+    return { ok: false, code: 'IMAGE_TOO_LARGE', message: '图片超过 1M，请换一张小一点的图片' };
+  }
+  const contentType = /\.png($|\?)/i.test(fileId) ? 'image/png' : 'image/jpeg';
+  try {
+    const security = await cloud.openapi.security.imgSecCheck({ media: { contentType, value: buffer } });
+    if (security.errcode && security.errcode !== 0) {
+      return { ok: false, code: 'IMAGE_CHECK_FAILED', message: security.errmsg || '图片安全检测失败，请稍后重试' };
+    }
+  } catch (e) {
+    // 87014：图片含违规内容
+    if ((e && e.errCode === 87014) || String(e).indexOf('87014') !== -1) {
+      return { ok: false, code: 'IMAGE_RISKY', message: '图片未通过安全检测，请更换后重试' };
+    }
+    return { ok: false, code: 'IMAGE_CHECK_FAILED', message: '图片安全检测失败，请稍后重试' };
+  }
+  return null;
+}
+
 /* ----------------------------- 电子证书 ----------------------------- */
 
 // 验证码字母表：去掉 0/O/1/I/L 等易混字符
@@ -395,13 +458,25 @@ function randomCode(len) {
   return out;
 }
 
-async function generateUniqueCode() {
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    const code = randomCode(6);
-    const existed = await findOne('certificates', { code });
-    if (!existed) return code;
+// 批量生成不重复验证码：本地去重后一次 in 查询查库内冲突，避免逐个 findOne 串行拖垮超时
+async function generateUniqueCodes(count) {
+  const codes = [];
+  const seen = {};
+  for (let attempt = 0; attempt < 8 && codes.length < count; attempt += 1) {
+    const batch = [];
+    while (batch.length < count - codes.length) {
+      const code = randomCode(attempt < 5 ? 6 : 8);
+      if (!seen[code]) {
+        seen[code] = true;
+        batch.push(code);
+      }
+    }
+    const existed = await db.collection('certificates').where({ code: _.in(batch) }).limit(1000).get();
+    const taken = {};
+    (existed.data || []).forEach((item) => { taken[item.code] = true; });
+    batch.forEach((code) => { if (!taken[code]) codes.push(code); });
   }
-  return randomCode(8);
+  return codes;
 }
 
 function publicCertificate(doc) {
@@ -456,10 +531,11 @@ function parseRecipients(event) {
       return { name: parts[0] || '', title: parts.slice(1).join(' ') || '' };
     });
   }
-  return items
+  const cleaned = items
     .map((item) => ({ name: cleanText(item.name, 40), title: cleanText(item.title, 80) }))
-    .filter((item) => item.name)
-    .slice(0, 100);
+    .filter((item) => item.name);
+  // 单次上限 100，超出部分返回 total 让前端明确提示，而不是静默丢弃
+  return { list: cleaned.slice(0, 100), total: cleaned.length };
 }
 
 // 名字比对：去空格 + 忽略大小写，容忍主办方和选手输入的细微差异
@@ -481,38 +557,71 @@ async function handleIssueCertificates(openid, event) {
   const defaultTitle = cleanText(event.title, 80);
   const level = cleanText(event.level || 'award', 40);
   const imageFileId = cleanText(event.imageFileId, 300);
-  const recipients = parseRecipients(event);
+  const parsed = parseRecipients(event);
+  const recipients = parsed.list;
   if (!eventName) return { ok: false, code: 'BAD_REQUEST', message: '请填写赛事名称' };
   if (!recipients.length) return { ok: false, code: 'BAD_REQUEST', message: '请填写选手名单（一行一个名字）' };
   // 每行可用「名字,奖项」单独指定奖项；没写的用默认奖项标题
   if (!defaultTitle && recipients.some((item) => !item.title)) {
     return { ok: false, code: 'BAD_REQUEST', message: '请填写默认奖项标题，或在名单每行用「名字,奖项」指定' };
   }
+  // 内容安全：赛事名/奖项/名单会随奖杯公开展示，入库前送检
+  const securityText = [eventName, defaultTitle]
+    .concat(recipients.map((item) => [item.name, item.title].filter(Boolean).join(' ')))
+    .filter(Boolean)
+    .join('\n');
+  const textRisk = await checkTextSecurity(openid, securityText, eventName);
+  if (textRisk) return textRisk;
+  const imageRisk = await checkImageSecurity(imageFileId);
+  if (imageRisk) return imageRisk;
   const issuerName = organizer.orgName || organizer.role || 'HackerTrip 主办方';
   const now = Date.now();
-  const certificates = [];
-  for (const recipient of recipients) {
-    const code = await generateUniqueCode();
-    const data = {
-      eventId,
-      eventName,
-      title: recipient.title || defaultTitle,
-      level,
-      recipientName: recipient.name,
-      code,
-      issuerOpenid: openid,
-      issuerName,
-      imageFileId,
-      status: 'unclaimed',
-      claimedBy: '',
-      claimedAt: 0,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const added = await db.collection('certificates').add({ data });
-    certificates.push(publicCertificate(Object.assign({ _id: added._id }, data)));
+  // 幂等：同主办方同赛事下，同名同奖项已发过的跳过，超时重试/重复提交不会重复发码
+  const existedRes = await db.collection('certificates')
+    .where({ issuerOpenid: openid, eventName })
+    .limit(1000)
+    .get();
+  const existedKeys = {};
+  (existedRes.data || []).forEach((item) => {
+    existedKeys[`${normalizeName(item.recipientName)}|${normalizeName(item.title)}`] = true;
+  });
+  const skipped = [];
+  const fresh = recipients.filter((item) => {
+    const key = `${normalizeName(item.name)}|${normalizeName(item.title || defaultTitle)}`;
+    if (existedKeys[key]) {
+      skipped.push(item.name);
+      return false;
+    }
+    existedKeys[key] = true;
+    return true;
+  });
+  const codes = await generateUniqueCodes(fresh.length);
+  if (codes.length < fresh.length) {
+    return { ok: false, code: 'CODE_GEN_FAILED', message: '验证码生成失败，请稍后重试' };
   }
-  return { ok: true, certificates };
+  const docs = fresh.map((recipient, i) => ({
+    eventId,
+    eventName,
+    title: recipient.title || defaultTitle,
+    level,
+    recipientName: recipient.name,
+    code: codes[i],
+    issuerOpenid: openid,
+    issuerName,
+    imageFileId,
+    status: 'unclaimed',
+    claimedBy: '',
+    claimedAt: 0,
+    createdAt: now,
+    updatedAt: now,
+  }));
+  const certificates = [];
+  for (let i = 0; i < docs.length; i += 20) {
+    const chunk = docs.slice(i, i + 20);
+    const added = await Promise.all(chunk.map((data) => db.collection('certificates').add({ data })));
+    added.forEach((res, j) => certificates.push(publicCertificate(Object.assign({ _id: res._id }, chunk[j]))));
+  }
+  return { ok: true, certificates, skipped, truncated: Math.max(0, parsed.total - recipients.length) };
 }
 
 async function handleListCertificates(openid) {
@@ -550,9 +659,15 @@ async function handleClaimCertificate(openid, event) {
   }
   const user = await getCurrentUser(openid);
   const now = Date.now();
-  await db.collection('certificates').doc(cert._id).update({
-    data: { status: 'claimed', claimedBy: openid, claimedAt: cert.claimedAt || now, updatedAt: now },
-  });
+  // 原子领取：条件更新（仅未领取或本人已领取时命中），两个账号并发提交同一验证码只有一个成功
+  const updated = await db.collection('certificates')
+    .where({ _id: cert._id, claimedBy: _.in(['', openid]) })
+    .update({
+      data: { status: 'claimed', claimedBy: openid, claimedAt: cert.claimedAt || now, updatedAt: now },
+    });
+  if (!updated || !updated.stats || !updated.stats.updated) {
+    return { ok: false, code: 'ALREADY_CLAIMED', message: '这张奖状已被其他账号领取' };
+  }
   const payload = {
     eventId: cert.eventId || '',
     eventName: cert.eventName || '',
@@ -584,6 +699,13 @@ async function handleAddSelfAchievement(openid, event) {
   const title = cleanText(event.title, 80);
   if (!eventName) return { ok: false, code: 'BAD_REQUEST', message: '请填写赛事名称' };
   if (!title) return { ok: false, code: 'BAD_REQUEST', message: '请填写记录标题' };
+  const productUrl = cleanText(event.productUrl, 300);
+  const imageFileId = cleanText(event.imageFileId, 300);
+  // 内容安全：自述履历会在分享页/身份卡公开展示，入库前送检
+  const textRisk = await checkTextSecurity(openid, [eventName, title, productUrl].filter(Boolean).join('\n'), title);
+  if (textRisk) return textRisk;
+  const imageRisk = await checkImageSecurity(imageFileId);
+  if (imageRisk) return imageRisk;
   const user = await getCurrentUser(openid);
   const now = Date.now();
   const data = {
@@ -597,8 +719,8 @@ async function handleAddSelfAchievement(openid, event) {
     verified: false,
     verifiedBy: '',
     verifiedByName: '',
-    productUrl: cleanText(event.productUrl, 300),
-    imageFileId: cleanText(event.imageFileId, 300),
+    productUrl,
+    imageFileId,
     createdAt: now,
     updatedAt: now,
   };
