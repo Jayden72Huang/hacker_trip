@@ -5,7 +5,7 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
-const VALID_TYPES = ['new_hackathon', 'smart_recommendation', 'deadline_reminder'];
+const VALID_TYPES = ['new_hackathon', 'smart_recommendation', 'deadline_reminder', 'audit_result'];
 const VALID_STATUS = ['accept', 'reject', 'ban', 'filter', 'unknown'];
 
 function cleanText(value, maxLength) {

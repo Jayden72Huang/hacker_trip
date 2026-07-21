@@ -1,0 +1,82 @@
+@import "../focus.wxss";
+
+.guide-box {
+  padding: 28rpx;
+}
+
+.guide-copy {
+  margin-top: 10rpx;
+  color: #2B2B2B;
+  font-size: 24rpx;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.guide-btn {
+  margin-top: 22rpx;
+}
+
+.empty-card {
+  background: #FFFFFF;
+}
+
+.owned-card {
+  background: #FFFFFF;
+}
+
+.owned-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14rpx;
+}
+
+.source-tag {
+  flex: 0 0 auto;
+  padding: 4rpx 14rpx;
+  color: #000000;
+  background: #7ED957;
+  border: 3rpx solid #000000;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  font-weight: 900;
+}
+
+.source-tag--claim {
+  background: #FFD84D;
+}
+
+.owned-actions {
+  display: flex;
+  gap: 14rpx;
+  margin-top: 20rpx;
+}
+
+.owned-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 70rpx;
+  margin: 0;
+  color: #FFFFFF;
+  background: #0C51ED;
+  border: 4rpx solid #000000;
+  border-radius: 16rpx;
+  font-size: 26rpx;
+  font-weight: 900;
+}
+
+.owned-btn--white {
+  color: #000000;
+  background: #FFFFFF;
+}
+
+.owned-btn::after {
+  border: 0;
+}
+
+.create-btn {
+  margin-top: 32rpx;
+}

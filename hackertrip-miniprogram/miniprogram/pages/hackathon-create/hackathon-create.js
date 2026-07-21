@@ -211,6 +211,8 @@ Page({
 
   async submitHackathon() {
     if (this.data.submitting) return;
+    // 审核结果订阅授权必须在 tap 手势链内先唤起（await 之后 iOS 真机会丢手势被拒）
+    api.requestMessageSubscriptions([api.SUBSCRIBE_TYPES.AUDIT_RESULT], 'hackathon_submit').catch(() => {});
     this.setData({ submitting: true });
     if (api.isLoggedIn()) await api.syncUserDataIfLoggedIn().catch(() => {});
     if (!api.isOrganizerApproved()) {

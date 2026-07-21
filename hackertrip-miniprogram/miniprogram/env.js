@@ -23,5 +23,6 @@ module.exports = {
     newHackathon: 'OGH7Fhna7wcRgOLkEfDcFiBk78In5MM7Ch6SBX5LTRg',
     smartRecommendation: 'QlPVQ62U_JPoslrAvsKzGVtjQoUbgPY-9e_NzTPztvA',
     deadlineReminder: '7eqO_KPQ0NtrGFvztJNvfn01GXWV5R3tHeTUJLIrF44',
+    auditResult: 'r2PVMkbvhLt_UVLg5Y7aPVM0i59tMjCcSSmXgYNYJhU',
   },
 };

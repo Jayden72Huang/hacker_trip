@@ -22,6 +22,7 @@
     "pages/achievements/achievements",
     "pages/form-assistant/form-assistant",
     "pages/organizer-verify/organizer-verify",
+    "pages/organizer-events/organizer-events",
     "pages/event-checkin/event-checkin",
     "pages/event-members/event-members",
     "pages/team-builder/team-builder",

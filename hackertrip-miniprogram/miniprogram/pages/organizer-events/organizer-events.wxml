@@ -1,0 +1,45 @@
+<view class="focus-page">
+  <navbar title="{{title}}" showBack="{{true}}" showHome="{{true}}" />
+  <view class="focus-content">
+    <view class="focus-title">赛事管理</view>
+    <view class="focus-subtitle">你发布和认领的赛事都在这里。</view>
+
+    <view wx:if="{{!isApproved}}" class="brutal-box yellow-box guide-box">
+      <view class="box-title">需要组织者认证</view>
+      <view class="guide-copy">通过认证后，可以发布黑客松、认领赛事并在这里统一管理。</view>
+      <button class="native-btn native-btn--yellow guide-btn" bindtap="goOrganizer">去完成认证</button>
+    </view>
+
+    <block wx:else>
+      <view class="section-head">已上线赛事</view>
+      <view wx:if="{{!ownedHackathons.length}}" class="list-card empty-card">
+        <view class="list-title">还没有上线的赛事</view>
+        <view class="list-subtitle">发布的赛事审核通过、或认领申请通过后，会出现在这里。</view>
+      </view>
+      <view wx:for="{{ownedHackathons}}" wx:key="id" class="list-card owned-card">
+        <view class="owned-head">
+          <view class="list-title">{{item.name}}</view>
+          <text class="source-tag {{item.claimId ? 'source-tag--claim' : ''}}">{{item.sourceText}}</text>
+        </view>
+        <view class="list-subtitle">{{item.cityText}} · {{item.dateText}}</view>
+        <view class="owned-actions">
+          <button class="owned-btn owned-btn--white" data-id="{{item.id}}" bindtap="goOwnedDetail">赛事详情</button>
+        </view>
+      </view>
+
+      <view wx:if="{{drafts.length}}" class="section-head">赛事草稿</view>
+      <view wx:for="{{drafts}}" wx:key="id" class="list-card">
+        <view class="list-title">{{item.name}}</view>
+        <view class="list-subtitle">{{item.city}} · {{item.startDate}} - {{item.endDate}} · {{item.statusText}}</view>
+      </view>
+
+      <view wx:if="{{claims.length}}" class="section-head">认领申请</view>
+      <view wx:for="{{claims}}" wx:key="eventId" class="list-card">
+        <view class="list-title">{{item.eventName}}</view>
+        <view class="list-subtitle">{{item.statusText}} · {{item.eventCity || '城市待确认'}}</view>
+      </view>
+
+      <button class="native-btn native-btn--yellow create-btn" bindtap="goCreate">+ 发布新赛事</button>
+    </block>
+  </view>
+</view>

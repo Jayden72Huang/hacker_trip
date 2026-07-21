@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "赛事管理",
+  "usingComponents": {
+    "navbar": "/components/navbar/index"
+  }
+}

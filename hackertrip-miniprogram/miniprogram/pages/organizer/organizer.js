@@ -26,8 +26,12 @@ Page({
       proofUrl: '',
       note: '',
     },
-    claims: [],
-    ownedHackathons: [],
+    // 已认证组织者的权益入口
+    benefits: [
+      { title: '发布黑客松', sub: '创建赛事信息，提交后进入平台审核', url: '/pages/hackathon-create/hackathon-create' },
+      { title: '赛事管理', sub: '赛事草稿、已上线赛事和认领赛事', url: '/pages/organizer-events/organizer-events' },
+      { title: '发布奖杯', sub: '按名单批量发电子奖状，选手领取即官方认证', url: '/pages/organizer-verify/organizer-verify' },
+    ],
     form: {
       orgName: '',
       role: '',
@@ -35,21 +39,6 @@ Page({
       website: '',
       note: '',
     },
-    drafts: [],
-    tutorialOpen: false,
-  },
-
-  toggleTutorial() {
-    this.setData({ tutorialOpen: !this.data.tutorialOpen });
-  },
-
-  copyTutorialCmd(e) {
-    const cmd = e.currentTarget.dataset.cmd;
-    if (!cmd) return;
-    wx.setClipboardData({
-      data: cmd,
-      success: () => wx.showToast({ title: '已复制', icon: 'success' }),
-    });
   },
 
   onShow() {
@@ -60,7 +49,13 @@ Page({
 
   onLoad(options) {
     const ai = parseAIEntry(options);
-    const claimEventId = options && options.claim ? decodeURIComponent(options.claim) : '';
+    let claimEventId = options && options.claim ? decodeURIComponent(options.claim) : '';
+    // 认领意图持久化：认证审核期间用户离开、之后从推送或任意入口回到本页时，不丢「要认领哪场赛事」的上下文
+    if (claimEventId) {
+      try { wx.setStorageSync('ht_pending_claim', claimEventId); } catch (e) {}
+    } else {
+      try { claimEventId = wx.getStorageSync('ht_pending_claim') || ''; } catch (e) {}
+    }
     const fromCover = options && options.from === 'cover';
     const redirectAfterSubmit = options && options.redirect ? decodeURIComponent(options.redirect) : '';
     this.setData({
@@ -70,9 +65,22 @@ Page({
       fromCover,
       redirectAfterSubmit,
     });
-    // 从赛事详情「认领」跳转而来且尚未通过认证时，才提示先完成组织者认证
-    if (claimEventId && !api.isOrganizerApproved()) {
-      wx.showToast({ title: '先完成组织者认证，再提交赛事认领', icon: 'none', duration: 2600 });
+    // 从赛事详情「认领」跳转而来且尚未通过认证：弹窗讲清流程，并定位到下方的认证申请表单
+    if (options && options.claim && !api.isOrganizerApproved()) {
+      const orgStatus = (api.getOrganizerApplication() || {}).status;
+      if (orgStatus === 'pending') {
+        wx.showToast({ title: '组织者认证审核中，通过后即可提交认领', icon: 'none', duration: 2600 });
+      } else {
+        wx.showModal({
+          title: '先认证成为组织者',
+          content: '认领赛事需要先通过组织者认证。现在提交认证申请，审核结果会微信通知你；通过后回到本页即可直接提交认领。',
+          confirmText: '去填写',
+          showCancel: false,
+          success: () => {
+            wx.pageScrollTo({ selector: '#organizer-form', duration: 300, fail: () => {} });
+          },
+        });
+      }
     }
     // 渲染统一在 onShow 里做（onLoad 后必触发 onShow）
   },
@@ -80,8 +88,6 @@ Page({
   /** 只读本地 storage 的同步渲染，进页面即出，不等云端 */
   renderLocal() {
     const app = api.getOrganizerApplication();
-    const claims = api.getHackathonClaims().map((claim) => this.decorateClaim(claim));
-    const ownedHackathons = api.getOwnedHackathons().map((item) => this.decorateOwnedHackathon(item));
     const claimEventId = this.data.claimEventId;
     let claimEvent = this.data.claimEvent;
     if (claimEventId && (!claimEvent || claimEvent.id !== claimEventId)) {
@@ -91,21 +97,21 @@ Page({
     }
     const currentClaim = claimEventId ? (api.getHackathonClaim(claimEventId) || null) : null;
     const claimStatus = currentClaim ? currentClaim.status : 'none';
+    // 认领已通过：意图完成，清掉持久化，避免之后每次进页都恢复这张卡片
+    if (claimStatus === 'approved') {
+      try { wx.removeStorageSync('ht_pending_claim'); } catch (e) {}
+    }
     const payload = {
       status: app.status,
       statusText: this.getStatusText(app.status),
       statusActionText: this.getStatusActionText(app.status),
-      statusHint: this.getStatusHint(app.status),
+      // 认领模式下黄色状态卡的文案围绕认领流程，独立申请页保持发布赛事导向
+      statusHint: claimEventId ? this.getClaimModeStatusHint(app.status) : this.getStatusHint(app.status),
       claimEvent,
       claimStatus,
       claimStatusText: this.getClaimStatusText(claimStatus, app.status),
       claimStatusHint: this.getClaimStatusHint(claimStatus, app.status, currentClaim),
       claimActionText: this.getClaimActionText(claimStatus, app.status),
-      drafts: api.getHackathonDrafts().map((draft) => Object.assign({}, draft, {
-        statusText: this.getDraftStatusText(draft.status),
-      })),
-      claims,
-      ownedHackathons,
     };
     // 用户正在编辑的表单不被后台刷新覆盖
     if (!this._claimFormDirty) {
@@ -170,16 +176,15 @@ Page({
     return map[status] || map.none;
   },
 
-  getDraftStatusText(status) {
+  /** 认领模式（从赛事详情「认领」进入）下的状态卡文案：围绕认领流程，而不是发布赛事 */
+  getClaimModeStatusHint(status) {
     const map = {
-      pending_review: '待审核',
-      pending_manual_review: '平台审核中',
-      security_review: '安全复核中',
-      security_rejected: '安全检测未通过',
-      approved: '已发布',
-      rejected: '已拒绝',
+      none: '认领赛事需要组织者身份，先在下方提交认证申请，审核结果会微信通知你。',
+      pending: '认证审核中，通过后回到本页即可提交这场赛事的认领申请。',
+      approved: '认证已通过，请在下方填写并提交这场赛事的认领申请。',
+      rejected: '认证未通过，请根据反馈修改资料重新提交；通过后才能认领赛事。',
     };
-    return map[status] || '待审核';
+    return map[status] || map.none;
   },
 
   getClaimStatusText(status, organizerStatus) {
@@ -226,25 +231,6 @@ Page({
     return '提交认领申请';
   },
 
-  decorateClaim(item) {
-    const statusMap = {
-      pending: '赛事认领审核中',
-      security_review: '安全复核中',
-      approved: '认领已通过',
-      rejected: '需补充材料',
-    };
-    return Object.assign({}, item, {
-      statusText: statusMap[item.status] || '待提交',
-    });
-  },
-
-  decorateOwnedHackathon(item) {
-    return Object.assign({}, item, {
-      dateText: [item.startDate, item.endDate].filter(Boolean).join(' - ') || '时间待确认',
-      cityText: item.city || item.location || '城市待确认',
-    });
-  },
-
   onFieldInput(e) {
     const field = e.currentTarget.dataset.field;
     if (!field) return;
@@ -261,6 +247,8 @@ Page({
 
   async submitApplication() {
     if (this.data.submitting) return;
+    // 审核结果订阅授权必须在 tap 手势链内先唤起（await 之后 iOS 真机会丢手势被拒）
+    api.requestMessageSubscriptions([api.SUBSCRIBE_TYPES.AUDIT_RESULT], 'organizer_apply').catch(() => {});
     const authPath = this.data.fromCover
       ? '/pages/organizer/organizer?from=cover&redirect=discover'
       : '/pages/organizer/organizer';
@@ -396,13 +384,14 @@ Page({
       return;
     }
     wx.showToast({ title: '认领已提交', icon: 'success' });
+    // 认领申请已递交，持久化的认领意图完成使命
+    try { wx.removeStorageSync('ht_pending_claim'); } catch (e) {}
     this._claimFormDirty = false;
     this.renderLocal();
   },
 
-  goOwnedDetail(e) {
-    const id = e.currentTarget.dataset.id;
-    if (!id) return;
-    wx.navigateTo({ url: '/pages/detail/detail?id=' + id });
+  goBenefit(e) {
+    const url = e.currentTarget.dataset.url;
+    if (url) wx.navigateTo({ url });
   },
 });

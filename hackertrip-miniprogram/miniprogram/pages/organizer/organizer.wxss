@@ -23,6 +23,11 @@
   line-height: 1.4;
 }
 
+/* 认领模式：右侧无发布按钮，提示文字放开宽度 */
+.organizer-state--full .state-hint {
+  max-width: none;
+}
+
 .status-action {
   display: flex;
   align-items: center;
@@ -145,6 +150,30 @@
   color: #6C6C66;
   background: #ECE8DB;
   opacity: 1;
+}
+
+.benefit-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  background: #FFFFFF;
+}
+
+.benefit-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.benefit-arrow {
+  flex: 0 0 auto;
+  padding: 8rpx 22rpx;
+  color: #000000;
+  background: #FFD84D;
+  border: 3rpx solid #000000;
+  border-radius: 12rpx;
+  font-size: 22rpx;
+  font-weight: 900;
 }
 
 .owned-card {
