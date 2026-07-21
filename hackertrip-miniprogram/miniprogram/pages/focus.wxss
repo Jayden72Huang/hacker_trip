@@ -415,3 +415,25 @@
   font-weight: 800;
   line-height: 1.5;
 }
+
+/* 公开可见性徽章：设置/公开主页共用 */
+.vis-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2rpx 14rpx;
+  font-size: 20rpx;
+  font-weight: 900;
+  line-height: 1.6;
+  border: 2rpx solid #000000;
+  border-radius: 8rpx;
+}
+
+.vis-badge--public {
+  color: #FFFFFF;
+  background: #0C51ED;
+}
+
+.vis-badge--hidden {
+  color: #000000;
+  background: #E5E5E5;
+}

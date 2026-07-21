@@ -39,12 +39,14 @@ const SUBSCRIBE_TYPES = {
   NEW_HACKATHON: 'new_hackathon',
   SMART_RECOMMENDATION: 'smart_recommendation',
   DEADLINE_REMINDER: 'deadline_reminder',
+  AUDIT_RESULT: 'audit_result',
 };
 
 const SUBSCRIBE_TYPE_LABELS = {
   [SUBSCRIBE_TYPES.NEW_HACKATHON]: '黑客松上新',
   [SUBSCRIBE_TYPES.SMART_RECOMMENDATION]: '智能推荐',
   [SUBSCRIBE_TYPES.DEADLINE_REMINDER]: '截止提醒',
+  [SUBSCRIBE_TYPES.AUDIT_RESULT]: '审核结果',
 };
 
 /** 裂变成长态默认值（F1 暗号 + F2 集卡共用） */
@@ -83,7 +85,15 @@ const DEFAULT_PROFILE = {
     availability: '',
     openToMeet: true,
   },
+  // 公开主页字段级可见性；默认全部公开
+  visibility: {
+    publicSite: true,
+    skills: true,
+    works: true,
+  },
 };
+
+const DEFAULT_VISIBILITY = { publicSite: true, skills: true, works: true };
 
 function getPortfolioProjects() {
   const scan = getScanResults();
@@ -651,6 +661,12 @@ function getProfile() {
 }
 function mergeProfile(patch) {
   return Object.assign({}, getProfile(), patch || {});
+}
+
+/** 读取公开主页字段级可见性，缺省视为全部公开 */
+function getProfileVisibility() {
+  const v = getProfile().visibility;
+  return Object.assign({}, DEFAULT_VISIBILITY, v && typeof v === 'object' ? v : {});
 }
 
 async function saveProfileWithSync(patch, alreadyMerged) {
@@ -1678,6 +1694,7 @@ function getSubscribeTemplates() {
     [SUBSCRIBE_TYPES.NEW_HACKATHON]: cfg.newHackathon || '',
     [SUBSCRIBE_TYPES.SMART_RECOMMENDATION]: cfg.smartRecommendation || '',
     [SUBSCRIBE_TYPES.DEADLINE_REMINDER]: cfg.deadlineReminder || '',
+    [SUBSCRIBE_TYPES.AUDIT_RESULT]: cfg.auditResult || '',
   };
 }
 
@@ -1705,13 +1722,17 @@ function setSubscriptionCache(records) {
 function requestSubscribeMessage(tmplIds) {
   return new Promise((resolve) => {
     if (!wx.requestSubscribeMessage) {
-      resolve({ errMsg: 'requestSubscribeMessage:fail unsupported' });
+      resolve({ __failed: true, errMsg: 'requestSubscribeMessage:fail unsupported' });
       return;
     }
     wx.requestSubscribeMessage({
       tmplIds,
-      success: resolve,
-      fail: resolve,
+      success: (res) => resolve(res),
+      fail: (err) => resolve({
+        __failed: true,
+        errCode: err && err.errCode,
+        errMsg: (err && err.errMsg) || 'requestSubscribeMessage:fail',
+      }),
     });
   });
 }
@@ -1739,6 +1760,16 @@ async function requestMessageSubscriptions(types, source, preferences) {
     return templates[type];
   });
   const result = await requestSubscribeMessage(tmplIds);
+  // wx.requestSubscribeMessage 调用失败（模板不属于该 AppID / 系统关闭通知总开关 /
+  // 手势上下文丢失等）时不能伪装成成功，把 errCode 透出去便于定位。
+  if (result && result.__failed) {
+    return {
+      ok: false,
+      code: 'SUBSCRIBE_FAILED',
+      errCode: result.errCode,
+      message: result.errMsg || '唤起订阅授权失败',
+    };
+  }
   const now = Date.now();
   const records = tmplIds.map((templateId) => {
     const type = templateMap[templateId];
@@ -1997,6 +2028,7 @@ module.exports = {
   saveCard,
   getCardById,
   getProfile,
+  getProfileVisibility,
   saveProfile,
   saveProfileWithSync,
   getProfileQr,

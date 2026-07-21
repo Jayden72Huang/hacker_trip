@@ -63,12 +63,12 @@
       </view>
     </navigator>
 
-    <view wx:if="{{profileMode === 'organizer'}}" class="organizer-status">
+    <view wx:if="{{profileMode === 'organizer'}}" class="organizer-status" bindtap="goOrganizerStatus" hover-class="none">
       <view class="organizer-status-main">
         <text class="organizer-status-label">组织者状态</text>
         <text class="organizer-status-value {{organizerStatus === 'approved' ? 'is-approved' : ''}}">{{organizerStatusText}}</text>
       </view>
-      <view class="organizer-status-copy">通过组织者认证后，可以发布黑客松并管理赛事信息。</view>
+      <view class="organizer-status-copy">{{organizerStatus === 'approved' ? '已获得组织者权益，点击查看认证详情和权益功能。' : '通过组织者认证后，可以发布黑客松并管理赛事信息。点击去认证。'}}</view>
     </view>
 
     <view class="section-title role-section-title">{{profileMode === 'organizer' ? '举办方工具' : '工具'}}</view>
@@ -130,7 +130,10 @@
         hover-class="link-card--active"
       >
         <view class="link-main">
-          <view class="link-title">{{item.title}}</view>
+          <view class="link-title-line">
+            <text class="link-title">{{item.title}}</text>
+            <text wx:if="{{item.badge}}" class="vis-badge vis-badge--{{item.badgeType}}">{{item.badge}}</text>
+          </view>
           <view class="link-sub">{{item.sub}}</view>
         </view>
         <text class="link-arrow">进入</text>

@@ -260,6 +260,12 @@
   min-width: 0;
 }
 
+.link-title-line {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
 .link-title {
   color: #000000;
   font-size: 30rpx;

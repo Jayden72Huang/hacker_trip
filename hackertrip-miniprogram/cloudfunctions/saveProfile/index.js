@@ -93,6 +93,11 @@ exports.main = async (event) => {
     hackathonHistory: Array.isArray(profile.hackathonHistory) ? profile.hackathonHistory.slice(0, 30) : [],
     awards: Array.isArray(profile.awards) ? profile.awards.slice(0, 30) : [],
     teamPreference: profile.teamPreference && typeof profile.teamPreference === 'object' ? profile.teamPreference : {},
+    visibility: profile.visibility && typeof profile.visibility === 'object' ? {
+      publicSite: profile.visibility.publicSite !== false,
+      skills: profile.visibility.skills !== false,
+      works: profile.visibility.works !== false,
+    } : { publicSite: true, skills: true, works: true },
     updatedAt: now,
   };
 

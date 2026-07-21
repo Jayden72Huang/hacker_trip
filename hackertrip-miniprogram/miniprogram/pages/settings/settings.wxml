@@ -15,15 +15,31 @@
       <view wx:if="{{account.sync}}" class="box-copy">{{account.sync}}</view>
     </view>
 
-    <view class="list-card setting-row setting-row--stack">
-      <view>
-        <view class="list-title">通知提醒</view>
-        <view class="list-subtitle">订阅后，HackerTrip 可在你授权的次数内发送上新、智能推荐和截止提醒。</view>
+    <view class="list-card toggle-card">
+      <view class="list-title">通知提醒</view>
+      <view class="list-subtitle">订阅后，HackerTrip 可在你授权的次数内发送以下提醒。</view>
+      <view class="toggle-list">
+        <view wx:for="{{notify}}" wx:key="type" class="toggle-row">
+          <view class="toggle-info">
+            <view class="toggle-name">{{item.label}}</view>
+            <view class="toggle-desc">{{item.desc}}</view>
+          </view>
+          <switch class="ht-switch" checked="{{item.on}}" color="#0C51ED" data-type="{{item.type}}" bindchange="onNotifyToggle" />
+        </view>
       </view>
-      <view class="subscription-actions">
-        <button class="subscription-btn subscription-btn--blue" bindtap="subscribeNewHackathons">上新提醒</button>
-        <button class="subscription-btn" bindtap="subscribeSmartRecommendation">智能推荐</button>
-        <button class="subscription-btn" bindtap="subscribeDeadlineReminder">截止提醒</button>
+    </view>
+
+    <view class="list-card toggle-card">
+      <view class="list-title">隐私设置</view>
+      <view class="list-subtitle">按需公开你的主页内容，关闭后对外隐藏。</view>
+      <view class="toggle-list">
+        <view wx:for="{{privacy}}" wx:key="key" class="toggle-row">
+          <view class="toggle-info">
+            <view class="toggle-name">{{item.label}}</view>
+            <view class="toggle-desc">{{item.desc}}</view>
+          </view>
+          <switch class="ht-switch" checked="{{item.on}}" color="#0C51ED" data-key="{{item.key}}" bindchange="onPrivacyToggle" />
+        </view>
       </view>
     </view>
 

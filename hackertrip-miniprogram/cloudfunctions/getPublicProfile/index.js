@@ -38,6 +38,14 @@ exports.main = async (event) => {
       db.collection('works').where({ openid: user.openid, status: 'published' }).orderBy('updatedAt', 'desc').limit(50).get().catch(() => ({ data: [] })),
     ]);
 
+    // 字段级可见性：用户在设置里可关闭主页/技能/作品的对外展示
+    const visibility = user.visibility && typeof user.visibility === 'object' ? user.visibility : {};
+    if (visibility.publicSite === false) {
+      return { ok: false, code: 'PROFILE_PRIVATE', message: '该用户未公开主页' };
+    }
+    const showSkills = visibility.skills !== false;
+    const showWorks = visibility.works !== false;
+
     const lastPair = pairs.data && pairs.data[0];
     const works = (worksRes.data || []).map((w) => ({
       id: w._id,
@@ -49,8 +57,12 @@ exports.main = async (event) => {
       awards: w.awards || '',
       tags: Array.isArray(w.techStack) ? w.techStack.slice(0, 6) : [],
     }));
-    const projects = buildProjects(lastPair ? lastPair.scan : null);
-    const skills = Array.isArray(user.skills) ? user.skills : [];
+    const allProjects = buildProjects(lastPair ? lastPair.scan : null);
+    const allSkills = Array.isArray(user.skills) ? user.skills : [];
+    // 作品开关同时控制「作品集」与「同步项目画像」两块展示
+    const skills = showSkills ? allSkills : [];
+    const publicWorks = showWorks ? works : [];
+    const projects = showWorks ? allProjects : [];
     return {
       ok: true,
       profile: {
@@ -64,12 +76,12 @@ exports.main = async (event) => {
         skills,
         stats: {
           hackathons: (regs.data || []).length,
-          projects: projects.length + works.length,
+          projects: projects.length + publicWorks.length,
           skills: skills.length,
         },
       },
       projects,
-      works,
+      works: publicWorks,
     };
   } catch (e) {
     return { ok: false, message: String(e) };

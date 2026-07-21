@@ -33,6 +33,9 @@ Page({
     works: [],
     history: [],
     loading: true,
+    // isOwner=true 表示「预览自己的主页」，才显示对外公开 / 已隐藏标注
+    isOwner: false,
+    visibility: { publicSite: true, skills: true, works: true },
   },
 
   getUidFromOptions(options) {
@@ -108,6 +111,8 @@ Page({
       aiBanner: ai.fromAI,
       aiIntentText: ai.intent || 'public.site',
       loading: false,
+      isOwner: true,
+      visibility: api.getProfileVisibility(),
       profile: {
         uid: p.publicId || '',
         name: p.nickname, // wxml 用 profile.name，档案字段是 nickname

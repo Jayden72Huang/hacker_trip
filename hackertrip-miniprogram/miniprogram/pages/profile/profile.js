@@ -131,9 +131,17 @@ Page({
   },
 
   buildSettings(isAdmin) {
+    const vis = api.getProfileVisibility();
+    const sitePublic = vis.publicSite !== false;
     const list = [
       { title: '账号设置', sub: '登录方式、通知和隐私', url: '/pages/settings/settings' },
-      { title: '公开主页', sub: '预览你的 HackerTrip 主页', url: '/pages/public-site/public-site' },
+      {
+        title: '公开主页',
+        sub: '预览你的 HackerTrip 主页',
+        url: '/pages/public-site/public-site',
+        badge: sitePublic ? '对外公开' : '已隐藏',
+        badgeType: sitePublic ? 'public' : 'hidden',
+      },
     ];
     if (isAdmin) {
       list.unshift({
@@ -184,8 +192,8 @@ Page({
   buildOrganizerTools(status) {
     if (status === 'approved') {
       return [
-        { title: '发布黑客松', sub: '创建赛事信息，提交后进入审核', url: '/pages/hackathon-create/hackathon-create', action: 'open' },
-        { title: '赛事管理', sub: '查看已提交赛事和审核状态', url: '/pages/organizer/organizer', action: 'open' },
+        { title: '发布黑客松', sub: '创建赛事信息，提交后进入平台审核', url: '/pages/hackathon-create/hackathon-create', action: 'open' },
+        { title: '赛事管理', sub: '赛事草稿、已上线赛事和认领赛事', url: '/pages/organizer-events/organizer-events', action: 'open' },
         { title: '发布奖杯', sub: '按名单批量发电子奖状，选手领取即官方认证', url: '/pages/organizer-verify/organizer-verify', action: 'open' },
       ];
     }
@@ -201,6 +209,11 @@ Page({
       { title: '发布黑客松', sub: '需先申请并通过组织者认证', action: 'disabled' },
       { title: '赛事管理', sub: '认证通过后开放', action: 'disabled' },
     ];
+  },
+
+  /** 组织者状态卡：跳认证页看认证详情和权益功能 */
+  goOrganizerStatus() {
+    wx.navigateTo({ url: '/pages/organizer/organizer' });
   },
 
   switchMode(e) {

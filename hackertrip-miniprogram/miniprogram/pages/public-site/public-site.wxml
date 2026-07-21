@@ -27,6 +27,11 @@
     </view>
 
     <block wx:else>
+    <view wx:if="{{isOwner}}" class="vis-status {{visibility.publicSite === false ? 'vis-status--hidden' : 'vis-status--public'}}">
+      <text class="vis-status-label">公开主页</text>
+      <text class="vis-badge vis-badge--{{visibility.publicSite === false ? 'hidden' : 'public'}}">{{visibility.publicSite === false ? '已隐藏' : '对外公开'}}</text>
+    </view>
+
     <view class="brutal-box blue-box profile-hero">
       <view class="avatar public-avatar">
         <image wx:if="{{profile.avatarUrl}}" class="public-avatar-image" src="{{profile.avatarUrl}}" mode="aspectFill" />
@@ -61,7 +66,10 @@
       <view class="stat-item"><text class="stat-num">{{profile.stats.skills}}</text><text class="stat-label">Skills</text></view>
     </view>
 
-    <view class="section-head">技能</view>
+    <view class="section-head section-head--flex">
+      <text>技能</text>
+      <text wx:if="{{isOwner}}" class="vis-badge vis-badge--{{visibility.skills === false ? 'hidden' : 'public'}}">{{visibility.skills === false ? '已隐藏' : '对外公开'}}</text>
+    </view>
     <view class="chip-row">
       <text wx:for="{{profile.skills}}" wx:key="*this" class="focus-chip">{{item}}</text>
     </view>
@@ -87,7 +95,10 @@
       </view>
     </view>
 
-    <view class="section-head">项目</view>
+    <view class="section-head section-head--flex">
+      <text>作品 / 项目</text>
+      <text wx:if="{{isOwner}}" class="vis-badge vis-badge--{{visibility.works === false ? 'hidden' : 'public'}}">{{visibility.works === false ? '已隐藏' : '对外公开'}}</text>
+    </view>
     <view wx:for="{{projects}}" wx:key="id" class="list-card">
       <view class="list-title">{{item.name}}</view>
       <view class="list-subtitle">{{item.desc || item.subtitle}}</view>
