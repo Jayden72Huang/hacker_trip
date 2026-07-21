@@ -36,7 +36,10 @@ exports.main = async (event) => {
     return { ok: false, code: 'INVALID_FORM', message: '请填写机构、身份和联系方式' };
   }
 
+  // 内容安全检测：优雅降级——API 不可用(如未发布/个人号 -604101)或报错时不拒绝用户，转人工审核。
+  // 仅当 API 真正运行并判定「risky」才拦截；其余一律接受并进人工审核队列(飞书)。
   let security = null;
+  let securityUnavailable = false;
   try {
     security = await cloud.openapi.security.msgSecCheck({
       openid,
@@ -46,20 +49,14 @@ exports.main = async (event) => {
       title: form.orgName,
     });
   } catch (e) {
-    return { ok: false, code: 'SECURITY_CHECK_FAILED', message: String(e) };
+    securityUnavailable = true;
+    security = { _error: String((e && e.errMsg) || e) };
   }
 
   const suggest = security && security.result && security.result.suggest;
   const label = security && security.result && security.result.label;
-  if (security.errcode && security.errcode !== 0) {
-    return {
-      ok: false,
-      code: 'SECURITY_CHECK_FAILED',
-      message: security.errmsg || '内容安全检测失败',
-      security: { errcode: security.errcode, errmsg: security.errmsg },
-    };
-  }
-  if (suggest === 'risky') {
+  const apiErrored = securityUnavailable || !!(security.errcode && security.errcode !== 0);
+  if (!apiErrored && suggest === 'risky') {
     return {
       ok: false,
       code: 'CONTENT_RISKY',
@@ -72,7 +69,7 @@ exports.main = async (event) => {
   const data = Object.assign({}, form, {
     openid,
     status: 'pending',
-    securityStatus: suggest === 'review' ? 'review' : 'pass',
+    securityStatus: apiErrored ? 'review' : (suggest === 'review' ? 'review' : 'pass'),
     securityResult: security.result || null,
     securityTraceId: security.trace_id || '',
     approvalSource: 'server',

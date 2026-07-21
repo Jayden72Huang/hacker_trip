@@ -54,6 +54,50 @@ async function isAdmin(openid) {
   return false;
 }
 
+// 审核结果订阅通知：模板「审核结果通知」r2PVMkbv…，字段 phrase1 审核结果 / time2 审核时间 / thing3 温馨提示 / thing7 审核内容。
+// 只发给授权过 audit_result 的提交人；一次性订阅发送成功即标记 exhausted，等下次提交时重新授权。
+// 任何失败都静默吞掉，绝不影响审核动作本身。
+const AUDIT_TEMPLATE_ID = process.env.AUDIT_RESULT_TEMPLATE_ID || 'r2PVMkbvhLt_UVLg5Y7aPVM0i59tMjCcSSmXgYNYJhU';
+
+async function notifyAuditResult(touser, content, passed, note) {
+  const openid = cleanText(touser, 120);
+  if (!openid || !AUDIT_TEMPLATE_ID) return;
+  const sub = await db.collection('message_subscriptions')
+    .where({ openid, type: 'audit_result', status: 'accept' })
+    .limit(1)
+    .get()
+    .catch(() => null);
+  const record = sub && sub.data && sub.data[0];
+  if (!record) return;
+  try {
+    const d = new Date(Date.now() + 8 * 3600 * 1000);
+    const p = (n) => String(n).padStart(2, '0');
+    await cloud.openapi.subscribeMessage.send({
+      touser: openid,
+      templateId: AUDIT_TEMPLATE_ID,
+      page: '/pages/organizer/organizer',
+      data: {
+        phrase1: { value: passed ? '已通过' : '未通过' },
+        time2: { value: `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}` },
+        thing3: { value: cleanText(note, 20) || (passed ? '恭喜，点击查看详情' : '可修改后重新提交') },
+        thing7: { value: cleanText(content, 20) || '审核申请' },
+      },
+      miniprogramState: cleanText(process.env.MINIPROGRAM_STATE, 20) || 'formal',
+    });
+    await db.collection('message_subscriptions').doc(record._id).update({
+      data: { status: 'exhausted', lastSentAt: Date.now(), lastSendOk: true },
+    }).catch(() => {});
+  } catch (e) {
+    // 43101 = 配额用尽/用户拒收：同样标记 exhausted，避免后续审核反复空发；其余错误只记日志不阻断审核
+    if (String(e && e.errCode) === '43101') {
+      await db.collection('message_subscriptions').doc(record._id).update({
+        data: { status: 'exhausted', exhaustedAt: Date.now() },
+      }).catch(() => {});
+    }
+    console.warn('[notifyAuditResult]', String((e && e.errMsg) || e));
+  }
+}
+
 function publicDraftFields(draft, draftId) {
   const mode = normalizeMode(draft.mode);
   return {
@@ -152,6 +196,7 @@ async function approveDraft(event, openid) {
     },
   });
 
+  await notifyAuditResult(draft.organizerOpenid || draft.openid, `赛事「${draft.name || ''}」`, true, '已发布到赛事列表');
   return { ok: true, action: 'approveDraft', id: item.id };
 }
 
@@ -159,15 +204,19 @@ async function rejectDraft(event, openid) {
   const draftId = cleanText(event.draftId, 80);
   if (!draftId) return { ok: false, code: 'INVALID_DRAFT', message: '缺少草稿 id' };
   const now = Date.now();
+  const reason = cleanText(event.reason || '信息需要补充或未通过人工审核', 300);
+  const draftRes = await db.collection('hackathon_drafts').doc(draftId).get().catch(() => null);
+  const draft = (draftRes && draftRes.data) || {};
   await db.collection('hackathon_drafts').doc(draftId).update({
     data: {
       status: 'rejected',
-      rejectReason: cleanText(event.reason || '信息需要补充或未通过人工审核', 300),
+      rejectReason: reason,
       reviewedBy: openid,
       reviewedAt: now,
       updatedAt: now,
     },
   });
+  await notifyAuditResult(draft.organizerOpenid || draft.openid, `赛事「${draft.name || ''}」`, false, reason);
   return { ok: true, action: 'rejectDraft', id: draftId };
 }
 
@@ -175,6 +224,8 @@ async function approveOrganizer(event, openid) {
   const applicationId = cleanText(event.applicationId, 80);
   if (!applicationId) return { ok: false, code: 'INVALID_APPLICATION', message: '缺少组织者申请 id' };
   const now = Date.now();
+  const appRes = await db.collection('organizer_applications').doc(applicationId).get().catch(() => null);
+  const application = (appRes && appRes.data) || {};
   await db.collection('organizer_applications').doc(applicationId).update({
     data: {
       status: 'approved',
@@ -184,6 +235,7 @@ async function approveOrganizer(event, openid) {
       updatedAt: now,
     },
   });
+  await notifyAuditResult(application.openid, '组织者认证申请', true, '已获得主办方权限');
   return { ok: true, action: 'approveOrganizer', id: applicationId };
 }
 
@@ -258,6 +310,7 @@ async function approveClaim(event, openid) {
     },
   });
 
+  await notifyAuditResult(claim.openid, `认领「${target.name || claim.eventId || ''}」`, true, '赛事已绑定到你的账号');
   return { ok: true, action: 'approveClaim', id: claimId, hackathonId: target.id || claim.eventId || '' };
 }
 
@@ -265,15 +318,19 @@ async function rejectClaim(event, openid) {
   const claimId = cleanText(event.claimId, 80);
   if (!claimId) return { ok: false, code: 'INVALID_CLAIM', message: '缺少认领申请 id' };
   const now = Date.now();
+  const reason = cleanText(event.reason || '主办方证明不足或未通过人工审核', 300);
+  const claimRes = await db.collection('hackathon_claims').doc(claimId).get().catch(() => null);
+  const claim = (claimRes && claimRes.data) || {};
   await db.collection('hackathon_claims').doc(claimId).update({
     data: {
       status: 'rejected',
-      rejectReason: cleanText(event.reason || '主办方证明不足或未通过人工审核', 300),
+      rejectReason: reason,
       reviewedBy: openid,
       reviewedAt: now,
       updatedAt: now,
     },
   });
+  await notifyAuditResult(claim.openid, `认领「${claim.eventName || claim.eventId || ''}」`, false, reason);
   return { ok: true, action: 'rejectClaim', id: claimId };
 }
 
@@ -281,15 +338,19 @@ async function rejectOrganizer(event, openid) {
   const applicationId = cleanText(event.applicationId, 80);
   if (!applicationId) return { ok: false, code: 'INVALID_APPLICATION', message: '缺少组织者申请 id' };
   const now = Date.now();
+  const reason = cleanText(event.reason || '组织者信息需要补充或未通过人工审核', 300);
+  const appRes = await db.collection('organizer_applications').doc(applicationId).get().catch(() => null);
+  const application = (appRes && appRes.data) || {};
   await db.collection('organizer_applications').doc(applicationId).update({
     data: {
       status: 'rejected',
-      rejectReason: cleanText(event.reason || '组织者信息需要补充或未通过人工审核', 300),
+      rejectReason: reason,
       reviewedBy: openid,
       reviewedAt: now,
       updatedAt: now,
     },
   });
+  await notifyAuditResult(application.openid, '组织者认证申请', false, reason);
   return { ok: true, action: 'rejectOrganizer', id: applicationId };
 }
 
@@ -323,20 +384,25 @@ async function setPublished(event, openid) {
 
 exports.main = async (event) => {
   const openid = (cloud.getWXContext() || {}).OPENID;
-  const allowed = await isAdmin(openid);
+  // 服务端内部调用（opsReviewSync 反向写回）：带正确内部密钥即视为管理员，跳过 openid 校验。
+  // 密钥仅在云端环境变量里，外部无法伪造；审核动作里 reviewedBy 记为调用方 openid 或 'ops-sync'。
+  const internalSecret = process.env.OPS_INTERNAL_SECRET || '';
+  const isInternal = !!internalSecret && (event || {}).__internalSecret === internalSecret;
+  const allowed = isInternal || (await isAdmin(openid));
   if (!allowed) return { ok: false, code: 'FORBIDDEN', isAdmin: false, message: '仅管理员可管理赛事' };
+  const actorOpenid = openid || (isInternal ? 'ops-sync' : '');
 
   const action = cleanText((event || {}).action || 'list', 40);
   try {
     if (action === 'check') return { ok: true, isAdmin: true };
     if (action === 'list') return Object.assign({ ok: true, isAdmin: true }, await listData());
-    if (action === 'approveDraft') return await approveDraft(event || {}, openid);
-    if (action === 'rejectDraft') return await rejectDraft(event || {}, openid);
-    if (action === 'approveClaim') return await approveClaim(event || {}, openid);
-    if (action === 'rejectClaim') return await rejectClaim(event || {}, openid);
-    if (action === 'approveOrganizer') return await approveOrganizer(event || {}, openid);
-    if (action === 'rejectOrganizer') return await rejectOrganizer(event || {}, openid);
-    if (action === 'setPublished') return await setPublished(event || {}, openid);
+    if (action === 'approveDraft') return await approveDraft(event || {}, actorOpenid);
+    if (action === 'rejectDraft') return await rejectDraft(event || {}, actorOpenid);
+    if (action === 'approveClaim') return await approveClaim(event || {}, actorOpenid);
+    if (action === 'rejectClaim') return await rejectClaim(event || {}, actorOpenid);
+    if (action === 'approveOrganizer') return await approveOrganizer(event || {}, actorOpenid);
+    if (action === 'rejectOrganizer') return await rejectOrganizer(event || {}, actorOpenid);
+    if (action === 'setPublished') return await setPublished(event || {}, actorOpenid);
     return { ok: false, code: 'UNKNOWN_ACTION', message: '未知管理动作' };
   } catch (e) {
     return { ok: false, code: 'ADMIN_ACTION_FAILED', isAdmin: true, message: String(e) };

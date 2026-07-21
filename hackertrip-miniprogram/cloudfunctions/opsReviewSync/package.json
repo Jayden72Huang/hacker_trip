@@ -1,0 +1,9 @@
+{
+  "name": "opsReviewSync",
+  "version": "1.0.0",
+  "description": "运营审核同步：飞书正向导出 + 审核决定写回（HTTP 触发，密钥鉴权）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
