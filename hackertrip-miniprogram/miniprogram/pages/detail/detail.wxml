@@ -101,5 +101,27 @@
     <button class="native-link" open-type="share" hover-class="native-link--active">转发好友</button>
     <button class="native-btn" bindtap="joinSchedule">加入我的赛程</button>
   </view>
+
+  <view wx:if="{{registrationQrVisible}}" class="registration-qr-mask" bindtap="closeRegistrationQr">
+    <view class="registration-qr-panel" catchtap="stopPropagation">
+      <view class="registration-qr-head">
+        <view>
+          <view class="registration-qr-kicker">WECHAT SIGNUP</view>
+          <view class="registration-qr-title">扫码加入报名群</view>
+        </view>
+        <button class="registration-qr-close" bindtap="closeRegistrationQr">×</button>
+      </view>
+      <view class="registration-qr-image-shell">
+        <image
+          class="registration-qr-image"
+          src="{{item.registrationLink.value}}"
+          mode="widthFix"
+          show-menu-by-longpress="{{true}}"
+        />
+      </view>
+      <view class="registration-qr-tip">长按二维码识别或保存到相册</view>
+      <view class="registration-qr-expiry">二维码注明 7 月 26 日前有效</view>
+    </view>
+  </view>
   <auth-modal id="authModal" />
 </view>

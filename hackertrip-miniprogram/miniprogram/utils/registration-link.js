@@ -50,6 +50,16 @@ function toastFor(type) {
 function resolveRegistrationLink(item) {
   const source = item || {};
   const miniProgram = source.registrationMiniProgram || source.miniProgram || {};
+  const registration = source.registration || {};
+
+  const qrImage = firstText([
+    source.registrationQrImage,
+    source.registrationQrImageUrl,
+    registration.qrImage,
+  ]);
+  if (qrImage) {
+    return { type: 'wechatQr', value: qrImage, cta: '扫码报名' };
+  }
 
   const appId = firstText([
     source.registrationMiniProgramAppId,
@@ -133,6 +143,11 @@ function copyTextToClipboard(text, successToast) {
 function openRegistration(item) {
   const link = (item && item.registrationLink) || resolveRegistrationLink(item);
   if (!link || !link.value) return null;
+
+  if (link.type === 'wechatQr') {
+    wx.previewImage({ current: link.value, urls: [link.value] });
+    return link;
+  }
 
   if (link.type === 'miniProgramApp' || link.type === 'miniProgramShortLink') {
     const params = link.type === 'miniProgramApp'

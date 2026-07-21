@@ -42,6 +42,7 @@ Page({
     bookmarked: false,
     heat: { heat: 0, fans: 0, registrations: 0, bookmarks: 0, pct: 0, empty: true }, // F3 赛事热度
     notFound: false,
+    registrationQrVisible: false,
   },
 
   async onLoad(options) {
@@ -212,11 +213,23 @@ Page({
       return;
     }
 
+    const resolved = item.registrationLink || registration.resolveRegistrationLink(item);
+    if (resolved && resolved.type === 'wechatQr') {
+      this.setData({ registrationQrVisible: true });
+      return;
+    }
+
     const link = registration.openRegistration(item);
     if (link) return;
 
     await this.registerOnHackerTrip(item);
   },
+
+  closeRegistrationQr() {
+    this.setData({ registrationQrVisible: false });
+  },
+
+  stopPropagation() {},
 
   async registerOnHackerTrip(item) {
     const auth = await api.requireAuth(
